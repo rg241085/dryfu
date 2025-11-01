@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>एडवांस्ड स्क्रॉलिंग लेआउट (बड़ा डेटा)</title>
+
+    <style>
+        /* --- CSS (बिल्कुल वही जो पहले था) --- */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 15px;
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+            font-size: 1.2rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .main-categories {
+            background-color: #fff;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            flex-shrink: 0;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .main-categories ul {
+            list-style: none;
+            margin: 0;
+            padding: 0 15px;
+        }
+
+        .main-categories li {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .main-categories a {
+            display: block;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .main-categories a.active {
+            background-color: #007bff;
+            color: #fff;
+            border-color: #007bff;
+        }
+
+        .page-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar-nav {
+            width: 110px;
+            background-color: #f0f0f0;
+            flex-shrink: 0;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 10px;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .sidebar-nav a {
+            text-decoration: none;
+            color: #444;
+            font-size: 0.8rem;
+            display: block;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .sidebar-nav img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background-color: #ddd;
+            margin-bottom: 5px;
+            object-fit: cover;
+        }
+
+        .sidebar-nav a.active-sub {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .sidebar-nav a.active-sub img {
+            border: 2px solid #007bff;
+        }
+
+        .product-content {
+            flex: 1;
+            overflow-y: auto;
+            height: 100%;
+            padding: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .subcategory-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 20px 0 15px 5px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .product-card {
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .product-info {
+            padding: 10px;
+        }
+
+        .product-info h3 {
+            font-size: 1rem;
+            margin: 0 0 5px 0;
+        }
+
+        .price-add {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price {
+            font-weight: bold;
+        }
+
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .cart-bar {
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            padding: 15px;
+            flex-shrink: 0;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header" id="page-title"></header>
+    <nav class="main-categories">
+        <ul id="main-cat-list"></ul>
+    </nav>
+    <div class="page-container">
+        <aside class="sidebar-nav">
+            <ul id="sub-cat-list"></ul>
+        </aside>
+        <main class="product-content">
+            <div id="product-listing-area"></div>
+        </main>
+    </div>
+    <footer class="cart-bar"><button>View Cart</button></footer>
+
+    <script>
+        // --- 1. आपका बड़ा डेटाबेस ---
+        const catalogData = {
+            'dryfruits': {
+                displayName: 'Dry Fruits',
+                subCategories: {
+                    'kaju': {
+                        displayName: 'Kaju', image: 'https://via.placeholder.com/60/FFEBEE/880E4F?text=Kaju',
+                        products: [
+                            { name: 'Kaju Product 1', price: '₹250', image: 'https://via.placeholder.com/150/FFF/000?text=Kaju+1' },
+                            { name: 'Kaju Product 2', price: '₹210', image: 'https://via.placeholder.com/150/FFF/000?text=Kaju+2' },
+                            { name: 'Kaju Product 3', price: '₹220', image: 'https://via.placeholder.com/150/FFF/000?text=Kaju+3' },
+                            { name: 'Kaju Product 4', price: '₹230', image: 'https://via.placeholder.com/150/FFF/000?text=Kaju+4' },
+                            { name: 'Kaju Product 5', price: '₹240', image: 'https://via.placeholder.com/150/FFF/000?text=Kaju+5' }
+                        ]
+                    },
+                    'kismis': {
+                        displayName: 'Kismis', image: 'https://via.placeholder.com/60/E8F5E9/2E7D32?text=Kismis',
+                        products: [
+                            { name: 'Kismis Product 1', price: '₹150', image: 'https://via.placeholder.com/150/FFF/000?text=Kismis+1' },
+                            { name: 'Kismis Product 2', price: '₹180', image: 'https://via.placeholder.com/150/FFF/000?text=Kismis+2' },
+                            { name: 'Kismis Product 3', price: '₹160', image: 'https://via.placeholder.com/150/FFF/000?text=Kismis+3' },
+                            { name: 'Kismis Product 4', price: '₹170', image: 'https://via.placeholder.com/150/FFF/000?text=Kismis+4' },
+                            { name: 'Kismis Product 5', price: '₹175', image: 'https://via.placeholder.com/150/FFF/000?text=Kismis+5' }
+                        ]
+                    },
+                    'badam': {
+                        displayName: 'Badam', image: 'https://via.placeholder.com/60/FFF3E0/E65100?text=Badam',
+                        products: [
+                            { name: 'Badam Product 1', price: '₹300', image: 'https://via.placeholder.com/150/FFF/000?text=Badam+1' },
+                            { name: 'Badam Product 2', price: '₹320', image: 'https://via.placeholder.com/150/FFF/000?text=Badam+2' },
+                            { name: 'Badam Product 3', price: '₹310', image: 'https://via.placeholder.com/150/FFF/000?text=Badam+3' },
+                            { name: 'Badam Product 4', price: '₹330', image: 'https://via.placeholder.com/150/FFF/000?text=Badam+4' },
+                            { name: 'Badam Product 5', price: '₹340', image: 'https://via.placeholder.com/150/FFF/000?text=Badam+5' }
+                        ]
+                    },
+                    'pista': {
+                        displayName: 'Pista', image: 'https://via.placeholder.com/60/E8F5E9/388E3C?text=Pista',
+                        products: [
+                            { name: 'Pista Product 1', price: '₹400', image: 'https://via.placeholder.com/150/FFF/000?text=Pista+1' },
+                            { name: 'Pista Product 2', price: '₹410', image: 'https://via.placeholder.com/150/FFF/000?text=Pista+2' },
+                            { name: 'Pista Product 3', price: '₹420', image: 'https://via.placeholder.com/150/FFF/000?text=Pista+3' },
+                            { name: 'Pista Product 4', price: '₹430', image: 'https://via.placeholder.com/150/FFF/000?text=Pista+4' },
+                            { name: 'Pista Product 5', price: '₹440', image: 'https://via.placeholder.com/150/FFF/000?text=Pista+5' }
+                        ]
+                    },
+                    'walnut': {
+                        displayName: 'Walnut', image: 'https://via.placeholder.com/60/EFEBE9/3E2723?text=Walnut',
+                        products: [{ name: 'Walnut 1', price: '₹500', image: 'https://via.placeholder.com/150' }, { name: 'Walnut 2', price: '₹500', image: 'https://via.placeholder.com/150' }, { name: 'Walnut 3', price: '₹500', image: 'https://via.placeholder.com/150' }, { name: 'Walnut 4', price: '₹500', image: 'https://via.placeholder.com/150' }, { name: 'Walnut 5', price: '₹500', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'figs': {
+                        displayName: 'Figs', image: 'https://via.placeholder.com/60/F3E5F5/4A148C?text=Figs',
+                        products: [{ name: 'Figs 1', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Figs 2', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Figs 3', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Figs 4', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Figs 5', price: '₹600', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'dates': {
+                        displayName: 'Dates', image: 'https://via.placeholder.com/60/D7CCC8/3E2723?text=Dates',
+                        products: [{ name: 'Dates 1', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Dates 2', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Dates 3', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Dates 4', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Dates 5', price: '₹300', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'apricots': {
+                        displayName: 'Apricots', image: 'https://via.placeholder.com/60/FFE0B2/EF6C00?text=Apricots',
+                        products: [{ name: 'Apricots 1', price: '₹450', image: 'https://via.placeholder.com/150' }, { name: 'Apricots 2', price: '₹450', image: 'https://via.placeholder.com/150' }, { name: 'Apricots 3', price: '₹450', image: 'https://via.placeholder.com/150' }, { name: 'Apricots 4', price: '₹450', image: 'https://via.placeholder.com/150' }, { name: 'Apricots 5', price: '₹450', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'prunes': {
+                        displayName: 'Prunes', image: 'https://via.placeholder.com/60/B39DDB/311B92?text=Prunes',
+                        products: [{ name: 'Prunes 1', price: '₹400', image: 'https://via.placeholder.com/150' }, { name: 'Prunes 2', price: '₹400', image: 'https://via.placeholder.com/150' }, { name: 'Prunes 3', price: '₹400', image: 'https://via.placeholder.com/150' }, { name: 'Prunes 4', price: '₹400', image: 'https://via.placeholder.com/150' }, { name: 'Prunes 5', price: '₹400', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'hazelnuts': {
+                        displayName: 'Hazelnuts', image: 'https://via.placeholder.com/60/D7CCC8/4E342E?text=Hazelnuts',
+                        products: [{ name: 'Hazelnuts 1', price: '₹700', image: 'https://via.placeholder.com/150' }, { name: 'Hazelnuts 2', price: '₹700', image: 'https://via.placeholder.com/150' }, { name: 'Hazelnuts 3', price: '₹700', image: 'https://via.placeholder.com/150' }, { name: 'Hazelnuts 4', price: '₹700', image: 'https://via.placeholder.com/150' }, { name: 'Hazelnuts 5', price: '₹700', image: 'https://via.placeholder.com/150' }]
+                    }
+                }
+            },
+            'spices': {
+                displayName: 'Spices',
+                subCategories: {
+                    'jeera': {
+                        displayName: 'Jeera', image: 'https://via.placeholder.com/60/EFEBE9/3E2723?text=Jeera',
+                        products: [{ name: 'Jeera 1', price: '₹50', image: 'https://via.placeholder.com/150' }, { name: 'Jeera 2', price: '₹50', image: 'https://via.placeholder.com/150' }, { name: 'Jeera 3', price: '₹50', image: 'https://via.placeholder.com/150' }, { name: 'Jeera 4', price: '₹50', image: 'https://via.placeholder.com/150' }, { name: 'Jeera 5', price: '₹50', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'saunf': {
+                        displayName: 'Saunf', image: 'https://via.placeholder.com/60/E0F2F1/004D40?text=Saunf',
+                        products: [{ name: 'Saunf 1', price: '₹40', image: 'https://via.placeholder.com/150' }, { name: 'Saunf 2', price: '₹40', image: 'https://via.placeholder.com/150' }, { name: 'Saunf 3', price: '₹40', image: 'https://via.placeholder.com/150' }, { name: 'Saunf 4', price: '₹40', image: 'https://via.placeholder.com/150' }, { name: 'Saunf 5', price: '₹40', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'haldi': {
+                        displayName: 'Haldi', image: 'https://via.placeholder.com/60/FFF9C4/F57F17?text=Haldi',
+                        products: [{ name: 'Haldi 1', price: '₹60', image: 'https://via.placeholder.com/150' }, { name: 'Haldi 2', price: '₹60', image: 'https://via.placeholder.com/150' }, { name: 'Haldi 3', price: '₹60', image: 'https://via.placeholder.com/150' }, { name: 'Haldi 4', price: '₹60', image: 'https://via.placeholder.com/150' }, { name: 'Haldi 5', price: '₹60', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'mirch': {
+                        displayName: 'Mirch', image: 'https://via.placeholder.com/60/FFCDD2/B71C1C?text=Mirch',
+                        products: [{ name: 'Mirch 1', price: '₹70', image: 'https://via.placeholder.com/150' }, { name: 'Mirch 2', price: '₹70', image: 'https://via.placeholder.com/150' }, { name: 'Mirch 3', price: '₹70', image: 'https://via.placeholder.com/150' }, { name: 'Mirch 4', price: '₹70', image: 'https://via.placeholder.com/150' }, { name: 'Mirch 5', price: '₹70', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'dhaniya': {
+                        displayName: 'Dhaniya', image: 'https://via.placeholder.com/60/D1C4E9/512DA8?text=Dhaniya',
+                        products: [{ name: 'Dhaniya 1', price: '₹45', image: 'https://via.placeholder.com/150' }, { name: 'Dhaniya 2', price: '₹45', image: 'https://via.placeholder.com/150' }, { name: 'Dhaniya 3', price: '₹45', image: 'https://via.placeholder.com/150' }, { name: 'Dhaniya 4', price: '₹45', image: 'https://via.placeholder.com/150' }, { name: 'Dhaniya 5', price: '₹45', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'elaichi': {
+                        displayName: 'Elaichi', image: 'https://via.placeholder.com/60/C8E6C9/1B5E20?text=Elaichi',
+                        products: [{ name: 'Elaichi 1', price: '₹900', image: 'https://via.placeholder.com/150' }, { name: 'Elaichi 2', price: '₹900', image: 'https://via.placeholder.com/150' }, { name: 'Elaichi 3', price: '₹900', image: 'https://via.placeholder.com/150' }, { name: 'Elaichi 4', price: '₹900', image: 'https://via.placeholder.com/150' }, { name: 'Elaichi 5', price: '₹900', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'laung': {
+                        displayName: 'Laung', image: 'https://via.placeholder.com/60/A1887F/3E2723?text=Laung',
+                        products: [{ name: 'Laung 1', price: '₹800', image: 'https://via.placeholder.com/150' }, { name: 'Laung 2', price: '₹800', image: 'https://via.placeholder.com/150' }, { name: 'Laung 3', price: '₹800', image: 'https://via.placeholder.com/150' }, { name: 'Laung 4', price: '₹800', image: 'https://via.placeholder.com/150' }, { name: 'Laung 5', price: '₹800', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'kali_mirch': {
+                        displayName: 'Kali Mirch', image: 'https://via.placeholder.com/60/212121/FFFFFF?text=Kali+Mirch',
+                        products: [{ name: 'Kali Mirch 1', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Kali Mirch 2', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Kali Mirch 3', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Kali Mirch 4', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Kali Mirch 5', price: '₹600', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'tej_patta': {
+                        displayName: 'Tej Patta', image: 'https://via.placeholder.com/60/689F38/FFFFFF?text=Tej+Patta',
+                        products: [{ name: 'Tej Patta 1', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Tej Patta 2', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Tej Patta 3', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Tej Patta 4', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Tej Patta 5', price: '₹100', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'dalchini': {
+                        displayName: 'Dalchini', image: 'https://via.placeholder.com/60/8D6E63/FFFFFF?text=Dalchini',
+                        products: [{ name: 'Dalchini 1', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Dalchini 2', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Dalchini 3', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Dalchini 4', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Dalchini 5', price: '₹300', image: 'https://via.placeholder.com/150' }]
+                    }
+                }
+            },
+            'seeds': {
+                displayName: 'Seeds',
+                subCategories: {
+                    'chiya': {
+                        displayName: 'Chiya', image: 'https://via.placeholder.com/60/ECEFF1/263238?text=Chia',
+                        products: [{ name: 'Chiya 1', price: '₹120', image: 'https://via.placeholder.com/150' }, { name: 'Chiya 2', price: '₹120', image: 'https://via.placeholder.com/150' }, { name: 'Chiya 3', price: '₹120', image: 'https://via.placeholder.com/150' }, { name: 'Chiya 4', price: '₹120', image: 'https://via.placeholder.com/150' }, { name: 'Chiya 5', price: '₹120', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'pumpkin': {
+                        displayName: 'Pumpkin', image: 'https://via.placeholder.com/60/F1F8E9/558B2F?text=Pumpkin',
+                        products: [{ name: 'Pumpkin 1', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Pumpkin 2', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Pumpkin 3', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Pumpkin 4', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Pumpkin 5', price: '₹100', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'flax': {
+                        displayName: 'Flax', image: 'https://via.placeholder.com/60/6D4C41/FFFFFF?text=Flax',
+                        products: [{ name: 'Flax 1', price: '₹90', image: 'https://via.placeholder.com/150' }, { name: 'Flax 2', price: '₹90', image: 'https://via.placeholder.com/150' }, { name: 'Flax 3', price: '₹90', image: 'https://via.placeholder.com/150' }, { name: 'Flax 4', price: '₹90', image: 'https://via.placeholder.com/150' }, { name: 'Flax 5', price: '₹90', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'sunflower': {
+                        displayName: 'Sunflower', image: 'https://via.placeholder.com/60/FFF59D/FBC02D?text=Sunflower',
+                        products: [{ name: 'Sunflower 1', price: '₹110', image: 'https://via.placeholder.com/150' }, { name: 'Sunflower 2', price: '₹110', image: 'https://via.placeholder.com/150' }, { name: 'Sunflower 3', price: '₹110', image: 'https://via.placeholder.com/150' }, { name: 'Sunflower 4', price: '₹110', image: 'https://via.placeholder.com/150' }, { name: 'Sunflower 5', price: '₹110', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'sesame': {
+                        displayName: 'Sesame', image: 'https://via.placeholder.com/60/F5F5F5/424242?text=Sesame',
+                        products: [{ name: 'Sesame 1', price: '₹130', image: 'https://via.placeholder.com/150' }, { name: 'Sesame 2', price: '₹130', image: 'https://via.placeholder.com/150' }, { name: 'Sesame 3', price: '₹130', image: 'https://via.placeholder.com/150' }, { name: 'Sesame 4', price: '₹130', image: 'https://via.placeholder.com/150' }, { name: 'Sesame 5', price: '₹130', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'muskmelon': {
+                        displayName: 'Muskmelon', image: 'https://via.placeholder.com/60/FFCCBC/F4511E?text=Muskmelon',
+                        products: [{ name: 'Muskmelon 1', price: '₹140', image: 'https://via.placeholder.com/150' }, { name: 'Muskmelon 2', price: '₹140', image: 'https://via.placeholder.com/150' }, { name: 'Muskmelon 3', price: '₹140', image: 'https://via.placeholder.com/150' }, { name: 'Muskmelon 4', price: '₹140', image: 'https://via.placeholder.com/150' }, { name: 'Muskmelon 5', price: '₹140', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'watermelon': {
+                        displayName: 'Watermelon', image: 'https://via.placeholder.com/60/F8BBD0/C2185B?text=Watermelon',
+                        products: [{ name: 'Watermelon 1', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Watermelon 2', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Watermelon 3', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Watermelon 4', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Watermelon 5', price: '₹150', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'sabja': {
+                        displayName: 'Sabja', image: 'https://via.placeholder.com/60/B0BEC5/263238?text=Sabja',
+                        products: [{ name: 'Sabja 1', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Sabja 2', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Sabja 3', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Sabja 4', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Sabja 5', price: '₹100', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'quinoa': {
+                        displayName: 'Quinoa', image: 'https://via.placeholder.com/60/F5E6CA/795548?text=Quinoa',
+                        products: [{ name: 'Quinoa 1', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Quinoa 2', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Quinoa 3', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Quinoa 4', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Quinoa 5', price: '₹200', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'poppy': {
+                        displayName: 'Poppy', image: 'https://via.placeholder.com/60/CFD8DC/37474F?text=Poppy',
+                        products: [{ name: 'Poppy 1', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Poppy 2', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Poppy 3', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Poppy 4', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Poppy 5', price: '₹300', image: 'https://via.placeholder.com/150' }]
+                    }
+                }
+            },
+            'dehydrated': {
+                displayName: 'Dehydrated',
+                subCategories: {
+                    'pineapple': {
+                        displayName: 'Pineapple', image: 'https://via.placeholder.com/60/FFFDE7/FBC02D?text=Pineapple',
+                        products: [{ name: 'Pineapple 1', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Pineapple 2', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Pineapple 3', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Pineapple 4', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Pineapple 5', price: '₹200', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'mango': {
+                        displayName: 'Mango', image: 'https://via.placeholder.com/60/FFF3E0/F57C00?text=Mango',
+                        products: [{ name: 'Mango 1', price: '₹220', image: 'https://via.placeholder.com/150' }, { name: 'Mango 2', price: '₹220', image: 'https://via.placeholder.com/150' }, { name: 'Mango 3', price: '₹220', image: 'https://via.placeholder.com/150' }, { name: 'Mango 4', price: '₹220', image: 'https://via.placeholder.com/150' }, { name: 'Mango 5', price: '₹220', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'kiwi': {
+                        displayName: 'Kiwi', image: 'https://via.placeholder.com/60/E8F5E9/558B2F?text=Kiwi',
+                        products: [{ name: 'Kiwi 1', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Kiwi 2', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Kiwi 3', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Kiwi 4', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Kiwi 5', price: '₹250', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'papaya': {
+                        displayName: 'Papaya', image: 'https://via.placeholder.com/60/FFEB3B/F9A825?text=Papaya',
+                        products: [{ name: 'Papaya 1', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Papaya 2', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Papaya 3', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Papaya 4', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Papaya 5', price: '₹180', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'strawberry': {
+                        displayName: 'Strawberry', image: 'https://via.placeholder.com/60/FCE4EC/D81B60?text=Strawberry',
+                        products: [{ name: 'Strawberry 1', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Strawberry 2', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Strawberry 3', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Strawberry 4', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Strawberry 5', price: '₹300', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'blueberry': {
+                        displayName: 'Blueberry', image: 'https://via.placeholder.com/60/E3F2FD/1565C0?text=Blueberry',
+                        products: [{ name: 'Blueberry 1', price: '₹350', image: 'https://via.placeholder.com/150' }, { name: 'Blueberry 2', price: '₹350', image: 'https://via.placeholder.com/150' }, { name: 'Blueberry 3', price: '₹350', image: 'https://via.placeholder.com/150' }, { name: 'Blueberry 4', price: '₹350', image: 'https://via.placeholder.com/150' }, { name: 'Blueberry 5', price: '₹350', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'cranberry': {
+                        displayName: 'Cranberry', image: 'https://via.placeholder.com/60/FFEBEE/C62828?text=Cranberry',
+                        products: [{ name: 'Cranberry 1', price: '₹320', image: 'https://via.placeholder.com/150' }, { name: 'Cranberry 2', price: '₹320', image: 'https://via.placeholder.com/150' }, { name: 'Cranberry 3', price: '₹320', image: 'https://via.placeholder.com/150' }, { name: 'Cranberry 4', price: '₹320', image: 'https://via.placeholder.com/150' }, { name: 'Cranberry 5', price: '₹320', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'apple': {
+                        displayName: 'Apple', image: 'https://via.placeholder.com/60/F1F8E9/D32F2F?text=Apple',
+                        products: [{ name: 'Apple 1', price: '₹280', image: 'https://via.placeholder.com/150' }, { name: 'Apple 2', price: '₹280', image: 'https://via.placeholder.com/150' }, { name: 'Apple 3', price: '₹280', image: 'https://via.placeholder.com/150' }, { name: 'Apple 4', price: '₹280', image: 'https://via.placeholder.com/150' }, { name: 'Apple 5', price: '₹280', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'coconut': {
+                        displayName: 'Coconut', image: 'https://via.placeholder.com/60/EFEBE9/6D4C41?text=Coconut',
+                        products: [{ name: 'Coconut 1', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Coconut 2', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Coconut 3', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Coconut 4', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Coconut 5', price: '₹200', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'mixed_fruit': {
+                        displayName: 'Mixed Fruit', image: 'https://via.placeholder.com/60/F3E5F5/8E24AA?text=Mixed',
+                        products: [{ name: 'Mixed 1', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Mixed 2', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Mixed 3', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Mixed 4', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'Mixed 5', price: '₹300', image: 'https://via.placeholder.com/150' }]
+                    }
+                }
+            },
+            'oils': {
+                displayName: 'Oils',
+                subCategories: {
+                    'mustard': {
+                        displayName: 'Mustard', image: 'https://via.placeholder.com/60/FFF59D/F9A825?text=Mustard',
+                        products: [{ name: 'Mustard 1', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Mustard 2', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Mustard 3', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Mustard 4', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Mustard 5', price: '₹150', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'olive': {
+                        displayName: 'Olive', image: 'https://via.placeholder.com/60/DCEDC8/558B2F?text=Olive',
+                        products: [{ name: 'Olive 1', price: '₹400', image: 'https://via.placeholder.com/150' }, { name: 'Olive 2', price: '₹400', image: 'https://via.placeholder.com/150' }, { name: 'Olive 3', price: '₹400', image: 'https://via.placeholder.com/150' }, { name: 'Olive 4', price: '₹400', image: 'https://via.placeholder.com/150' }, { name: 'Olive 5', price: '₹400', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'coconut_oil': {
+                        displayName: 'Coconut', image: 'https://via.placeholder.com/60/EFEBE9/6D4C41?text=Coconut',
+                        products: [{ name: 'Coconut 1', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Coconut 2', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Coconut 3', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Coconut 4', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Coconut 5', price: '₹200', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'sunflower_oil': {
+                        displayName: 'Sunflower', image: 'https://via.placeholder.com/60/FFF9C4/FBC02D?text=Sunflower',
+                        products: [{ name: 'Sunflower 1', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Sunflower 2', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Sunflower 3', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Sunflower 4', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Sunflower 5', price: '₹180', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'sesame_oil': {
+                        displayName: 'Sesame', image: 'https://via.placeholder.com/60/F5E6CA/795548?text=Sesame',
+                        products: [{ name: 'Sesame 1', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Sesame 2', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Sesame 3', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Sesame 4', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Sesame 5', price: '₹250', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'groundnut': {
+                        displayName: 'Groundnut', image: 'https://via.placeholder.com/60/D7CCC8/4E342E?text=G.Nut',
+                        products: [{ name: 'Groundnut 1', price: '₹190', image: 'https://via.placeholder.com/150' }, { name: 'Groundnut 2', price: '₹190', image: 'https://via.placeholder.com/150' }, { name: 'Groundnut 3', price: '₹190', image: 'https://via.placeholder.com/150' }, { name: 'Groundnut 4', price: '₹190', image: 'https://via.placeholder.com/150' }, { name: 'Groundnut 5', price: '₹190', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'almond_oil': {
+                        displayName: 'Almond', image: 'https://via.placeholder.com/60/FFF3E0/E65100?text=Almond',
+                        products: [{ name: 'Almond 1', price: '₹500', image: 'https://via.placeholder.com/150' }, { name: 'Almond 2', price: '₹500', image: 'https://via.placeholder.com/150' }, { name: 'Almond 3', price: '₹500', image: 'https://via.placeholder.com/150' }, { name: 'Almond 4', price: '₹500', image: 'https://via.placeholder.com/150' }, { name: 'Almond 5', price: '₹500', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'ghee': {
+                        displayName: 'Ghee', image: 'https://via.placeholder.com/60/FFF8E1/FDD835?text=Ghee',
+                        products: [{ name: 'Ghee 1', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Ghee 2', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Ghee 3', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Ghee 4', price: '₹600', image: 'https://via.placeholder.com/150' }, { name: 'Ghee 5', price: '₹600', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'castor': {
+                        displayName: 'Castor', image: 'https://via.placeholder.com/60/F5F5F5/424242?text=Castor',
+                        products: [{ name: 'Castor 1', price: '₹130', image: 'https://via.placeholder.com/150' }, { name: 'Castor 2', price: '₹130', image: 'https://via.placeholder.com/150' }, { name: 'Castor 3', price: '₹130', image: 'https://via.placeholder.com/150' }, { name: 'Castor 4', price: '₹130', image: 'https://via.placeholder.com/150' }, { name: 'Castor 5', price: '₹130', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'rice_bran': {
+                        displayName: 'Rice Bran', image: 'https://via.placeholder.com/60/F5E6CA/795548?text=Rice',
+                        products: [{ name: 'Rice Bran 1', price: '₹170', image: 'https://via.placeholder.com/150' }, { name: 'Rice Bran 2', price: '₹170', image: 'https://via.placeholder.com/150' }, { name: 'Rice Bran 3', price: '₹170', image: 'https://via.placeholder.com/150' }, { name: 'Rice Bran 4', price: '₹170', image: 'https://via.placeholder.com/150' }, { name: 'Rice Bran 5', price: '₹170', image: 'https://via.placeholder.com/150' }]
+                    }
+                }
+            },
+            'flours': {
+                displayName: 'Flours',
+                subCategories: {
+                    'wheat': {
+                        displayName: 'Wheat', image: 'https://via.placeholder.com/60/F5E6CA/795548?text=Wheat',
+                        products: [{ name: 'Wheat 1', price: '₹50', image: 'https://via.placeholder.com/150' }, { name: 'Wheat 2', price: '₹50', image: 'https://via.placeholder.com/150' }, { name: 'Wheat 3', price: '₹50', image: 'https://via.placeholder.com/150' }, { name: 'Wheat 4', price: '₹50', image: 'https://via.placeholder.com/150' }, { name: 'Wheat 5', price: '₹50', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'besan': {
+                        displayName: 'Besan', image: 'https://via.placeholder.com/60/FFF9C4/F57F17?text=Besan',
+                        products: [{ name: 'Besan 1', price: '₹70', image: 'https://via.placeholder.com/150' }, { name: 'Besan 2', price: '₹70', image: 'https://via.placeholder.com/150' }, { name: 'Besan 3', price: '₹70', image: 'https://via.placeholder.com/150' }, { name: 'Besan 4', price: '₹70', image: 'https://via.placeholder.com/150' }, { name: 'Besan 5', price: '₹70', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'rice_flour': {
+                        displayName: 'Rice', image: 'https://via.placeholder.com/60/FAFAFA/424242?text=Rice',
+                        products: [{ name: 'Rice 1', price: '₹60', image: 'https://via.placeholder.com/150' }, { name: 'Rice 2', price: '₹60', image: 'https://via.placeholder.com/150' }, { name: 'Rice 3', price: '₹60', image: 'https://via.placeholder.com/150' }, { name: 'Rice 4', price: '₹60', image: 'https://via.placeholder.com/150' }, { name: 'Rice 5', price: '₹60', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'maida': {
+                        displayName: 'Maida', image: 'https://via.placeholder.com/60/F5F5F5/424242?text=Maida',
+                        products: [{ name: 'Maida 1', price: '₹40', image: 'https://via.placeholder.com/150' }, { name: 'Maida 2', price: '₹40', image: 'https://via.placeholder.com/150' }, { name: 'Maida 3', price: '₹40', image: 'https://via.placeholder.com/150' }, { name: 'Maida 4', price: '₹40', image: 'https://via.placeholder.com/150' }, { name: 'Maida 5', price: '₹40', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'sooji': {
+                        displayName: 'Sooji', image: 'https://via.placeholder.com/60/F5E6CA/795548?text=Sooji',
+                        products: [{ name: 'Sooji 1', price: '₹45', image: 'https://via.placeholder.com/150' }, { name: 'Sooji 2', price: '₹45', image: 'https://via.placeholder.com/150' }, { name: 'Sooji 3', price: '₹45', image: 'https://via.placeholder.com/150' }, { name: 'Sooji 4', price: '₹45', image: 'https://via.placeholder.com/150' }, { name: 'Sooji 5', price: '₹45', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'bajra': {
+                        displayName: 'Bajra', image: 'https://via.placeholder.com/60/D7CCC8/4E342E?text=Bajra',
+                        products: [{ name: 'Bajra 1', price: '₹80', image: 'https://via.placeholder.com/150' }, { name: 'Bajra 2', price: '₹80', image: 'https://via.placeholder.com/150' }, { name: 'Bajra 3', price: '₹80', image: 'https://via.placeholder.com/150' }, { name: 'Bajra 4', price: '₹80', image: 'https://via.placeholder.com/150' }, { name: 'Bajra 5', price: '₹80', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'jowar': {
+                        displayName: 'Jowar', image: 'https://via.placeholder.com/60/F5E6CA/795548?text=Jowar',
+                        products: [{ name: 'Jowar 1', price: '₹85', image: 'https://via.placeholder.com/150' }, { name: 'Jowar 2', price: '₹85', image: 'https://via.placeholder.com/150' }, { name: 'Jowar 3', price: '₹85', image: 'https://via.placeholder.com/150' }, { name: 'Jowar 4', price: '₹85', image: 'https://via.placeholder.com/150' }, { name: 'Jowar 5', price: '₹85', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'corn': {
+                        displayName: 'Corn', image: 'https://via.placeholder.com/60/FFF59D/FBC02D?text=Corn',
+                        products: [{ name: 'Corn 1', price: '₹75', image: 'https://via.placeholder.com/150' }, { name: 'Corn 2', price: '₹75', image: 'https://via.placeholder.com/150' }, { name: 'Corn 3', price: '₹75', image: 'https://via.placeholder.com/150' }, { name: 'Corn 4', price: '₹75', image: 'https://via.placeholder.com/150' }, { name: 'Corn 5', price: '₹75', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'ragi': {
+                        displayName: 'Ragi', image: 'https://via.placeholder.com/60/A1887F/3E2723?text=Ragi',
+                        products: [{ name: 'Ragi 1', price: '₹90', image: 'https://via.placeholder.com/150' }, { name: 'Ragi 2', price: '₹90', image: 'https://via.placeholder.com/150' }, { name: 'Ragi 3', price: '₹90', image: 'https://via.placeholder.com/150' }, { name: 'Ragi 4', price: '₹90', image: 'https://via.placeholder.com/150' }, { name: 'Ragi 5', price: '₹90', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'multigrain': {
+                        displayName: 'Multigrain', image: 'https://via.placeholder.com/60/D7CCC8/4E342E?text=Multi',
+                        products: [{ name: 'Multigrain 1', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Multigrain 2', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Multigrain 3', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Multigrain 4', price: '₹100', image: 'https://via.placeholder.com/150' }, { name: 'Multigrain 5', price: '₹100', image: 'https://via.placeholder.com/150' }]
+                    }
+                }
+            },
+            'teas': {
+                displayName: 'Teas',
+                subCategories: {
+                    'green': {
+                        displayName: 'Green', image: 'https://via.placeholder.com/60/C8E6C9/1B5E20?text=Green',
+                        products: [{ name: 'Green 1', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Green 2', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Green 3', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Green 4', price: '₹150', image: 'https://via.placeholder.com/150' }, { name: 'Green 5', price: '₹150', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'black': {
+                        displayName: 'Black', image: 'https://via.placeholder.com/60/212121/FFFFFF?text=Black',
+                        products: [{ name: 'Black 1', price: '₹120', image: 'https://via.placeholder.com/150' }, { name: 'Black 2', price: '₹120', image: 'https://via.placeholder.com/150' }, { name: 'Black 3', price: '₹120', image: 'https://via.placeholder.com/150' }, { name: 'Black 4', price: '₹120', image: 'https://via.placeholder.com/150' }, { name: 'Black 5', price: '₹120', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'herbal': {
+                        displayName: 'Herbal', image: 'https://via.placeholder.com/60/DCEDC8/558B2F?text=Herbal',
+                        products: [{ name: 'Herbal 1', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Herbal 2', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Herbal 3', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Herbal 4', price: '₹180', image: 'https://via.placeholder.com/150' }, { name: 'Herbal 5', price: '₹180', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'masala': {
+                        displayName: 'Masala', image: 'https://via.placeholder.com/60/FFCCBC/F4511E?text=Masala',
+                        products: [{ name: 'Masala 1', price: '₹160', image: 'https://via.placeholder.com/150' }, { name: 'Masala 2', price: '₹160', image: 'https://via.placeholder.com/150' }, { name: 'Masala 3', price: '₹160', image: 'https://via.placeholder.com/150' }, { name: 'Masala 4', price: '₹160', image: 'https://via.placeholder.com/150' }, { name: 'Masala 5', price: '₹160', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'oolong': {
+                        displayName: 'Oolong', image: 'https://via.placeholder.com/60/B2DFDB/00695C?text=Oolong',
+                        products: [{ name: 'Oolong 1', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Oolong 2', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Oolong 3', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Oolong 4', price: '₹250', image: 'https://via.placeholder.com/150' }, { name: 'Oolong 5', price: '₹250', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'white': {
+                        displayName: 'White', image: 'https://via.placeholder.com/60/FAFAFA/424242?text=White',
+                        products: [{ name: 'White 1', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'White 2', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'White 3', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'White 4', price: '₹300', image: 'https://via.placeholder.com/150' }, { name: 'White 5', price: '₹300', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'chamomile': {
+                        displayName: 'Chamomile', image: 'https://via.placeholder.com/60/FFF9C4/F57F17?text=Chamomile',
+                        products: [{ name: 'Chamomile 1', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Chamomile 2', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Chamomile 3', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Chamomile 4', price: '₹200', image: 'https://via.placeholder.com/150' }, { name: 'Chamomile 5', price: '₹200', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'peppermint': {
+                        displayName: 'Peppermint', image: 'https://via.placeholder.com/60/E0F2F1/004D40?text=Peppermint',
+                        products: [{ name: 'Peppermint 1', price: '₹190', image: 'https://via.placeholder.com/150' }, { name: 'Peppermint 2', price: '₹190', image: 'https://via.placeholder.com/150' }, { name: 'Peppermint 3', price: '₹190', image: 'https://via.placeholder.com/150' }, { name: 'Peppermint 4', price: '₹190', image: 'https://via.placeholder.com/150' }, { name: 'Peppermint 5', price: '₹190', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'jasmine': {
+                        displayName: 'Jasmine', image: 'https://via.placeholder.com/60/F5F5F5/424242?text=Jasmine',
+                        products: [{ name: 'Jasmine 1', price: '₹220', image: 'https://via.placeholder.com/150' }, { name: 'Jasmine 2', price: '₹220', image: 'https://via.placeholder.com/150' }, { name: 'Jasmine 3', price: '₹220', image: 'https://via.placeholder.com/150' }, { name: 'Jasmine 4', price: '₹220', image: 'https://via.placeholder.com/150' }, { name: 'Jasmine 5', price: '₹220', image: 'https://via.placeholder.com/150' }]
+                    },
+                    'hibiscus': {
+                        displayName: 'Hibiscus', image: 'https://via.placeholder.com/60/FCE4EC/D81B60?text=Hibiscus',
+                        products: [{ name: 'Hibiscus 1', price: '₹210', image: 'https://via.placeholder.com/150' }, { name: 'Hibiscus 2', price: '₹210', image: 'https://via.placeholder.com/150' }, { name: 'Hibiscus 3', price: '₹210', image: 'https://via.placeholder.com/150' }, { name: 'Hibiscus 4', price: '₹210', image: 'https://via.placeholder.com/150' }, { name: 'Hibiscus 5', price: '₹210', image: 'https://via.placeholder.com/150' }]
+                    }
+                }
+            }
+        };
+
+        // --- 2. HTML एलिमेंट्स को चुनना ---
+        const mainCatList = document.getElementById('main-cat-list');
+        const subCatList = document.getElementById('sub-cat-list');
+        const productListingArea = document.getElementById('product-listing-area');
+        const pageTitle = document.getElementById('page-title');
+        const productContent = productListingArea.parentElement;
+
+        // --- 3. IntersectionObserver के लिए एक वेरिएबल ---
+        let currentObserver = null;
+
+        // --- 4. एक्टिव सब-कैटेगरी सेट करने के लिए हेल्पर फंक्शन ---
+        function setActiveSubCategory(subKey) {
+            document.querySelectorAll('.sidebar-nav a').forEach(link => link.classList.remove('active-sub'));
+            const activeLink = document.querySelector(`.sidebar-nav a[data-sub-key="${subKey}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active-sub');
+            }
+        }
+
+        // --- 5. मुख्य फंक्शन (बदला हुआ) ---
+        function showSubCategoriesAndProducts(mainCatKey) {
+            if (currentObserver) {
+                currentObserver.disconnect();
+            }
+
+            subCatList.innerHTML = '';
+            productListingArea.innerHTML = '';
+
+            const mainCategory = catalogData[mainCatKey];
+            if (!mainCategory) return; // अगर डेटा न मिले तो रुक जाएं
+
+            const subCategories = mainCategory.subCategories;
+            pageTitle.innerText = mainCategory.displayName;
+
+            document.querySelectorAll('.main-categories a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`a[data-key="${mainCatKey}"]`).classList.add('active');
+
+            Object.keys(subCategories).forEach(subKey => {
+                const sub = subCategories[subKey];
+
+                // 5a. बाईं ओर सब-कैटेगरी लिंक बनाओ
+                subCatList.innerHTML += `
+                    <li>
+                        <a href="#${subKey}" data-sub-key="${subKey}">
+                            <img src="${sub.image}" alt="${sub.displayName}">
+                            ${sub.displayName}
+                        </a>
+                    </li>
+                `;
+
+                // 5b. दाईं ओर प्रोडक्ट सेक्शन बनाओ
+                let productSectionHTML = `<div id="${subKey}">`;
+                productSectionHTML += `<h2 class="subcategory-title">${sub.displayName}</h2>`;
+                productSectionHTML += `<div class="product-grid">`;
+
+                sub.products.forEach(product => {
+                    productSectionHTML += `
+                        <div class="product-card">
+                            <img src="${product.image}" alt="${product.name}">
+                            <div class="product-info">
+                                <h3>${product.name}</h3>
+                                <div class="price-add">
+                                    <span class="price">${product.price}</span>
+                                    <button class="add-btn">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                productSectionHTML += `</div></div>`;
+                productListingArea.innerHTML += productSectionHTML;
+            });
+
+            // 6. (क्लिक-टू-स्क्रॉल) बाईं ओर के लिंक्स पर क्लिक लिस्नर लगाओ
+            document.querySelectorAll('.sidebar-nav a').forEach(a => {
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const subKey = a.getAttribute('data-sub-key');
+                    const targetElement = document.getElementById(subKey);
+
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                    setActiveSubCategory(subKey);
+                });
+            });
+
+            // 7. (स्क्रॉल-टू-फोकस) नया IntersectionObserver सेट करो
+            const observerOptions = {
+                root: productContent,
+                rootMargin: '0px 0px -70% 0px', // टॉप पर 30% एरिया को देखो
+                threshold: 0.01
+            };
+
+            const observerCallback = (entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const subKey = entry.target.id;
+                        setActiveSubCategory(subKey);
+                    }
+                });
+            };
+
+            currentObserver = new IntersectionObserver(observerCallback, observerOptions);
+
+            productListingArea.querySelectorAll('div[id]').forEach(section => {
+                currentObserver.observe(section);
+            });
+
+            // 8. डिफ़ॉल्ट रूप से पहले वाले को एक्टिव करो
+            const firstSubKey = Object.keys(subCategories)[0];
+            if (firstSubKey) {
+                setActiveSubCategory(firstSubKey);
+            }
+        }
+
+        // --- 6. मेन कैटेगरी लोड करने का फंक्शन ---
+        function loadMainCategories() {
+            Object.keys(catalogData).forEach(mainKey => {
+                const mainCat = catalogData[mainKey];
+                mainCatList.innerHTML += `
+                    <li><a data-key="${mainKey}">${mainCat.displayName}</a></li>
+                `;
+            });
+
+            document.querySelectorAll('.main-categories a').forEach(a => {
+                a.addEventListener('click', () => {
+                    const mainKey = a.getAttribute('data-key');
+                    showSubCategoriesAndProducts(mainKey);
+                });
+            });
+        }
+
+        // --- 7. पेज लोड होने पर ऐप शुरू करना ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMainCategories();
+            showSubCategoriesAndProducts('dryfruits'); // डिफ़ॉल्ट
+        });
+
+    </script>
+</body>
+
+</html>
