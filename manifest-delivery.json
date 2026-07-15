@@ -1,0 +1,23 @@
+{
+    "id": "/delivery",
+    "name": "DRYFU Delivery Partner",
+    "short_name": "DRYFU Partner",
+    "description": "Delivery portal for DRYFU Partners.",
+   "start_url": "delivery.html?app=delivery",
+    "display": "standalone",
+    "background_color": "#f4f6f8",
+    "theme_color": "#128c7e",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "logo-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "logo-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

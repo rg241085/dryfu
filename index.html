@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DRYFU - Premium Dryfruits & Spices</title>
+
+    <link rel="manifest" href="manifest.json?v=2">
+    <meta name="theme-color" content="#128c7e">
+    <link rel="apple-touch-icon" href="logo-192.png">
+
+    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+
+    <div class="app-container" style="padding-bottom: 70px;">
+
+        <div id="home-page">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff;">
+                <h1 style="margin: 0; font-size: 24px; color: #128c7e; font-weight: 900; letter-spacing: 1px;">DRYFU
+                </h1>
+                <div style="display: flex; gap: 15px;">
+                    <span onclick="openCart()" style="font-size: 22px; cursor: pointer;">🛒</span>
+                    <span onclick="openProfile()" style="font-size: 22px; cursor: pointer;">👤</span>
+                </div>
+            </div>
+
+            <div style="padding: 0 20px 15px 20px; background: #fff;">
+                <div style="display: flex; align-items: center; background: #f4f6f8; border-radius: 12px; padding: 12px 15px; border: 1px solid #eef0f2; cursor: pointer;"
+                    onclick="switchTab('catalog')">
+                    <span style="font-size: 18px; margin-right: 10px; opacity: 0.7;">🔍</span>
+                    <span style="color: #888; font-size: 15px;">Search for Almonds, Cashews...</span>
+                </div>
+            </div>
+
+            <div style="padding: 1px 0px;">
+                <div id="dynamic-banner-container">
+                </div>
+            </div>
+
+            <div id="home-category-section" style="padding: 15px 0; display: none;">
+                <h3 style="margin: 0 0 15px 20px; font-size: 16px; font-weight: 800; color: #111;">Shop by Category</h3>
+                <div id="home-category-container" class="horizontal-scroll" style="padding: 0 20px;">
+                </div>
+            </div>
+
+            <div id="dynamic-tags-sections-container"></div>
+            <!-- <div
+                style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #111;">🔥 Trending Deals</h3>
+                <span onclick="switchTab('catalog')"
+                    style="color: #128c7e; font-size: 13px; font-weight: bold; cursor: pointer;">See All ></span>
+            </div> -->
+            <!-- <div id="trending-deals-container" class="horizontal-scroll" style="padding: 0 20px;">
+            </div> -->
+        </div>
+        <!-- </div> -->
+
+        <div id="catalog-page" style="display: none;">
+            <div id="main-top-header" style="background: #fff; padding-bottom: 10px;">
+                <div class="header"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+                    <span class="back-btn" onclick="switchTab('home')"
+                        style="font-size: 24px; cursor: pointer; font-weight: bold; color: #111;">←</span>
+                    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #111;">Catalogue</h2>
+                    <span class="profile-icon" style="font-size: 22px; cursor: pointer;"
+                        onclick="openProfile()">👤</span>
+                </div>
+
+                <div class="search-container" style="padding: 0 20px;">
+                    <div
+                        style="display: flex; align-items: center; background: #f4f6f8; border-radius: 8px; padding: 10px 15px; border: 1px solid #eef0f2;">
+                        <span style="font-size: 18px; margin-right: 10px; opacity: 0.7;">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search products..."
+                            style="border: none; background: transparent; outline: none; width: 100%; font-size: 15px; color: #333;"
+                            onkeyup="handleSearch()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="category-nav" class="category-nav"></div>
+
+            <div class="content-wrapper">
+                <div id="sub-category-nav" class="sub-category-nav hidden"></div>
+                <main id="catalog-main" class="catalog-padding">
+                    <p style="text-align:center; padding: 30px; color:#777;">⏳ Products load ho rahe hain...</p>
+                </main>
+            </div>
+        </div>
+        <div id="checkout-bar" class="checkout-bar hidden" style="bottom: 70px;">
+            <div class="cart-info">
+                <span id="cart-count">0 Items</span> | <span id="cart-total">₹0</span>
+            </div>
+            <button class="btn-checkout" onclick="openCart()">View Cart ➔</button>
+        </div>
+
+        <div id="cart-modal" class="cart-modal hidden" style="padding-bottom: 65px;">
+            <header class="header">
+                <div class="header-left">
+                    <span class="icon" onclick="closeCart()">←</span>
+                    <h2>Your Cart</h2>
+                    <div id="cart-gift-banner"
+                        style="display: none; background: #ecfdf5; color: #065f46; padding: 12px; text-align: center; font-size: 13px; margin: 10px; border-radius: 6px; border: 1px dashed #10b981; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease;">
+                    </div>
+                </div>
+            </header>
+
+            <main id="cart-items-container" class="cart-padding"></main>
+
+            <div class="checkout-bar" style="border-top: 1px solid #eee;">
+                <div class="cart-info">
+                    <span style="font-size: 13px; color: #777;">To Pay</span><br>
+                    <span id="modal-cart-total" style="font-size: 18px; color: #111;">₹0</span>
+                </div>
+                <button class="btn-checkout" onclick="openLoginModal('checkout')">Checkout ➔</button>
+            </div>
+        </div>
+
+        <div id="profile-modal" class="cart-modal hidden" style="background-color: #f4f7f6; padding-bottom: 65px;">
+            <header class="header" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div class="header-left">
+                    <span class="icon" onclick="handleProfileBack()">←</span>
+                    <h2 id="profile-title">My Account</h2>
+                </div>
+            </header>
+
+            <main id="profile-content-container" class="cart-padding" style="padding: 15px;"></main>
+        </div>
+
+        <div id="checkout-modal" class="cart-modal hidden" style="background-color: #f4f6f8; z-index: 2500;">
+            <header class="header" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div class="header-left">
+                    <span class="icon" onclick="closeCheckoutPage()">←</span>
+                    <h2 style="font-size:18px;">Checkout</h2>
+                </div>
+                <div class="header-right"
+                    style="color: #128c7e; font-weight:700; font-size: 12px; display:flex; align-items:center; gap:5px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#128c7e">
+                        <path
+                            d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z">
+                        </path>
+                    </svg>
+                    100% SECURE
+                </div>
+            </header>
+
+            <main id="checkout-content-container" class="cart-padding" style="padding: 12px; padding-bottom: 100px;">
+            </main>
+
+            <div class="checkout-bar" style="border-top: 1px solid #eee; background: #fff; z-index: 2501;">
+                <button class="btn-checkout btn-full"
+                    style="width:100%; font-size:16px; padding:15px; border-radius: 8px;"
+                    onclick="finalizeOrder()">Proceed to pay</button>
+            </div>
+        </div>
+
+        <div id="login-overlay" class="login-overlay">
+            <div class="login-box">
+                <div class="login-header">
+                    <h3>Login to continue</h3>
+                    <span class="close-login" onclick="closeLoginModal()">&times;</span>
+                </div>
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px;" id="loginHelpText">Please enter your
+                    10-digit mobile number.</p>
+
+                <div id="step1-phone">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" value="+91" disabled
+                            style="width: 60px; padding: 14px; border: 1px solid #ddd; border-radius: 10px; background: #f4f6f8; text-align: center; font-weight: bold; color: #333;">
+                        <input type="tel" id="mobileNumber" class="login-input" placeholder="Mobile Number"
+                            pattern="[0-9]{10}" style="margin-bottom: 0;" required>
+                    </div>
+                    <div id="recaptcha-container"></div>
+
+                    <button type="button" id="sendOtpBtn" class="btn-checkout btn-full" onclick="sendOTP()">Send
+                        OTP</button>
+                </div>
+
+                <div id="step2-otp" style="display: none;">
+                    <input type="number" id="otpInput" class="login-input" placeholder="Enter 6-digit OTP"
+                        style="letter-spacing: 5px; text-align: center; font-size: 20px; font-weight: bold;" required>
+
+                    <button type="button" id="verifyOtpBtn" class="btn-checkout btn-full" onclick="verifyOTP()">Verify
+                        OTP & Login</button>
+
+                    <p style="text-align: center; margin-top: 15px; font-size: 13px;">
+                        <a href="#" onclick="resetLoginUI()" style="color: #128c7e; text-decoration: underline;">Change
+                            Mobile Number</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="bottom-navigation" style="z-index: 2200;">
+        <div class="nav-item active" id="nav-home" onclick="window.bottomNavAction('home')">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Home</span>
+        </div>
+        <div class="nav-item" id="nav-catalog" onclick="window.bottomNavAction('catalog')">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">Categories</span>
+        </div>
+        <div class="nav-item" id="nav-cart" onclick="window.bottomNavAction('cart')">
+            <span class="nav-icon">🛒</span>
+            <span class="nav-text">Cart</span>
+        </div>
+        <div class="nav-item" id="nav-profile" onclick="window.bottomNavAction('profile')">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">Profile</span>
+        </div>
+    </div>
+
+    <div id="pdp-modal" class="cart-modal hidden" style="z-index: 2800; background-color: #f0f2f5; overflow-y: auto;">
+        <header class="header" style="position: sticky; top: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); z-index: 10;">
+            <div class="header-left">
+                <span class="icon" onclick="closePDP()">←</span>
+            </div>
+            <div class="header-right">
+                <span class="icon" onclick="openCart()" style="font-size: 22px;">🛒</span>
+            </div>
+        </header>
+        <main id="pdp-content-container" style="padding-bottom: 80px;"></main>
+        <div class="checkout-bar"
+            style="border-top: 1px solid #eee; display: flex; gap: 10px; background: #fff; z-index: 2801;">
+            <button id="pdp-add-btn" class="btn-checkout"
+                style="flex: 1; background: #fff; color: #128c7e; border: 1px solid #128c7e; padding: 12px;">Add to
+                Cart</button>
+            <button id="pdp-buy-btn" class="btn-checkout" style="flex: 1; padding: 12px;">Buy Now</button>
+        </div>
+    </div>
+
+
+    <div id="order-success-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center; backdrop-filter:blur(3px);">
+        <div
+            style="background:#fff; padding:30px; border-radius:12px; text-align:center; max-width:90%; width:380px; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+            <div style="font-size:60px; margin-bottom:10px;">🎉</div>
+            <h2 style="color:#128c7e; margin-bottom:10px;">Order Placed Successfully!</h2>
+            <p style="color:#555; font-size:14px; margin-bottom:5px;">Thank you for shopping with us.</p>
+            <p style="color:#333; font-weight:bold; font-size:16px; margin-bottom:25px;">Order ID: <span
+                    id="success-order-id" style="color:#128c7e;"></span></p>
+
+            <button onclick="closeSuccessAndOpenProfile()"
+                style="background:#128c7e; color:white; border:none; padding:12px 20px; border-radius:6px; width:100%; font-weight:bold; cursor:pointer; font-size:15px; margin-bottom:10px;">Track
+                Order in Profile</button>
+            <button onclick="closeSuccessModal()"
+                style="background:#f1f1f1; color:#333; border:none; padding:12px 20px; border-radius:6px; width:100%; font-weight:bold; cursor:pointer; font-size:15px;">Continue
+                Shopping</button>
+        </div>
+    </div>
+
+    <div id="toast-notification"
+        style="display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: #fff; padding: 12px 20px; border-radius: 8px; z-index: 10000; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: opacity 0.3s ease; text-align: center; width: 90%; max-width: 400px;">
+    </div>
+
+
+    </div>
+    <script type="module" src="script.js?v=4"></script>
+</body>
+
+</html>

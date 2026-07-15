@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Delivery Boy Portal</title>
+    <!-- 🌟 NAYA: Delivery App PWA Links -->
+    <link rel="manifest" href="manifest-delivery.json?v=2">
+    <meta name="theme-color" content="#128c7e">
+    <link rel="apple-touch-icon" href="logo-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f8;
+        }
+
+        .header {
+            background: #128c7e;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #login-screen {
+            padding: 30px 20px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        button {
+            background: #128c7e;
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #orders-screen {
+            display: none;
+            padding: 15px;
+            padding-bottom: 80px;
+        }
+
+        .order-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e0e0;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 10px;
+        }
+
+        .cust-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #111;
+        }
+
+        .amount {
+            font-size: 18px;
+            font-weight: 900;
+            color: #128c7e;
+        }
+
+        .details {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .map-btn {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #4caf50;
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-decoration: none;
+        }
+
+        .call-btn {
+            background: #e3f2fd;
+            color: #0d47a1;
+            border: 1px solid #2196f3;
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-decoration: none;
+        }
+
+        .deliver-btn {
+            background: #128c7e;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <span id="header-title">Delivery Partner Portal</span>
+        <span id="logout-btn"
+            style="display:none; font-size:13px; font-weight:normal; cursor:pointer; background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:4px;"
+            onclick="logout()">Logout</span>
+    </div>
+
+    <div id="login-screen">
+        <div style="font-size: 50px; margin-bottom: 10px;">🛵</div>
+        <h2 style="color: #333; margin-bottom: 20px;">Select Your Profile</h2>
+
+        <select id="boySelect">
+            <option value="" disabled selected>Loading your names...</option>
+        </select>
+
+        <input type="password" id="boyPin" placeholder="Enter 4-Digit PIN"
+            style="width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 20px; outline: none; text-align: center; letter-spacing: 5px;"
+            maxlength="4">
+
+        <button onclick="login()">Continue</button>
+    </div>
+
+    <div id="orders-screen">
+        <p style="color: #666; font-size: 14px; margin-bottom: 15px; font-weight: bold;" id="welcome-msg">Pending
+            Deliveries:</p>
+        <div id="orders-list"></div>
+    </div>
+
+    <script type="module">
+        // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+        import { collection, query, where, onSnapshot, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Yahan Apna Firebase Config Daalein (admin.html se copy karke)
+        import { db } from "./firebase-config.js";
+
+        let currentBoy = localStorage.getItem('deliveryBoyName');
+
+        if (currentBoy) { showOrdersScreen(); }
+
+        // Database ka data yahan temporary save karenge check karne ke liye
+        let allDeliveryBoysList = [];
+
+        window.login = async function () {
+            const name = document.getElementById('boySelect').value;
+            const enteredPin = document.getElementById('boyPin').value.trim();
+
+            if (!name) { alert("Please select your name!"); return; }
+            if (!enteredPin) { alert("Please enter your PIN!"); return; }
+
+            const btn = document.querySelector('#login-screen button');
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
+            try {
+                // NAYA LOGIC: Database me direct match karo
+                const q = query(
+                    collection(db, "deliveryBoys"),
+                    where("name", "==", name),
+                    where("pin", "==", enteredPin)
+                );
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // Pin match ho gaya
+                    currentBoy = name;
+                    localStorage.setItem('deliveryBoyName', name);
+                    document.getElementById('boyPin').value = '';
+                    showOrdersScreen();
+                } else {
+                    alert("Incorrect PIN! Access Denied.");
+                }
+            } catch (error) {
+                alert("Error connecting to server. Please try again.");
+            }
+
+            btn.innerText = "Continue";
+            btn.disabled = false;
+        }
+        window.logout = function () {
+            localStorage.removeItem('deliveryBoyName');
+            currentBoy = null;
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('orders-screen').style.display = 'none';
+            document.getElementById('logout-btn').style.display = 'none';
+            document.getElementById('header-title').innerText = "Delivery Partner Portal";
+        }
+
+        function showOrdersScreen() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('orders-screen').style.display = 'block';
+            document.getElementById('logout-btn').style.display = 'block';
+            document.getElementById('header-title').innerText = "Hi, " + currentBoy;
+
+            fetchAssignedOrders();
+        }
+
+        function fetchAssignedOrders() {
+            // Sirf wo orders lao jo is ladke ko assign hue hain aur "Delivered"/Cancelled nahi hain
+            const q = query(collection(db, "orders"), where("deliveryBoy", "==", currentBoy));
+
+            onSnapshot(q, (snapshot) => {
+                const list = document.getElementById('orders-list');
+                list.innerHTML = '';
+
+                let activeOrdersCount = 0;
+
+                snapshot.forEach(docSnap => {
+                    const order = docSnap.data();
+                    order.id = docSnap.id;
+
+                    // Agar order already delivered ya cancelled hai toh mat dikhao
+                    if (order.status === 'Delivered' || order.status === 'Cancelled') return;
+
+                    activeOrdersCount++;
+
+                    let addr = order.deliveryAddress;
+                    let fullAddress = typeof addr === 'object' ? `${addr.building}, ${addr.area}, ${addr.city} - ${addr.pincode}` : addr;
+                    let custName = typeof addr === 'object' ? addr.fullName : "Customer";
+                    let mobile = typeof addr === 'object' && addr.mobile ? addr.mobile : order.customerMobile;
+
+                    // Maps Button (Agar Lat Lng hai toh Maps link, warna normal address text)
+                    let mapLink = "";
+                    if (addr.lat && addr.lng) {
+                        mapLink = `https://www.google.com/maps?q=${addr.lat},${addr.lng}`;
+                    } else {
+                        mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+                    }
+
+                    list.innerHTML += `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div>
+                                    <div class="cust-name">${custName}</div>
+                                   <div style="font-size: 12px; color: #777;">Order ID: ${order.displayOrderId || "ORD" + order.id.substring(0, 6).toUpperCase()}</div>
+                                </div>
+                                <div class="amount">₹${order.totalAmount}</div>
+                            </div>
+                            <div class="details">
+                                📍 <strong>Address:</strong> ${fullAddress}<br>
+                                💳 <strong>Payment:</strong> <span style="color:${order.paymentMethod === 'COD' ? '#d97706' : '#16a34a'}; font-weight:bold;">${order.paymentMethod}</span>
+                            </div>
+                            
+                            <div style="display:flex; gap:10px;">
+                                <a href="tel:${mobile}" class="call-btn">📞 Call</a>
+                                <a href="${mapLink}" target="_blank" class="map-btn">🧭 Open Maps</a>
+                            </div>
+
+                            <button class="deliver-btn" onclick="markAsDelivered('${order.id}')">✅ Mark as Delivered</button>
+                        </div>
+                    `;
+                });
+
+                if (activeOrdersCount === 0) {
+                    list.innerHTML = `<div style="text-align:center; padding: 40px 20px; color:#777; background:#fff; border-radius:10px;">
+                        <div style="font-size:40px; margin-bottom:10px;">☕</div>
+                        No pending deliveries right now. Take a break!
+                    </div>`;
+                }
+            });
+        }
+
+        window.markAsDelivered = async function (orderId) {
+            if (confirm("Are you sure you have delivered this order and collected the cash (if COD)?")) {
+                try {
+                    await updateDoc(doc(db, "orders", orderId), { status: "Delivered" });
+                } catch (e) {
+                    alert("Error updating order: " + e.message);
+                }
+            }
+        }
+
+        // Global array for names only
+        let deliveryBoyNames = [];
+
+        async function loadDeliveryBoys() {
+            try {
+                const snap = await getDocs(collection(db, "deliveryBoys"));
+                const select = document.getElementById('boySelect');
+                select.innerHTML = '<option value="" disabled selected>-- Select your name --</option>';
+
+                deliveryBoyNames = [];
+
+                snap.forEach(docSnap => {
+                    let data = docSnap.data();
+                    deliveryBoyNames.push(data.name);
+                    select.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+                });
+            } catch (e) { console.error("Error loading delivery boys:", e); }
+        }
+        loadDeliveryBoys();
+
+
+
+    </script>
+    <!-- 🌟 NAYA: PWA Install Banner for Delivery (Upar se aayega) -->
+    <div id="pwa-install-banner"
+        style="position: fixed; top: 0; left: 0; width: 100%; background: #fff; padding: 25px 20px 20px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 5000; display: flex; align-items: center; justify-content: space-between; transform: translateY(-100%); transition: transform 0.5s ease-out; border-radius: 0 0 20px 20px; border-bottom: 3px solid #128c7e;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 30px;">🛵</div>
+            <div>
+                <h4 style="margin: 0; color: #111; font-size: 16px; font-weight: 900;">DRYFU Partner App</h4>
+                <p style="margin: 0; font-size: 12px; color: #666; margin-top: 3px;">Install for quick access!</p>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+            <button id="pwa-install-btn"
+                style="background: #128c7e; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(18,140,126,0.3);">Install</button>
+            <button id="pwa-close-btn"
+                style="background: transparent; border: none; color: #888; font-size: 12px; cursor: pointer; padding: 2px; font-weight: bold; text-decoration: underline;">Maybe
+                Later</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. Service Worker Register Karna
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // 🌟 NAYA: Yahan sw-delivery.js kar diya hai
+                navigator.serviceWorker.register('sw-delivery.js').then(reg => {
+                    console.log('Delivery SW Registered!');
+                });
+            });
+        }
+
+        // 2. Install Banner Logic
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwa-install-banner');
+        const installBtn = document.getElementById('pwa-install-btn');
+        const closeBtn = document.getElementById('pwa-close-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // 2 second baad install popup upar se niche aayega
+            setTimeout(() => {
+                installBanner.style.transform = 'translateY(0)';
+            }, 2000);
+        });
+
+        // Install button dabane par
+        installBtn.addEventListener('click', async () => {
+            installBanner.style.transform = 'translateY(-100%)'; // Banner wapas upar bhej do
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            }
+        });
+
+        // Maybe Later button dabane par
+        closeBtn.addEventListener('click', () => {
+            installBanner.style.transform = 'translateY(-100%)'; // Banner wapas upar bhej do
+        });
+    </script>
+
+</body>
+
+</html>

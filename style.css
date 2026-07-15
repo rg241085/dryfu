@@ -1,0 +1,1369 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #f0f2f5;
+}
+
+.app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    min-height: 100vh;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background-color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border-bottom: none;
+}
+
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-left h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-left: 15px;
+    color: #000;
+}
+
+.icon {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.header-left .icon {
+    margin-left: 0;
+}
+
+.category-nav {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 12px 20px;
+    white-space: nowrap;
+    scrollbar-width: none;
+    /* Firefox ke liye scrollbar hide */
+
+    /* 🌟 NAYA: STICKY FREEZE EFFECT */
+    position: -webkit-sticky;
+    /* Apple devices ke liye */
+    position: sticky;
+    /* Normal devices ke liye */
+    top: 0;
+    /* Ekdum top par jaakar rukega */
+    z-index: 1500;
+    /* Products ke upar rahega, mix nahi hoga */
+    background-color: #f4f6f8;
+    /* App ke background color jaisa taaki piche ka text na dikhe */
+    border-bottom: 1px solid #eef0f2;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    /* Chipakne par halki si shadow aayegi */
+}
+
+/* Chrome aur Safari mein scrollbar hide karne ke liye */
+.category-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.category-tab {
+    background-color: #f0f2f5;
+    color: #555;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.category-tab.active {
+    background-color: #128c7e;
+    color: white;
+}
+
+.content-wrapper {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.sub-category-nav {
+    width: 76px;
+    flex-shrink: 0;
+    background-color: #f3f5f7;
+    height: calc(100dvh - 167px);
+    position: sticky;
+    top: 167px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #d1d5db;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.04);
+    scrollbar-width: none;
+    padding-bottom: 140px;
+    /* NAYA: Sliding animation jisse panel smoothly upar-niche hoga */
+    transition: top 0.3s ease-in-out, height 0.3s ease-in-out;
+}
+
+/* NAYA CODE: Jab upar ka header hide ho, tab left panel ki position change karein */
+#main-top-header.hide-header-up~.content-wrapper .sub-category-nav {
+    top: 48px;
+    /* Ab yeh sirf "All, Dry Fruits" wale bar ke theek niche chipkega */
+    height: calc(100dvh - 48px);
+}
+
+.sub-category-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.sub-category-nav.hidden {
+    display: none;
+}
+
+.sub-category-tab {
+    background-color: transparent;
+    color: #555;
+    border: none;
+    border-bottom: 1px solid #e8eaed;
+    padding: 12px 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.sub-cat-img-wrapper {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #fff;
+    overflow: hidden;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #eaeaea;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.sub-cat-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sub-cat-name {
+    font-size: 10px;
+    text-align: center;
+    line-height: 1.2;
+    word-wrap: break-word;
+    max-width: 100%;
+    padding: 0 4px;
+}
+
+.sub-category-tab.active {
+    background-color: #fff;
+    border-left: 4px solid #128c7e;
+}
+
+.sub-category-tab.active .sub-cat-name {
+    font-weight: 700;
+    color: #000;
+}
+
+#catalog-main {
+    flex: 1;
+    width: 100%;
+    overflow-x: hidden;
+    background-color: #f4f6f8;
+    padding: 0 12px 150px 12px;
+    /* NAYA: Bottom padding ko 80px se badhakar 150px kar diya hai */
+}
+
+.category-section {
+    border-bottom: none;
+    scroll-margin-top: 110px;
+    margin-bottom: 25px;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 4px 12px 4px;
+}
+
+.category-header h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #111;
+    text-transform: capitalize;
+}
+
+.product-item {
+    display: flex;
+    padding: 14px;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef0f2;
+}
+
+.product-img {
+    width: 85px;
+    height: 85px;
+    border-radius: 8px;
+    object-fit: cover;
+    background-color: #f9f9f9;
+    border: 1px solid #f0f0f0;
+    margin-right: 15px;
+}
+
+.product-info {
+    flex: 1;
+    overflow: hidden;
+    padding-right: 5px;
+}
+
+.product-title {
+    font-size: 14px;
+    color: #1a1a1a;
+    font-weight: 700;
+    margin-bottom: 4px;
+    line-height: 1.3;
+    /* Niche ka code naam ko 2 lines me wrap karega aur uske baad ... lagayega */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    /* 🌟 NAYI LINE YAHAN JOD DEIN */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-desc {
+    font-size: 12px;
+    color: #777;
+    margin: 0 0 8px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.price-container {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.current-price {
+    font-size: 16px;
+    color: #111;
+    font-weight: 800;
+}
+
+.old-price {
+    font-size: 13px;
+    color: #999;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+.action-container {
+    min-width: 80px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-add {
+    background-color: #f3fdf6;
+    color: #318616;
+    border: 1px solid #318616;
+    padding: 6px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-add:hover {
+    background-color: #e5f7e9;
+}
+
+.qty-controls {
+    display: flex;
+    align-items: center;
+    border: 1px solid #318616;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #f3fdf6;
+    margin-left: 10px;
+}
+
+.btn-qty {
+    background-color: transparent;
+    color: #318616;
+    border: none;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.btn-qty:hover {
+    background-color: #e5f7e9;
+}
+
+.qty-count {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+    width: 24px;
+    text-align: center;
+    background-color: #fff;
+    line-height: 28px;
+}
+
+.checkout-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    border-top: none;
+}
+
+.checkout-bar.hidden {
+    display: none;
+}
+
+.cart-info {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111;
+}
+
+.btn-checkout {
+    background-color: #128c7e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(18, 140, 126, 0.3);
+}
+
+.cart-modal {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    height: 100%;
+    height: 100dvh;
+    background-color: #f4f6f8;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease-in-out;
+}
+
+.cart-modal.hidden {
+    transform: translate(100vw, 0);
+}
+
+.cart-modal .checkout-bar {
+    position: relative;
+    left: auto;
+    transform: none;
+    width: 100%;
+    margin-top: auto;
+    z-index: 2001;
+}
+
+.cart-padding {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px 15px 100px 15px;
+}
+
+.cart-item {
+    display: flex;
+    background: #fff;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    align-items: center;
+    border: 1px solid #eef0f2;
+}
+
+.cart-item-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-right: 12px;
+    border: 1px solid #f0f0f0;
+}
+
+.cart-item-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.cart-item-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cart-item-price {
+    font-size: 15px;
+    font-weight: 800;
+    color: #111;
+}
+
+.login-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 3000;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.login-overlay.active {
+    display: flex;
+}
+
+.login-box {
+    background: #fff;
+    width: 100%;
+    max-width: 480px;
+    padding: 24px;
+    border-radius: 20px 20px 0 0;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.login-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.login-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111;
+}
+
+.close-login {
+    font-size: 28px;
+    color: #888;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.login-input {
+    width: 100%;
+    padding: 14px 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    outline: none;
+    transition: 0.2s;
+}
+
+.login-input:focus {
+    border-color: #128c7e;
+    box-shadow: 0 0 0 3px rgba(18, 140, 126, 0.1);
+}
+
+.btn-full {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* --- 🌟 NAYA: PROFILE SECTION STYLES --- */
+.profile-tabs {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.p-tab {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #777;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: 0.2s;
+}
+
+.p-tab.active {
+    color: #128c7e;
+    border-bottom: 3px solid #128c7e;
+}
+
+.order-card,
+.address-card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    border: 1px solid #eef0f2;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #555;
+}
+
+.order-status {
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.status-New {
+    background: #ffeeba;
+    color: #856404;
+}
+
+.status-Processing {
+    background: #b8daff;
+    color: #004085;
+}
+
+.status-Delivered {
+    background: #c3e6cb;
+    color: #155724;
+}
+
+.status-Cancelled {
+    background: #f5c6cb;
+    color: #721c24;
+}
+
+.address-box textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+}
+
+.address-box textarea:focus {
+    border-color: #128c7e;
+}
+
+/* --- 🌟 NAYA: PREMIUM PROFILE SECTION STYLES --- */
+
+/* 1. Account Home View */
+.user-info-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eee;
+}
+
+.user-info-text h3 {
+    font-size: 18px;
+    color: #111;
+    margin-bottom: 5px;
+}
+
+.user-info-text p {
+    font-size: 14px;
+    color: #555;
+}
+
+.user-avatar {
+    font-size: 40px;
+    color: #555;
+    background: #f0f2f5;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-menu {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eee;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.profile-menu-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid #f9f9f9;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.profile-menu-item:last-child {
+    border-bottom: none;
+}
+
+.profile-menu-item:hover {
+    background: #f4f6f8;
+}
+
+.menu-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    color: #222;
+    font-weight: 500;
+}
+
+.menu-icon {
+    font-size: 20px;
+    color: #444;
+}
+
+.menu-arrow {
+    color: #999;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.logout-btn-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    color: #128c7e;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eee;
+}
+
+/* 2. Order History View */
+.order-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eee;
+}
+
+.order-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.order-details-left h4 {
+    font-size: 15px;
+    color: #111;
+    margin-bottom: 8px;
+    font-weight: 800;
+}
+
+.order-details-left p {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.order-details-right {
+    text-align: right;
+    font-size: 12px;
+    color: #777;
+}
+
+.order-details-right .date {
+    color: #555;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.dotted-divider {
+    border-top: 1px dashed #d1d5db;
+    margin: 15px 0;
+}
+
+.order-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+    text-transform: capitalize;
+}
+
+.status-badge.Cancelled {
+    background-color: #dc3545;
+}
+
+.status-badge.Processing {
+    background-color: #00bcd4;
+}
+
+.status-badge.Delivered {
+    background-color: #28a745;
+}
+
+.status-badge.New {
+    background-color: #ffc107;
+    color: #111;
+}
+
+.view-details {
+    font-size: 13px;
+    color: #111;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* 3. Address Book View */
+.address-card {
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    border: 1px solid #eee;
+}
+
+.addr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.addr-name {
+    font-size: 15px;
+    font-weight: bold;
+    color: #111;
+}
+
+.addr-tag {
+    background: #e2e8f0;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    color: #555;
+    letter-spacing: 0.5px;
+}
+
+.addr-full {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.addr-mobile {
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.addr-actions {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #111;
+}
+
+.addr-actions span {
+    cursor: pointer;
+}
+
+.add-new-addr-btn {
+    background: #128c7e;
+    color: #fff;
+    text-align: center;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(18, 140, 126, 0.2);
+}
+
+/* --- 🌟 PREMIUM ADD ADDRESS MODAL STYLES --- */
+.address-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.address-overlay.active {
+    display: flex;
+}
+
+.address-box-modal {
+    background: #fff;
+    width: 100%;
+    max-width: 480px;
+    padding: 20px;
+    border-radius: 20px 20px 0 0;
+    animation: slideUp 0.3s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.address-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #222;
+}
+
+.address-header .close-btn {
+    font-size: 26px;
+    color: #000;
+    cursor: pointer;
+    line-height: 1;
+    font-weight: bold;
+}
+
+.address-form-body {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.addr-input {
+    width: 100%;
+    padding: 14px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    color: #333;
+    transition: 0.2s;
+}
+
+.addr-input::placeholder {
+    color: #888;
+}
+
+.addr-input:focus {
+    border-color: #1e8354;
+}
+
+.addr-type-section {
+    margin-top: 5px;
+}
+
+.addr-type-section label {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 12px;
+}
+
+.addr-type-chips {
+    display: flex;
+    gap: 10px;
+}
+
+.type-chip {
+    padding: 8px 20px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #555;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.type-chip.active {
+    background: #1e8354;
+    color: white;
+    border-color: #1e8354;
+    font-weight: 500;
+}
+
+.btn-save-address {
+    width: 100%;
+    background: #1e8354;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+
+/* --- 📦 PREMIUM ORDER HISTORY EXPANSION STYLES --- */
+.order-items-details {
+    margin-top: 15px;
+    border-top: 1px dashed #e0e0e0;
+    padding-top: 15px;
+}
+
+.hist-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.hist-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hist-item-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.hist-item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+}
+
+.hist-item-qty-price {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.hist-item-total {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+}
+
+.btn-reorder-all {
+    width: 100%;
+    background: #f3fdf6;
+    color: #318616;
+    border: 1px solid #318616;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-reorder-all:hover {
+    background: #e5f7e9;
+}
+
+/* --- 💳 PREMIUM CHECKOUT STYLES --- */
+.chk-section {
+    background: #fff;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #eef0f2;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.chk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    cursor: pointer;
+    background: #fff;
+}
+
+.chk-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+}
+
+.chk-header-icon {
+    font-size: 18px;
+    color: #333;
+}
+
+.chk-header-right {
+    font-size: 14px;
+    color: #128c7e;
+}
+
+.chk-body {
+    padding: 0 15px 15px 15px;
+    display: none;
+    border-top: 1px dashed #eee;
+    margin-top: 5px;
+    padding-top: 15px;
+}
+
+.chk-body.active {
+    display: block;
+}
+
+/* Address Specific */
+.saved-address-box {
+    background: #f4f5f7;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #555;
+    margin-top: -5px;
+    margin-bottom: 15px;
+    margin-left: 15px;
+    margin-right: 15px;
+    display: block;
+}
+
+.address-radio-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.address-radio-label.selected {
+    border-color: #128c7e;
+    background: #f3fdf6;
+}
+
+.radio-custom {
+    accent-color: #128c7e;
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+}
+
+/* Price Details Specific */
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #444;
+}
+
+.price-row.discount {
+    color: #1e8354;
+    font-weight: 500;
+}
+
+.price-row.total {
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+    margin-top: 5px;
+    font-weight: 800;
+    font-size: 16px;
+    color: #111;
+}
+
+/* Coupon Specific */
+.coupon-input-box {
+    display: flex;
+    gap: 10px;
+}
+
+.coupon-input-box input {
+    flex: 1;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    outline: none;
+    text-transform: uppercase;
+}
+
+.coupon-input-box button {
+    background: #128c7e;
+    color: white;
+    border: none;
+    padding: 0 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* 🌟 SMART SCROLL HEADER ANIMATION */
+#main-top-header {
+    max-height: 150px;
+    /* Header ki normal height */
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, padding 0.3s ease-in-out;
+}
+
+/* Jab ye class JS se lagegi, toh header smooth upar chala jayega */
+.hide-header-up {
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    opacity: 0 !important;
+}
+
+/* ==========================================
+   🏠 HOME PAGE & BOTTOM NAV STYLES
+   ========================================== */
+.home-banner {
+    background: linear-gradient(135deg, #128c7e, #0a5f54);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 8px 20px rgba(18, 140, 126, 0.2);
+}
+
+.horizontal-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+    /* Hide scrollbar Firefox */
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar Chrome/Safari */
+}
+
+.circle-cat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 70px;
+    cursor: pointer;
+}
+
+.circle-cat .circle-icon {
+    width: 60px;
+    height: 60px;
+    background: #f4f6f8;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eef0f2;
+}
+
+.circle-cat span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+}
+
+/* Trending Product Card (Small) */
+.trending-card {
+    min-width: 140px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.trending-card img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+/* Bottom Navigation */
+.bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0 15px 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    border-top: 1px solid #eee;
+    z-index: 2000;
+}
+
+.bottom-navigation .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #888;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.bottom-navigation .nav-item.active {
+    color: #128c7e;
+}
+
+.bottom-navigation .nav-icon {
+    font-size: 22px;
+}
+
+.bottom-navigation .nav-text {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* BANNER SLIDER CSS */
+.banner-slider-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    /* Hide scrollbar Firefox */
+    gap: 15px;
+}
+
+.banner-slider-container::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar Chrome/Safari */
+}
+
+.banner-slide {
+    min-width: 100%;
+    scroll-snap-align: center;
+}

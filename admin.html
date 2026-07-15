@@ -1,0 +1,2862 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MyStore</title>
+    <style>
+        /* --- Global & Layout --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            padding: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #128c7e;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .menu {
+            list-style: none;
+            padding: 10px 0;
+            flex-grow: 1;
+        }
+
+        .menu li {
+            padding: 15px 20px;
+            color: #555;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .menu li:hover {
+            background-color: #f9f9f9;
+        }
+
+        .menu li.active {
+            background-color: #128c7e;
+            color: white;
+            border-radius: 0 25px 25px 0;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .topbar {
+            background-color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active-view {
+            display: block;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .btn-add {
+            background-color: #128c7e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-add:hover {
+            background-color: #0e6f63;
+        }
+
+        /* --- Table Styling --- */
+        .table-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #fcfcfc;
+            color: #777;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        td {
+            color: #333;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .td-img img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .status-select {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+        }
+
+        /* --- Modal Forms --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background: #fff;
+            width: 800px;
+            max-width: 95%;
+            padding: 30px;
+            border-radius: 12px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #444;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background: #fafafa;
+        }
+
+        .hidden-input {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .btn-cancel {
+            background: #f1f1f1;
+            color: #333;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            background: #128c7e;
+            color: white;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #message {
+            color: #128c7e;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .items-list {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* --- Order Tabs & Empty State Styles --- */
+        .order-tabs {
+            display: flex;
+            background: #f9f9f9;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+
+        .order-tab {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            border: none;
+            border-right: 1px solid #e0e0e0;
+            font-size: 14px;
+            color: #777;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .order-tab:last-child {
+            border-right: none;
+        }
+
+        .order-tab.active {
+            background: #fff;
+            color: #222;
+            border-top: 2px solid #5cb85c;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            background: #fff;
+            padding: 80px 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        /* --- Customers Detail View Styles --- */
+        .filter-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            color: #555;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .filter-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .cust-avatar {
+            width: 35px;
+            height: 35px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        .cust-detail-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .cust-main {
+            flex: 1;
+        }
+
+        .cust-sidebar {
+            width: 300px;
+            background: #fff;
+            padding: 30px 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .cust-sidebar .big-avatar {
+            width: 100px;
+            height: 100px;
+            background: #e2e8f0;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stat-card.blue {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+
+        .stat-card.green {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .stat-card.red {
+            background: #ffebee;
+            color: #b71c1c;
+        }
+
+        .stat-card.gray {
+            background: #f5f5f5;
+            color: #424242;
+        }
+
+        .stat-info span {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .stat-info h3 {
+            font-size: 18px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="admin-login-screen"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f6f8; z-index: 10000; display: flex; align-items: center; justify-content: center;">
+        <div
+            style="background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;">
+            <h2 style="margin-bottom: 5px; color: #111;">Admin Portal</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Please login to access the dashboard</p>
+
+            <input type="email" id="adminEmail" placeholder="Admin Email"
+                style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+            <input type="password" id="adminPassword" placeholder="Password"
+                style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+
+            <button id="adminLoginBtn" onclick="loginAdmin()"
+                style="width: 100%; padding: 12px; background: #128c7e; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px;">Login</button>
+        </div>
+    </div>
+
+    <div id="admin-dashboard-content" style="display: none; width: 100%; height: 100%; display: flex;">
+        <aside class="sidebar">
+            <div class="logo">MyStore<span style="font-size:12px; color:#999;">.admin</span></div>
+            <ul class="menu">
+                <li data-target="dashboard-view" class="active">📊 Dashboard</li>
+                <li data-target="orders-view">📦 Live Orders</li>
+                <li data-target="products-view">👕 Manage Products</li>
+                <li data-target="customers-view">👥 Customers Database</li>
+                <li data-target="offers-view">🎟️ Offers & Coupons</li>
+                <li data-target="delivery-boys-view">🛵 Delivery Partners</li>
+                <li data-target="banner-master-view">🖼️ Banner Master</li>
+                <li data-target="tags-master-view">🏷️ Tags Master</li>
+                <li data-target="category-master-view">📂 Category Master</li>
+                <li data-target="notifications-view">📢 Push Notifications</li>
+
+
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="topbar">
+                <span>⚙️ Store Admin | Control Panel</span>
+                <button onclick="logoutAdmin()"
+                    style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; margin-left: 15px;">Logout</button>
+            </div>
+            <div class="content-area">
+
+                <!-- 📊 DASHBOARD VIEW -->
+                <div id="dashboard-view" class="view-section active-view">
+                    <div class="page-header">
+                        <h2>Store Analytics Dashboard</h2>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card green" style="padding:30px;">
+                            <div style="font-size:30px;">💰</div>
+                            <div class="stat-info"><span>Total Revenue</span>
+                                <h3 id="dashRevenue" style="font-size:24px;">₹0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card blue" style="padding:30px;">
+                            <div style="font-size:30px;">📦</div>
+                            <div class="stat-info"><span>Total Orders Delivered</span>
+                                <h3 id="dashOrders" style="font-size:24px;">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card gray" style="padding:30px;">
+                            <div style="font-size:30px;">👥</div>
+                            <div class="stat-info"><span>Total Registered Users</span>
+                                <h3 id="dashCustomers" style="font-size:24px;">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="orders-view" class="view-section">
+                    <div class="page-header">
+                        <h2>Orders</h2>
+                        <button class="btn-add">+ Create New</button>
+                    </div>
+
+                    <div
+                        style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                        <input type="text" id="orderSearchInput"
+                            placeholder="🔍 Search by Order ID (DF-...), Customer Name or Mobile No..."
+                            onkeyup="window.renderOrdersTable()"
+                            style="padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; outline: none;">
+                    </div>
+
+                    <div class="order-tabs">
+                        <button class="order-tab active" data-filter="All">All Orders</button>
+                        <button class="order-tab" data-filter="New">Pending</button>
+                        <button class="order-tab" data-filter="Processing">In Progress</button>
+                        <button class="order-tab" data-filter="Delivered">Completed</button>
+                        <button class="order-tab" data-filter="Cancelled">Cancelled</button>
+                    </div>
+
+                    <div class="table-container" id="ordersTableContainer">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order Date</th>
+                                    <th>Order ID</th>
+                                    <th>Customer Details</th>
+                                    <th>Items Ordered</th>
+                                    <th>Total Amount</th>
+                                    <th>Order Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align:center;">Loading live orders...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="ordersEmptyState" class="empty-state" style="display: none;">
+                        <div style="font-size: 50px; margin-bottom: 15px;">🛒</div>
+                        <p style="color:#555;">You have not received any orders yet.</p>
+                        <button class="btn-add" style="margin-top: 20px;">+ Create New</button>
+                    </div>
+                </div>
+
+                <div id="delivery-boys-view" class="view-section">
+                    <div class="page-header">
+                        <h2>Manage Delivery Partners</h2>
+                    </div>
+
+                    <div class="filter-card"
+                        style="margin-bottom: 20px; max-width: 800px; display: flex; gap: 15px; align-items: flex-end;">
+                        <div class="form-group" style="flex: 1; margin: 0;">
+                            <label>Add New Delivery Boy (Name)</label>
+                            <input type="text" id="newBoyName" placeholder="e.g. Ramesh Singh" style="margin-top: 5px;">
+                        </div>
+                        <div class="form-group" style="flex: 1; margin: 0;">
+                            <label>Set 4-Digit Login PIN</label>
+                            <input type="number" id="newBoyPin" placeholder="e.g. 1234" style="margin-top: 5px;">
+                        </div>
+                        <button onclick="addDeliveryBoy()" class="btn-submit"
+                            style="background: #128c7e; height: 43px;">+ Add Partner</button>
+                    </div>
+
+                    <div class="table-container" style="max-width: 600px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Delivery Boy Name</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deliveryBoysTableBody">
+                                <tr>
+                                    <td colspan="2" style="text-align:center;">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="products-view" class="view-section">
+                    <div class="page-header">
+                        <h2>Products Inventory</h2>
+                        <button class="btn-add" id="openModalBtn">+ Add Product</button>
+                    </div>
+
+                    <div class="filter-card"
+                        style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; flex-wrap: wrap;">
+                        <input type="text" id="prodSearchInput" placeholder="🔍 Search by Product Name..."
+                            onkeyup="window.applyProductFilters()"
+                            style="padding: 10px; flex: 2; min-width: 200px; border: 1px solid #ccc; border-radius: 6px;">
+
+                        <select id="prodCatFilterSelect" onchange="window.updateFilterSubCategoryDropdown()"
+                            style="padding: 10px; flex: 1; min-width: 150px; border: 1px solid #ccc; border-radius: 6px;">
+                            <option value="ALL">All Categories</option>
+                        </select>
+
+                        <!-- NAYA: Sub Category Filter Dropdown -->
+                        <select id="prodSubCatFilterSelect" onchange="window.applyProductFilters()"
+                            style="padding: 10px; flex: 1; min-width: 150px; border: 1px solid #ccc; border-radius: 6px;">
+                            <option value="ALL">All Sub Categories</option>
+                        </select>
+
+                        <select id="prodSortSelect" onchange="window.applyProductFilters()"
+                            style="padding: 10px; flex: 1; min-width: 150px; border: 1px solid #ccc; border-radius: 6px; color: #128c7e; font-weight: bold;">
+                            <option value="NEWEST">Sort: Newest First</option>
+                            <option value="NAME_ASC">Name: A to Z</option>
+                            <option value="PRICE_LOW">Price: Low to High</option>
+                            <option value="PRICE_HIGH">Price: High to Low</option>
+                        </select>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Name</th>
+                                    <th>Order</th>
+                                    <th>Weight</th>
+                                    <th>Main Category</th>
+                                    <th>Sub Category</th>
+                                    <th>Total Stock</th>
+                                    <th>MRP</th>
+                                    <th>Selling Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align:center;">Loading products inventory...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="banner-master-view" class="view-section">
+
+                    <div class="page-header">
+                        <h2>Banner Master</h2>
+                    </div>
+
+                    <div
+                        style="background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                        <h3>Add New Banner (Home Page)</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="text" id="bannerTitle" placeholder="Banner Title (Eg: FLAT 20% OFF)"
+                                style="padding: 10px; width: 100%;">
+                            <input type="text" id="bannerImgUrl" placeholder="Image URL (External Link)"
+                                style="padding: 10px; width: 100%;">
+                        </div>
+                        <button onclick="saveBanner()"
+                            style="background: #128c7e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Save
+                            Banner</button>
+                    </div>
+
+                    <div style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                        <h4 style="margin-top: 0;">Active Banners</h4>
+                        <div id="admin-banner-list" style="display: flex; flex-direction: column; gap: 10px;">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="tags-master-view" class="view-section">
+                    <div class="page-header">
+                        <h2>Tags & Home Sections Master</h2>
+                    </div>
+
+                    <div
+                        style="background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                        <h3>Create New Tag / Section</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; margin-top: 10px;">
+                            <input type="number" id="tagPriority" placeholder="Order (1, 2..)"
+                                style="padding: 10px; width: 120px; border: 1px solid #ccc; border-radius: 6px;">
+                            <input type="text" id="tagTitle" placeholder="Tag Title (Eg: 🔥 Trending Deals)"
+                                style="padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 6px;">
+                            <input type="text" id="tagCode" placeholder="Tag Code (Eg: trending)"
+                                style="padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 6px; text-transform: lowercase;">
+                        </div>
+                        <button onclick="saveNewTag()"
+                            style="background: #128c7e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Save
+                            Tag</button>
+                    </div>
+
+                    <div style="background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                        <h4 style="margin-top: 0; margin-bottom: 15px;">Active Tags / Home Sections</h4>
+                        <div id="admin-tags-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    </div>
+                </div>
+
+                <div id="category-master-view" class="view-section">
+                    <div class="page-header">
+                        <h2>Category & Subcategory Master</h2>
+                    </div>
+
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <div
+                            style="flex: 1; min-width: 300px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                            <h3>1. Create Main Category</h3>
+                            <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 10px;">
+                                <input type="number" id="masterMainCatPriority" placeholder="Order"
+                                    style="width: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+                                <input type="text" id="masterMainCatName" placeholder="E.g., Dryfruits"
+                                    style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+                            </div>
+                            <button onclick="window.saveMasterMainCategory()"
+                                style="background: #128c7e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;">Save
+                                Main Category</button>
+
+                            <h4 style="margin-top: 20px;">Active Main Categories</h4>
+                            <div id="master-main-cat-list"
+                                style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+
+                        <div
+                            style="flex: 1; min-width: 300px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                            <h3>2. Create Subcategory with Image</h3>
+                            <select id="masterParentCatSelect"
+                                style="width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px;">
+                                <option value="">-- Select Main Category First --</option>
+                            </select>
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <input type="number" id="masterSubCatPriority" placeholder="Order"
+                                    style="width: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+                                <input type="text" id="masterSubCatName" placeholder="Subcategory Name"
+                                    style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+                            </div>
+                            <input type="text" id="masterSubCatImg" placeholder="Paste Image URL here"
+                                style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px;">
+                            <button onclick="window.saveMasterSubCategory()"
+                                style="background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;">Save
+                                Subcategory</button>
+
+                            <div
+                                style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                                <h4 style="margin: 0;">Active Subcategories</h4>
+                                <select id="filterMasterSubCat" onchange="window.renderMasterSubCatList()"
+                                    style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 12px; font-weight: bold; color: #128c7e;">
+                                    <option value="ALL">All Categories</option>
+                                </select>
+                            </div>
+                            <div id="master-sub-cat-list"
+                                style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+                <!-- <div
+                    style="background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                    <h3>Add New Banner (Home Page)</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="bannerTitle" placeholder="Banner Title (Eg: FLAT 20% OFF)"
+                            style="padding: 10px; width: 100%;">
+                        <input type="text" id="bannerImgUrl" placeholder="Image URL (External Link)"
+                            style="padding: 10px; width: 100%;">
+                    </div>
+                    <button onclick="saveBanner()"
+                        style="background: #128c7e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Save
+                        Banner</button>
+                </div>
+
+                <div
+                    style="margin-top: 20px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                    <h4 style="margin-top: 0;">Active Banners</h4>
+                    <div id="admin-banner-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    </div>
+                </div> -->
+
+
+                <div id="customers-view" class="view-section">
+                    <div id="customer-list-container">
+                        <div class="page-header">
+                            <h2>Customers</h2>
+                        </div>
+                        <div class="filter-card">
+                            <div class="filter-group">
+                                <label>Enter Client's ID / Mobile</label>
+                                <input type="text" id="searchCustomerInput" placeholder="Search by Mobile No..."
+                                    onkeyup="filterCustomers()">
+                            </div>
+                            <div class="filter-group">
+                                <label>Joined On</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Customer Info</th>
+                                        <th>Contact</th>
+                                        <th>Join Date / Last Active</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customersTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align:center;">Loading customer profiles...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="customer-detail-container" style="display: none;">
+                        <div class="page-header">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <button class="btn-cancel" onclick="backToCustomerList()" style="padding: 8px 15px;">←
+                                    Back</button>
+                                <h2>Customer Details</h2>
+                            </div>
+                        </div>
+                        <div class="cust-detail-layout">
+                            <div class="cust-main">
+                                <div class="stats-grid">
+                                    <div class="stat-card blue">
+                                        <div style="font-size: 24px;">🧾</div>
+                                        <div class="stat-info">
+                                            <span>Total Orders</span>
+                                            <h3 id="detTotalOrders">0</h3>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card green">
+                                        <div style="font-size: 24px;">💰</div>
+                                        <div class="stat-info">
+                                            <span>Purchase worth</span>
+                                            <h3 id="detPurchaseWorth">₹0.00</h3>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card red">
+                                        <div style="font-size: 24px;">📅</div>
+                                        <div class="stat-info">
+                                            <span>Joined / Active On</span>
+                                            <h3 id="detJoinedOn">-</h3>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card gray">
+                                        <div style="font-size: 24px;">🛍️</div>
+                                        <div class="stat-info">
+                                            <span>Last Purchase</span>
+                                            <h3 id="detLastPurchase">-</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h3 style="margin-bottom: 15px; color: #333;">Purchase History</h3>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Order ID</th>
+                                                <th>Date</th>
+                                                <th>Items</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="detPurchaseHistoryBody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="cust-sidebar">
+                                <div class="big-avatar"></div>
+                                <h3 id="detSidebarName" style="margin-bottom: 10px;">Customer</h3>
+                                <p id="detSidebarPhone" style="color: #666; font-size: 15px; font-weight: bold;">+91
+                                    ----------</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🎟️ OFFERS & COUPONS VIEW -->
+                <div id="offers-view" class="view-section">
+                    <div class="page-header">
+                        <h2>Offers & Promo Codes</h2>
+                        <button class="btn-add" id="openCouponModalBtn">+ Create Promo Code</button>
+                    </div>
+
+                    <h3 style="margin-bottom: 15px; color: #333;">🎟️ Active Promo Codes</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Promo Code</th>
+                                    <th>Offer Details</th>
+                                    <th>Min. Order (₹)</th>
+                                    <th>Valid Till</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="couponsTableBody">
+                                <tr>
+                                    <td colspan="6" style="text-align:center;">Loading promo codes...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="notifications-view" class="view-section">
+                    <div class="page-header">
+                        <h2>Notification Master</h2>
+                    </div>
+
+                    <div
+                        style="background: #fff; padding: 25px; border-radius: 8px; border: 1px solid #ddd; max-width: 600px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                        <h3 style="margin-bottom: 5px; color: #111;">📢 Broadcast Message</h3>
+                        <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Send rich notifications with
+                            images and links.</p>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label>Notification Title *</label>
+                            <input type="text" id="notifTitle" placeholder="e.g., 🔥 Special Offer: 50% OFF!">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label>Notification Message (Body) *</label>
+                            <textarea id="notifMessage" rows="3"
+                                placeholder="e.g., Aaj hi premium Kismis aur Badam par payein bhaari discount..."></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label>Image URL (Optional)</label>
+                            <input type="text" id="notifImage"
+                                placeholder="e.g., https://example.com/kaju.jpg (Photo ka link)">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label>On-Click Link (Optional)</label>
+                            <input type="text" id="notifLink"
+                                placeholder="e.g., https://rg241085.github.io/dryfu/product.html">
+                            <small style="color: #888; font-size: 11px;">Khali chhodne par Home Page khulega.</small>
+                        </div>
+
+                        <button onclick="window.sendBroadcastNotification()" class="btn-submit" id="sendNotifBtn"
+                            style="background: #128c7e; width: 100%; height: 45px; font-size: 15px;">🚀 Send
+                            Notification Now</button>
+                    </div>
+                </div>
+
+
+
+
+
+                <!-- 🎟️ ADD NEW PROMO CODE MODAL -->
+                <div class="modal" id="couponModal">
+                    <div class="modal-content" style="width: 750px; max-width: 95%;">
+                        <span class="close-btn" id="closeCouponModalBtn">&times;</span>
+                        <h3 id="couponModalTitle">Create New Promo Code</h3>
+
+                        <form id="addCouponForm">
+                            <input type="hidden" id="editCouponId" value="">
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Promo Code (e.g. FESTIVAL50)</label>
+                                    <input type="text" id="couponCodeInput" placeholder="Enter code in capital letters"
+                                        required style="text-transform: uppercase;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Minimum Order Value (₹)</label>
+                                    <input type="number" id="couponMinOrderInput" placeholder="e.g. 500" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label>Cart Motivation Message (Nudge)</label>
+                                <input type="text" id="couponNudgeMsg"
+                                    placeholder="e.g. Add ₹{amount} more to unlock a Free Gift!">
+                                <p style="font-size: 11px; color: #666; margin-top: 5px;">*Use <b>{amount}</b> jahan aap
+                                    remaining balance dikhana chahte hain.*</p>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Start Date</label>
+                                    <input type="date" id="couponStartDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Expiry Date</label>
+                                    <input type="date" id="couponExpiryDate" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 20px;">
+                                <label>Discount Type</label>
+                                <select id="couponTypeSelect" required style="font-weight: bold; color: #128c7e;">
+                                    <option value="FLAT">a. Flat Discount (Fixed ₹)</option>
+                                    <option value="PERCENT">b. Percentage Discount (%)</option>
+                                    <option value="FREE_GIFT">c. Free Gift (Specific Item)</option>
+                                    <option value="FREE_CHOICE">d. Select Any Item (Customer chooses 1 for free)
+                                    </option>
+                                    <option value="DISCOUNTED_CHOICE">e. Discounted Item (Customer chooses 1 at special
+                                        price)</option>
+                                </select>
+                            </div>
+
+                            <!-- Dynamic Sections Box -->
+                            <div id="dynamic-coupon-fields"
+                                style="background: #f4f7f6; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
+
+                                <!-- a. FLAT -->
+                                <div id="type-flat" class="coupon-type-section">
+                                    <div class="form-group">
+                                        <label>Flat Discount Value (₹)</label>
+                                        <input type="number" id="flatValueInput" placeholder="e.g. 100">
+                                    </div>
+                                </div>
+
+                                <!-- b. PERCENT -->
+                                <div id="type-percent" class="coupon-type-section" style="display:none;">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Discount Percentage (%)</label>
+                                            <input type="number" id="percentValueInput" placeholder="e.g. 20">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Maximum Discount Limit (₹)</label>
+                                            <input type="number" id="percentMaxLimitInput" placeholder="e.g. 200">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- c. FREE GIFT -->
+                                <div id="type-free-gift" class="coupon-type-section" style="display:none;">
+                                    <div class="form-group">
+                                        <label>Select Free Gift Item</label>
+                                        <select id="freeGiftSelect"></select>
+                                    </div>
+                                </div>
+
+                                <!-- d. FREE CHOICE -->
+                                <div id="type-free-choice" class="coupon-type-section" style="display:none;">
+                                    <label>Select Items for Customer to Choose From (Free)</label>
+                                    <div id="freeChoiceList"
+                                        style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 6px;">
+                                        <!-- Checkboxes JS se aayenge -->
+                                    </div>
+                                </div>
+
+                                <!-- e. DISCOUNTED CHOICE -->
+                                <div id="type-discounted-choice" class="coupon-type-section" style="display:none;">
+                                    <label>Select Items & Set Special Discounted Price (₹)</label>
+                                    <div id="discountedChoiceList"
+                                        style="max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background: #fff; border-radius: 6px;">
+                                        <!-- Checkboxes & Price Inputs JS se aayenge -->
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn-cancel" id="cancelCouponBtn">Cancel</button>
+                                <button type="submit" class="btn-submit" id="submitCouponBtn">Save Promo Code</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModalBtn">&times;</span>
+            <h3 id="modalTitle">Add New Product</h3>
+
+            <form id="addProductForm">
+                <input type="hidden" id="editProductId" value="">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Main Category</label>
+                        <select id="mainCatSelect" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sub Category</label>
+                        <select id="subCatSelect" required></select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input type="text" id="name" placeholder="e.g. Premium Kismis 1kg" required>
+                    </div>
+                    <div class="form-group" style="max-width: 120px;">
+                        <label>Display Order</label>
+                        <input type="number" id="priority" placeholder="1,2,3" value="99" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL (Link)</label>
+                        <input type="url" id="img" placeholder="https://..." required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>MRP (₹)</label>
+                        <input type="number" id="mrp" placeholder="e.g. 500" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Selling Price (₹)</label>
+                        <input type="number" id="sellingPrice" placeholder="e.g. 350" required>
+                    </div>
+                </div>
+
+                <!-- 📦 STOCK AUR LIMIT KA OPTION -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Total Stock Quantity</label>
+                        <input type="number" id="stockQty" placeholder="e.g. 100" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Max Limit per Customer</label>
+                        <input type="number" id="maxLimit" placeholder="0 = No limit, ya 5, 10 daalein" required
+                            value="0">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Net Weight / Size (e.g. 500g, 1kg, Standard)</label>
+                        <input type="text" id="weight" placeholder="e.g. 500g" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Product Benefits (Har line mein ek naya fayda likhein)</label>
+                    <textarea id="benefits" rows="3"
+                        placeholder="• Premium Quality\n• 100% Pure\n• Freshly Packed"></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="font-weight: bold; color: #128c7e;">Assign Tags / Home Sections</label>
+                    <div id="product-modal-tags-checkboxes"
+                        style="display: flex; gap: 15px; flex-wrap: wrap; background: #fafafa; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Product Description</label>
+                    <textarea id="desc" rows="2" placeholder="Best quality product..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">Save Product</button>
+                </div>
+                <p id="message">✅ Saved Successfully!</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🎟️ ADD NEW PROMO CODE MODAL -->
+    <div class="modal" id="couponModal">
+        <div class="modal-content" style="width: 600px;">
+            <span class="close-btn" id="closeCouponModalBtn">&times;</span>
+            <h3 id="couponModalTitle">Create New Promo Code</h3>
+
+            <form id="addCouponForm">
+                <input type="hidden" id="editCouponId" value="">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Promo Code (e.g. DIWALI50)</label>
+                        <input type="text" id="couponCodeInput" placeholder="Enter code in capital letters" required
+                            style="text-transform: uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Type</label>
+                        <select id="couponTypeSelect" required>
+                            <option value="FLAT">Flat Discount (Fixed ₹)</option>
+                            <option value="PERCENT">Percentage Discount (%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Discount Value (₹ or %)</label>
+                        <input type="number" id="couponValueInput" placeholder="e.g. 50" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Minimum Order Value (₹)</label>
+                        <input type="number" id="couponMinOrderInput" placeholder="e.g. 500" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelCouponBtn">Cancel</button>
+                    <button type="submit" class="btn-submit" id="submitCouponBtn">Save Coupon</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 📄 DETAILED ORDER VIEW & INVOICE MODAL -->
+    <div class="modal" id="orderDetailModal">
+        <div class="modal-content" style="width: 850px; max-width: 95%;">
+            <span class="close-btn" onclick="closeOrderModal()">&times;</span>
+
+            <!-- Print Area Start -->
+            <div id="invoice-print-area">
+                <div
+                    style="display:flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #128c7e; padding-bottom: 15px; margin-bottom: 20px;">
+                    <!-- Naya Code -->
+                    <div>
+                        <h2 style="color: #128c7e; margin-bottom: 5px; font-size: 28px;">DRYFU</h2>
+                        <p style="color: #555; font-size: 14px; font-weight: bold;">Order Invoice / Receipt</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <h3 id="invOrderId" style="color: #111; font-size: 20px;">ORD-XXXXXX</h3>
+                        <p id="invOrderDate" style="color: #555; font-size: 13px; margin-top: 5px;">Date: --/--/----</p>
+                        <span id="invOrderStatus"
+                            style="display:inline-block; margin-top:8px; padding: 4px 10px; background: #eee; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase;">Status</span>
+                    </div>
+                </div>
+
+                <div
+                    style="display: flex; gap: 30px; margin-bottom: 25px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+                    <div style="flex: 1;">
+                        <h4 style="margin-bottom: 8px; color: #555; font-size: 12px; text-transform: uppercase;">
+                            Customer Details</h4>
+                        <p id="invCustName"
+                            style="font-weight: bold; color: #111; font-size: 15px; margin-bottom: 4px;">Name</p>
+                        <p id="invCustPhone" style="color: #444; font-size: 14px;">+91 ----------</p>
+                    </div>
+                    <div style="flex: 1.5;">
+                        <h4 style="margin-bottom: 8px; color: #555; font-size: 12px; text-transform: uppercase;">
+                            Delivery Address</h4>
+                        <p id="invAddress" style="color: #222; font-size: 14px; line-height: 1.5; font-weight: 500;">
+                            Address goes here</p>
+                    </div>
+                    <div style="flex: 1;">
+                        <h4 style="margin-bottom: 8px; color: #555; font-size: 12px; text-transform: uppercase;">Payment
+                            Method</h4>
+                        <p id="invPayment" style="font-weight: bold; color: #128c7e; font-size: 16px;">COD</p>
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #f0f4f8; border-bottom: 2px solid #ddd;">
+                            <th style="padding: 12px; text-align: left; font-size: 13px; color: #444;">Product Item</th>
+                            <th style="padding: 12px; text-align: center; font-size: 13px; color: #444;">Price</th>
+                            <th style="padding: 12px; text-align: center; font-size: 13px; color: #444;">Qty</th>
+                            <th style="padding: 12px; text-align: right; font-size: 13px; color: #444;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invItemsBody">
+                        <!-- Items javascript se aayenge -->
+                    </tbody>
+                </table>
+
+                <div style="display: flex; justify-content: flex-end;">
+                    <div
+                        style="width: 320px; border: 1px solid #eee; padding: 15px; border-radius: 8px; background: #fff;">
+                        <div
+                            style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #555;">
+                            <span>Subtotal:</span>
+                            <span id="invSubtotal" style="font-weight: bold; color: #111;">₹0</span>
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: #10b981; font-weight: bold;">
+                            <span>Coupon (<span id="invCouponCode">None</span>):</span>
+                            <span id="invDiscount">-₹0</span>
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px dashed #ccc; font-size: 18px; font-weight: 900; color: #111;">
+                            <span>Grand Total:</span>
+                            <span id="invTotal">₹0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Print Area End -->
+
+            <div class="form-actions" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+                <button class="btn-cancel" onclick="closeOrderModal()">Close</button>
+                <button class="btn-submit" onclick="printInvoice()" style="background: #2563eb;"><span
+                        style="margin-right: 8px; font-size: 16px;">🖨️</span> Print Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="tagProductsModal">
+        <div class="modal-content" style="width: 650px; max-width: 95%;">
+            <span class="close-btn" onclick="closeTagProductsModal()">&times;</span>
+            <h3 id="tagProductsModalTitle" style="margin-bottom: 5px;">Manage Products</h3>
+            <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Tick the products you want to show in this
+                home section.</p>
+
+            <div id="tagProductsList"
+                style="max-height: 450px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; border: 1px solid #eee; padding: 15px; border-radius: 8px; background: #fafafa;">
+            </div>
+
+            <input type="hidden" id="manageTagCode">
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeTagProductsModal()">Cancel</button>
+                <button class="btn-submit" onclick="saveTagProducts()" style="background: #128c7e;">Save
+                    Products</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc, getDoc, query, orderBy, limit, where, getAggregateFromServer, sum, count } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        import { db, auth } from "./firebase-config.js";
+        // ==========================================
+        // 🔐 ADMIN LOGIN LOGIC
+        // ==========================================
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('admin-login-screen').style.display = 'none';
+                document.getElementById('admin-dashboard-content').style.display = 'flex';
+
+                fetchProducts();
+                listenLiveOrders();
+                listenCustomersDatabase();
+                listenCoupons();
+                listenDeliveryBoys(); // Naya add kiya hai
+                // loadGiftSettings();
+                window.listenAdminTags();
+                window.listenCategoryMaster();
+            } else {
+                document.getElementById('admin-login-screen').style.display = 'flex';
+                document.getElementById('admin-dashboard-content').style.display = 'none';
+            }
+        });
+
+        window.loginAdmin = function () {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const btn = document.getElementById('adminLoginBtn');
+
+            if (!email || !password) {
+                window.showToast("Please enter email and password");
+                return;
+            }
+            btn.innerText = "Logging in...";
+            btn.disabled = true;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => {
+                    btn.innerText = "Login";
+                    btn.disabled = false;
+                })
+                .catch(() => {
+                    window.showToast("Login Failed: Incorrect Email or Password");
+                    btn.innerText = "Login";
+                    btn.disabled = false;
+                });
+        }
+
+        // 🌟 NAYA: CUSTOM TOAST FUNCTION
+        let toastTimeout; // Ye variable timer ko yaad rakhega
+
+        window.showToast = function (msg, type = "success") {
+            const toast = document.getElementById('admin-toast');
+            if (!toast) return; // Agar HTML nahi mila toh kuch mat karo
+
+            // 1. Box ke andar aapka message daalo
+            toast.innerHTML = msg;
+
+            // 2. Color set karo: "success" hai toh Green (#128c7e), warna Red (#dc3545)
+            toast.style.backgroundColor = type === "success" ? "#128c7e" : "#dc3545";
+
+            // 3. Box ko screen par dikhao
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.opacity = '1', 10); // Smooth entry ke liye
+
+            // 4. Purana koi timer chal raha ho toh use roko (taaki 2 message ek sath na takrayein)
+            clearTimeout(toastTimeout);
+
+            // 5. Naya timer lagao: 3 second (3000ms) baad gayab kar do
+            toastTimeout = setTimeout(() => {
+                toast.style.opacity = '0'; // Pehle text invisible hoga (fade out)
+                setTimeout(() => toast.style.display = 'none', 300); // Phir box screen se hat jayega
+            }, 3000);
+        }
+
+        window.logoutAdmin = function () {
+            if (confirm("Are you sure you want to logout?")) {
+                signOut(auth).then(() => window.showToast("Logged out successfully"));
+            }
+        }
+
+        // ==========================================
+        // 📊 TAB SWITCHING LOGIC
+        // ==========================================
+        const menuItems = document.querySelectorAll('.menu li');
+        const viewSections = document.querySelectorAll('.view-section');
+
+        menuItems.forEach(item => {
+            item.addEventListener('click', function () {
+                menuItems.forEach(i => i.classList.remove('active'));
+                viewSections.forEach(v => v.classList.remove('active-view'));
+
+                this.classList.add('active');
+                document.getElementById(this.getAttribute('data-target')).classList.add('active-view');
+            });
+        });
+
+        // ==========================================
+        // 👕 PRODUCTS MANAGEMENT LOGIC
+        // ==========================================
+        let allProductsData = [];
+        let existingMainCats = new Set();
+        let categoryMap = {};
+
+        async function fetchProducts() {
+            const tableBody = document.getElementById('tableBody');
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                tableBody.innerHTML = '';
+                existingMainCats.clear();
+                categoryMap = {};
+                allProductsData = [];
+
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No products found. Add your first product!</td></tr>';
+                    updateMainDropdown();
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    let p = docSnap.data();
+                    p.id = docSnap.id;
+                    allProductsData.push(p);
+
+                    // Category dropdown ko update karne ke liye data jama karna
+                    if (p.mainCategory) {
+                        existingMainCats.add(p.mainCategory);
+                        // Filter Dropdown me categories add karna
+                        const filterSelect = document.getElementById('prodCatFilterSelect');
+                        if (filterSelect && !Array.from(filterSelect.options).some(opt => opt.value === p.mainCategory)) {
+                            filterSelect.innerHTML += `<option value="${p.mainCategory}">${p.mainCategory}</option>`;
+                        }
+                        // NAYA: Filter Dropdown me sub-categories add karna
+
+                    }
+                });
+
+                // 🌟 LOOP KHATAM HONE KE BAAD YE CALL KAREIN:
+                // 🌟 LOOP KHATAM HONE KE BAAD YE CALL KAREIN:
+                window.updateFilterSubCategoryDropdown(); // Yeh automatically applyProductFilters ko bhi chala dega
+                // updateMainDropdown();
+                // window.populateGiftDropdown();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+
+
+        window.renderProductsTable = function (dataArray) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            if (dataArray.length === 0) {
+                // 🌟 Colspan ko 9 kar diya gaya hai
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 30px;">No products found matching your search.</td></tr>';
+                return;
+            }
+
+            dataArray.forEach((p) => {
+                tableBody.innerHTML += `
+            <tr>
+                <td class="td-img"><img src="${p.img}" alt="img"></td>
+               <td><strong>${p.name}</strong></td>
+<td><input type="number" value="${p.priority || 99}" onchange="window.quickUpdate('${p.id}', 'priority', this.value)" style="width:60px; padding:6px; border:1px solid #ccc; border-radius:4px; outline:none; font-weight:bold; color:#2563eb; text-align:center;" title="Chhota number upar aayega (e.g. 1)"></td>
+                  <!-- WEIGHT INPUT -->
+                <td><input type="text" value="${p.weight || ''}" onchange="window.quickUpdate('${p.id}', 'weight', this.value)" style="width:70px; padding:6px; border:1px solid #ccc; border-radius:4px; outline:none;"></td>
+               
+                <td>${p.mainCategory}</td>
+               
+                <td>${p.subCategory || '-'}</td>
+                
+                <!-- 🌟 NAYA: TOTAL STOCK INPUT -->
+                <td><input type="number" value="${p.stockQty !== undefined ? p.stockQty : 100}" onchange="window.quickUpdate('${p.id}', 'stockQty', this.value)" style="width:70px; padding:6px; border:1px solid #ccc; border-radius:4px; outline:none; font-weight:bold; color:#d97706;"></td>
+
+                
+                <!-- MRP INPUT -->
+                <td><input type="number" value="${p.mrp || 0}" onchange="window.quickUpdate('${p.id}', 'mrp', this.value)" style="width:75px; padding:6px; border:1px solid #ccc; border-radius:4px; outline:none;"></td>
+                
+                <!-- SELLING PRICE INPUT -->
+                <td><input type="number" value="${p.sellingPrice || 0}" onchange="window.quickUpdate('${p.id}', 'sellingPrice', this.value)" style="width:75px; padding:6px; border:1px solid #ccc; border-radius:4px; outline:none; font-weight:bold; color:#128c7e;"></td>
+                
+                <td style="white-space: nowrap;">
+                    <button class="action-btn" onclick="window.copyProduct('${p.id}')" title="Copy">📋</button>
+                    <button class="action-btn edit-btn" onclick="window.editProduct('${p.id}')" title="Full Edit">✏️</button>
+                    <button class="action-btn delete-btn" onclick="window.deleteProduct('${p.id}')" title="Delete">🗑️</button>
+                </td>
+            </tr>
+        `;
+            });
+        }
+
+
+
+
+
+        // 🌟 NAYA: Filter aur Sort karne ka function (Updated with Sub Category)
+        window.applyProductFilters = function () {
+            const searchTerm = document.getElementById('prodSearchInput').value.toLowerCase().trim();
+            const catFilter = document.getElementById('prodCatFilterSelect').value;
+            const subCatFilter = document.getElementById('prodSubCatFilterSelect').value; // NAYA ADD KIYA
+            const sortBy = document.getElementById('prodSortSelect').value;
+
+            // 1. Pehle Search, Category aur Sub Category se Filter karo
+            let filtered = allProductsData.filter(p => {
+                let nameMatch = p.name && p.name.toLowerCase().includes(searchTerm);
+                let catMatch = (catFilter === 'ALL') || (p.mainCategory === catFilter);
+                let subCatMatch = (subCatFilter === 'ALL') || (p.subCategory === subCatFilter); // NAYA ADD KIYA
+
+                return nameMatch && catMatch && subCatMatch; // TEENO MATCH HONE CHAHIYE
+            });
+
+            // 2. Phir unhe Sort (Order) karo
+            if (sortBy === 'NAME_ASC') {
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortBy === 'PRICE_LOW') {
+                filtered.sort((a, b) => Number(a.sellingPrice) - Number(b.sellingPrice));
+            } else if (sortBy === 'PRICE_HIGH') {
+                filtered.sort((a, b) => Number(b.sellingPrice) - Number(a.sellingPrice));
+            } else if (sortBy === 'NEWEST') {
+                filtered.sort((a, b) => {
+                    let timeA = a.timestamp ? (a.timestamp.seconds || a.timestamp) : 0;
+                    let timeB = b.timestamp ? (b.timestamp.seconds || b.timestamp) : 0;
+                    return timeB - timeA;
+                });
+            }
+
+            // 3. Screen par dikhao
+            window.renderProductsTable(filtered);
+        }
+
+        // 🌟 NAYA: Dynamic Sub-Category Dropdown Update karne ka function
+        window.updateFilterSubCategoryDropdown = function () {
+            const mainCatFilter = document.getElementById('prodCatFilterSelect').value;
+            const subCatSelect = document.getElementById('prodSubCatFilterSelect');
+
+            // Sabse pehle dropdown ko reset karein
+            subCatSelect.innerHTML = '<option value="ALL">All Sub Categories</option>';
+
+            let subCategories = new Set();
+
+            // Data check karke sub-category nikalein
+            allProductsData.forEach(p => {
+                if (mainCatFilter === 'ALL') {
+                    // Agar All Categories hai, toh saari sub-category dikhayenge
+                    if (p.subCategory) subCategories.add(p.subCategory);
+                } else {
+                    // Agar koi specific category hai, toh sirf uski sub-category dikhayenge
+                    if (p.mainCategory === mainCatFilter && p.subCategory) {
+                        subCategories.add(p.subCategory);
+                    }
+                }
+            });
+
+            // Dropdown mein options add karein
+            subCategories.forEach(subCat => {
+                subCatSelect.innerHTML += `<option value="${subCat}">${subCat}</option>`;
+            });
+
+            // Option update hone ke baad table filter apply karein
+            window.applyProductFilters();
+        }
+
+
+        // function updateMainDropdown() {
+        //     const mainCatSelect = document.getElementById('mainCatSelect');
+        //     mainCatSelect.innerHTML = '<option value="" disabled selected>Select Category</option>';
+        //     existingMainCats.forEach(cat => mainCatSelect.innerHTML += `<option value="${cat}">${cat}</option>`);
+        //     mainCatSelect.innerHTML += '<option value="NEW_ADD">+ Add New Category</option>';
+        //     updateSubDropdown();
+        // }
+
+        // 🌟 NAYA: Main Category change hone par Master se Subcategory lana
+        document.getElementById('mainCatSelect').addEventListener('change', function () {
+            if (typeof window.updateSubDropdown === 'function') {
+                window.updateSubDropdown(this.value);
+            }
+        });
+
+        // 🌟 NAYA: Add Product button dabane par form saaf karna
+        const modal = document.getElementById('productModal');
+        document.getElementById('openModalBtn').addEventListener('click', () => {
+            document.getElementById('addProductForm').reset();
+            document.getElementById('editProductId').value = "";
+            document.getElementById('modalTitle').innerText = "Add New Product";
+
+            // Subcategory dropdown ko by default khali rakhein
+            const subSelect = document.getElementById('subCatSelect');
+            if (subSelect) subSelect.innerHTML = '<option value="">-- Select Subcategory --</option>';
+
+            // Sabhi tags ko untick kar dein
+            document.querySelectorAll('.product-tag-chk').forEach(chk => chk.checked = false);
+
+            modal.style.display = 'flex';
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', () => modal.style.display = 'none');
+        document.getElementById('cancelBtn').addEventListener('click', () => modal.style.display = 'none');
+
+        window.editProduct = function (productId) {
+            const p = allProductsData.find(item => item.id === productId);
+            if (p) {
+                document.getElementById('editProductId').value = p.id;
+                document.getElementById('modalTitle').innerText = "Edit Product";
+                document.getElementById('mainCatSelect').value = p.mainCategory;
+                window.updateSubDropdown(p.mainCategory);
+                document.getElementById('subCatSelect').value = p.subCategory;
+                document.getElementById('name').value = p.name;
+                document.getElementById('priority').value = p.priority || 99; // 🌟 NAYA ADD KIYA
+                document.getElementById('weight').value = p.weight || '';
+                document.getElementById('benefits').value = p.benefits || '';
+                document.getElementById('desc').value = p.desc;
+                document.getElementById('mrp').value = p.mrp;
+                document.getElementById('sellingPrice').value = p.sellingPrice;
+                document.getElementById('img').value = p.img;
+
+                document.getElementById('stockQty').value = p.stockQty !== undefined ? p.stockQty : 100;
+                document.getElementById('maxLimit').value = p.maxPerOrder !== undefined ? p.maxPerOrder : 0;
+
+                // --- 🌟 NAYA CODE: Tags check (tick) karne ke liye ---
+
+                // 1. Modal khulne se pehle purane sabhi tick marks hata do
+                document.querySelectorAll('.product-tag-chk').forEach(chk => chk.checked = false);
+
+                // 2. Agar is product mein tags save hain, toh unhe dhoondh kar tick (check) kar do
+                if (p.tags && Array.isArray(p.tags)) {
+                    p.tags.forEach(tagCode => {
+                        let chk = document.querySelector(`.product-tag-chk[value="${tagCode}"]`);
+                        if (chk) chk.checked = true;
+                    });
+                }
+                // -----------------------------------------------------
+
+                modal.style.display = 'flex';
+            }
+        };
+
+        // 🌟 NAYA: 1-Click Instant Copy Logic (Bina Modal Khole)
+        // 🌟 NAYA: 1-Click Instant Copy Logic (Same Name ke sath)
+        window.copyProduct = async function (productId) {
+            const p = allProductsData.find(item => item.id === productId);
+            if (p) {
+                if (confirm(`Do you want to duplicate "${p.name}"?`)) {
+                    try {
+                        const newProductData = {
+                            mainCategory: p.mainCategory || "",
+                            subCategory: p.subCategory || "",
+                            name: p.name, // 🌟 FIX: "(Copy)" hata diya, ab bilkul same naam aayega
+                            priority: p.priority || 99, // 🌟 NAYA ADD KIYA
+                            desc: p.desc || "",
+                            mrp: Number(p.mrp) || 0,
+                            sellingPrice: Number(p.sellingPrice) || 0,
+                            img: p.img || "",
+                            stockQty: p.stockQty !== undefined ? Number(p.stockQty) : 100,
+                            maxPerOrder: p.maxPerOrder !== undefined ? Number(p.maxPerOrder) : 0,
+                            tags: p.tags || [],
+                            weight: p.weight || "",
+                            benefits: p.benefits || "",
+                            timestamp: new Date()
+                        };
+
+                        await addDoc(collection(db, "products"), newProductData);
+
+                        window.showToast("Product copied successfully!", "success");
+                        fetchProducts();
+
+                    } catch (error) {
+                        console.error("Copy Error:", error);
+                        window.showToast("Error copying product!", "error");
+                    }
+                }
+            }
+        };
+
+
+
+
+        window.deleteProduct = async function (productId) {
+            if (confirm("Delete this product?")) {
+                await deleteDoc(doc(db, "products", productId));
+                fetchProducts();
+            }
+        };
+
+        window.quickUpdate = async function (productId, field, newValue) {
+            try {
+                const pRef = doc(db, "products", productId);
+                const updateData = {};
+
+                // Weight ek text hai, par MRP/Selling Price Number hone chahiye
+                updateData[field] = (field === 'weight') ? newValue : Number(newValue);
+
+                await updateDoc(pRef, updateData);
+                window.showToast("Updated Successfully!", "success");
+            } catch (e) {
+                window.showToast("Error updating!", "error");
+                console.error(e);
+            }
+        }
+
+
+
+
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "Saving..."; submitBtn.disabled = true;
+
+            let mainVal = document.getElementById('mainCatSelect').value;
+            let subVal = document.getElementById('subCatSelect').value;
+
+            // 🌟 NAYA FIX: Tags select karne ka code yahan aayega (JavaScript ke andar)
+            let selectedTags = [];
+            document.querySelectorAll('.product-tag-chk:checked').forEach(chk => selectedTags.push(chk.value));
+
+            const productData = {
+                mainCategory: mainVal,
+                subCategory: subVal,
+                name: document.getElementById('name').value,
+                priority: Number(document.getElementById('priority').value) || 99, // 🌟 NAYA ADD KIYA
+                desc: document.getElementById('desc').value,
+                mrp: document.getElementById('mrp').value,
+                sellingPrice: document.getElementById('sellingPrice').value,
+                img: document.getElementById('img').value,
+                stockQty: Number(document.getElementById('stockQty').value),
+                maxPerOrder: Number(document.getElementById('maxLimit').value),
+                tags: selectedTags, // Naya field add kiya
+
+                // 🌟 NAYE FIELDS ADD KIYE
+                weight: document.getElementById('weight').value,
+                benefits: document.getElementById('benefits').value,
+
+                timestamp: new Date()
+            };
+
+            const editId = document.getElementById('editProductId').value;
+            if (editId) { await updateDoc(doc(db, "products", editId), productData); }
+            else { await addDoc(collection(db, "products"), productData); }
+
+            document.getElementById('message').style.display = "block";
+            fetchProducts();
+            setTimeout(() => {
+                document.getElementById('message').style.display = "none";
+                modal.style.display = 'none';
+                submitBtn.innerText = "Save Product"; submitBtn.disabled = false;
+            }, 1000);
+        });
+
+
+        // ==========================================
+        // 🎟️ OFFERS & COUPONS LOGIC (NEW UNIFIED SYSTEM)
+        // ==========================================
+
+        const couponModal = document.getElementById('couponModal');
+        let allCoupons = [];
+
+        // Helper: Convert YYYY-MM-DD to DD-MM-YYYY
+        function formatDateToDDMMYYYY(dateString) {
+            if (!dateString) return '-';
+            const parts = dateString.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateString;
+        }
+
+        // 1. Populate Dropdowns & Lists from Catalog
+        window.populateCouponDropdowns = function () {
+            const freeGiftSelect = document.getElementById('freeGiftSelect');
+            const freeChoiceList = document.getElementById('freeChoiceList');
+            const discountedChoiceList = document.getElementById('discountedChoiceList');
+
+            freeGiftSelect.innerHTML = '<option value="" disabled selected>Select Free Gift Product</option>';
+            freeChoiceList.innerHTML = '';
+            discountedChoiceList.innerHTML = '';
+
+            allProductsData.forEach(p => {
+                // Dropdown for Type C
+                freeGiftSelect.innerHTML += `<option value="${p.id}">${p.name} (MRP: ₹${p.mrp})</option>`;
+
+                // List for Type D (Checkbox)
+                freeChoiceList.innerHTML += `
+            <label style="display: block; margin-bottom: 8px; cursor: pointer; padding: 5px; border-bottom: 1px solid #f1f1f1;">
+                <input type="checkbox" class="fc-check" value="${p.id}" style="margin-right: 8px;">
+                ${p.name} (Price: ₹${p.sellingPrice})
+            </label>
+        `;
+
+                // List for Type E (Checkbox + Price Input)
+                discountedChoiceList.innerHTML += `
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #f1f1f1;">
+                <label style="cursor: pointer; flex: 1;">
+                    <input type="checkbox" class="dc-check" value="${p.id}" onchange="document.getElementById('dc-price-${p.id}').disabled = !this.checked;" style="margin-right: 8px;">
+                    ${p.name} <span style="color:#777; font-size:12px;">(₹${p.sellingPrice})</span>
+                </label>
+                <input type="number" id="dc-price-${p.id}" placeholder="Special Price ₹" disabled style="width: 120px; padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+        `;
+            });
+        }
+
+        // Ensure this runs when products are fetched
+        const originalFetchProducts = window.fetchProducts;
+        window.fetchProducts = async function () {
+            await originalFetchProducts();
+            if (allProductsData.length > 0) window.populateCouponDropdowns();
+        };
+
+        // 2. Open / Close Modal Logic
+        document.getElementById('openCouponModalBtn').addEventListener('click', () => {
+            document.getElementById('addCouponForm').reset();
+            document.getElementById('couponModalTitle').innerText = "Create New Promo Code";
+            // Default show flat discount
+            document.querySelectorAll('.coupon-type-section').forEach(el => el.style.display = 'none');
+            document.getElementById('type-flat').style.display = 'block';
+
+            // Reset selections
+            if (allProductsData.length > 0) window.populateCouponDropdowns();
+            couponModal.style.display = 'flex';
+        });
+
+        document.getElementById('closeCouponModalBtn').addEventListener('click', () => couponModal.style.display = 'none');
+        document.getElementById('cancelCouponBtn').addEventListener('click', () => couponModal.style.display = 'none');
+
+        // 3. Handle Dropdown Change to show correct input fields
+        document.getElementById('couponTypeSelect').addEventListener('change', function () {
+            document.querySelectorAll('.coupon-type-section').forEach(el => el.style.display = 'none');
+
+            if (this.value === 'FLAT') document.getElementById('type-flat').style.display = 'block';
+            if (this.value === 'PERCENT') document.getElementById('type-percent').style.display = 'block';
+            if (this.value === 'FREE_GIFT') document.getElementById('type-free-gift').style.display = 'block';
+            if (this.value === 'FREE_CHOICE') document.getElementById('type-free-choice').style.display = 'block';
+            if (this.value === 'DISCOUNTED_CHOICE') document.getElementById('type-discounted-choice').style.display = 'block';
+        });
+
+        // 4. Save Coupon Logic
+        document.getElementById('addCouponForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitCouponBtn');
+            btn.innerText = "Saving..."; btn.disabled = true;
+
+            const code = document.getElementById('couponCodeInput').value.toUpperCase().trim();
+            const minOrder = document.getElementById('couponMinOrderInput').value;
+            const nudgeMsg = document.getElementById('couponNudgeMsg').value;
+            const startDate = document.getElementById('couponStartDate').value;
+            const expiryDate = document.getElementById('couponExpiryDate').value;
+            const type = document.getElementById('couponTypeSelect').value;
+
+            let details = {};
+
+            // Validate inputs based on type
+            if (type === 'FLAT') {
+                details.discountValue = Number(document.getElementById('flatValueInput').value);
+                if (!details.discountValue) { window.showToast("Please enter flat discount value"); btn.disabled = false; return; }
+            } else if (type === 'PERCENT') {
+                details.discountPercent = Number(document.getElementById('percentValueInput').value);
+                details.maxDiscount = Number(document.getElementById('percentMaxLimitInput').value);
+                if (!details.discountPercent || !details.maxDiscount) { window.showToast("Please enter percentage and max limit"); btn.disabled = false; return; }
+            } else if (type === 'FREE_GIFT') {
+                details.productId = document.getElementById('freeGiftSelect').value;
+                if (!details.productId) { window.showToast("Please select a free gift"); btn.disabled = false; return; }
+            } else if (type === 'FREE_CHOICE') {
+                let selected = [];
+                document.querySelectorAll('.fc-check:checked').forEach(chk => selected.push(chk.value));
+                if (selected.length === 0) { window.showToast("Please select at least 1 item for free choice"); btn.disabled = false; return; }
+                details.productIds = selected;
+            } else if (type === 'DISCOUNTED_CHOICE') {
+                let selected = [];
+                let priceError = false;
+                document.querySelectorAll('.dc-check:checked').forEach(chk => {
+                    let price = document.getElementById('dc-price-' + chk.value).value;
+                    if (price === "") priceError = true;
+                    selected.push({ productId: chk.value, offerPrice: Number(price) });
+                });
+                if (selected.length === 0 || priceError) { window.showToast("Select at least 1 item and ensure special prices are entered"); btn.disabled = false; return; }
+                details.discountedItems = selected;
+            }
+
+            try {
+                await addDoc(collection(db, "coupons"), {
+                    code: code,
+                    minOrder: Number(minOrder),
+                    nudgeMsg: nudgeMsg,
+                    startDate: startDate,
+                    expiryDate: expiryDate,
+                    type: type,
+                    details: details,
+                    isActive: true,
+                    createdAt: new Date().toISOString()
+                });
+                couponModal.style.display = 'none';
+                window.showToast("Promo Code created successfully!");
+            } catch (e) { window.showToast("Error: " + e.message); }
+
+            btn.innerText = "Save Promo Code"; btn.disabled = false;
+        });
+
+        // 5. Listen and Render Coupons Table
+        function listenCoupons() {
+            onSnapshot(collection(db, "coupons"), (snapshot) => {
+                const tbody = document.getElementById('couponsTableBody');
+                tbody.innerHTML = '';
+                allCoupons = [];
+
+                if (snapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No promo codes found. Create one!</td></tr>';
+                    return;
+                }
+
+                snapshot.forEach(docSnap => {
+                    const c = docSnap.data();
+                    c.id = docSnap.id;
+                    allCoupons.push(c);
+
+                    let offerText = '';
+                    // 🌟 SAFE CHECK ADDED: Ye purane aur naye dono coupons ko handle karega
+                    if (c.type === 'FLAT') offerText = `₹${c.details ? c.details.discountValue : c.value} OFF`;
+                    else if (c.type === 'PERCENT') offerText = `${c.details ? c.details.discountPercent : c.value}% OFF`;
+                    else if (c.type === 'FREE_GIFT') offerText = `🎁 Free Gift Included`;
+                    else if (c.type === 'FREE_CHOICE') offerText = `🎁 Free Choice (1 item)`;
+                    else if (c.type === 'DISCOUNTED_CHOICE') offerText = `🔥 Special Discounted Item`;
+
+                    let displayExpiry = c.expiryDate ? formatDateToDDMMYYYY(c.expiryDate) : 'No Expiry';
+
+                    // Check if expired (Ignore for old ones without expiry date)
+                    let isExpired = c.expiryDate ? new Date(c.expiryDate) < new Date(new Date().setHours(0, 0, 0, 0)) : false;
+                    let statusHtml = isExpired
+                        ? `<span style="color:#dc3545; font-weight:bold; font-size:12px;">EXPIRED</span>`
+                        : `<span style="color:#28a745; font-weight:bold; font-size:12px;">ACTIVE</span>`;
+
+                    tbody.innerHTML += `
+                <tr>
+                    <td><strong style="color:#128c7e; font-size:16px;">${c.code}</strong></td>
+                    <td><span style="font-size:13px;">${offerText}</span></td>
+                    <td>₹${c.minOrder}</td>
+                    <td>${displayExpiry}</td>
+                    <td>${statusHtml}</td>
+                    <td>
+                        <button class="action-btn delete-btn" onclick="window.deleteCoupon('${c.id}')" title="Delete">🗑️</button>
+                    </td>
+                </tr>
+            `;
+                });
+            });
+        }
+
+        window.deleteCoupon = async function (id) {
+            if (confirm("Are you sure you want to delete this promo code?")) {
+                await deleteDoc(doc(db, "coupons", id));
+            }
+        }
+        // ==========================================
+        // 📦 LIVE ORDERS LOGIC
+        // ==========================================
+        let allLiveOrders = [];
+        let currentOrderFilter = 'All';
+
+        function listenLiveOrders() {
+            // 1. Table ke liye sirf latest 100 orders layenge (Browser hang nahi hoga)
+            const q = query(collection(db, "orders"), orderBy("orderDate", "desc"), limit(100));
+
+            onSnapshot(q, (querySnapshot) => {
+                allLiveOrders = [];
+                querySnapshot.forEach(docSnap => {
+                    let o = { id: docSnap.id, ...docSnap.data() };
+                    allLiveOrders.push(o);
+                });
+
+                if (document.getElementById('ordersTableContainer')) window.renderOrdersTable();
+            });
+
+            // 2. Dashboard Stats (Revenue) ko server par calculate karwayenge
+            fetchDashboardStats();
+        }
+
+        async function fetchDashboardStats() {
+            try {
+                // Sirf "Delivered" orders ko filter karo
+                const q = query(collection(db, "orders"), where("status", "==", "Delivered"));
+
+                // Server par hi sum aur count nikal lo (Data download nahi hoga!)
+                const snapshot = await getAggregateFromServer(q, {
+                    totalRevenue: sum('totalAmount'),
+                    deliveredCount: count()
+                });
+
+                const rev = snapshot.data().totalRevenue || 0;
+                const cnt = snapshot.data().deliveredCount || 0;
+
+                if (document.getElementById('dashRevenue')) {
+                    document.getElementById('dashRevenue').innerText = `₹${rev.toFixed(2)}`;
+                    document.getElementById('dashOrders').innerText = cnt;
+                }
+            } catch (e) {
+                console.error("Stats fetch karne me error: ", e);
+            }
+        }
+
+        window.renderOrdersTable = function () {
+            const tbody = document.getElementById('ordersTableBody');
+            const tableContainer = document.getElementById('ordersTableContainer');
+            const emptyState = document.getElementById('ordersEmptyState');
+
+            // 🌟 NAYA: Search box ki value read karna
+            const searchInput = document.getElementById('orderSearchInput');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            // 1. Pehle Status (Tab) ke hisaab se filter karein
+            let filteredOrders = currentOrderFilter === 'All' ? allLiveOrders : allLiveOrders.filter(o => o.status === currentOrderFilter);
+
+            // 🌟 NAYA: Phir Search Term ke hisaab se filter (Order ID, Name ya Mobile)
+            if (searchTerm !== '') {
+                filteredOrders = filteredOrders.filter(o => {
+                    let orderIdStr = (o.displayOrderId || ("ORD" + o.id.substring(0, 6).toUpperCase())).toLowerCase();
+                    let mobileStr = (o.customerMobile || "").toLowerCase();
+                    let nameStr = (o.deliveryAddress && o.deliveryAddress.fullName) ? o.deliveryAddress.fullName.toLowerCase() : "";
+
+                    return orderIdStr.includes(searchTerm) || mobileStr.includes(searchTerm) || nameStr.includes(searchTerm);
+                });
+            }
+
+            if (filteredOrders.length === 0) {
+                tableContainer.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            tableContainer.style.display = 'block';
+            emptyState.style.display = 'none';
+            tbody.innerHTML = '';
+
+
+
+            filteredOrders.forEach(order => {
+                let itemsHtml = '<div class="items-list">';
+                if (order.items) order.items.forEach(item => itemsHtml += `• ${item.name} <strong>(x${item.quantity})</strong><br>`);
+                itemsHtml += '</div>';
+
+                let orderDate = order.orderDate ? new Date(order.orderDate).toLocaleString() : '-';
+
+                let selectColor = order.status === 'New' ? '#ffeeba' : order.status === 'Processing' ? '#17a2b8' : order.status === 'Delivered' ? '#28a745' : '#dc3545';
+                let textColor = order.status === 'New' ? '#000' : '#fff';
+
+                let custName = "Customer";
+                if (order.deliveryAddress && typeof order.deliveryAddress === 'object' && order.deliveryAddress.fullName) {
+                    custName = order.deliveryAddress.fullName;
+                }
+
+                // 🌟 DYNAMIC Delivery Boy Dropdown HTML
+                let boyOptions = `<option value="Unassigned" ${!order.deliveryBoy || order.deliveryBoy === 'Unassigned' ? 'selected' : ''}>Unassigned</option>`;
+                allDeliveryBoys.forEach(boy => {
+                    boyOptions += `<option value="${boy.name}" ${order.deliveryBoy === boy.name ? 'selected' : ''}>${boy.name}</option>`;
+                });
+
+                // 🌟 NAYA: Order ID generate karke HTML me dikhana
+                let orderDisplayId = order.displayOrderId || ("ORD" + order.id.substring(0, 6).toUpperCase());
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><small>${orderDate}</small></td>
+                        <td><strong style="color: #128c7e; font-size: 14px;">${orderDisplayId}</strong></td> <td>
+                            <strong style="color: #111; font-size: 14px; text-transform: capitalize;">${custName}</strong><br>  <span style="color: #666; font-size: 13px;">+91 ${order.customerMobile}</span>
+                        </td>
+                        <td>${itemsHtml}</td>
+                        <td><strong>₹${order.totalAmount}</strong></td>
+                        <td>
+                            <select class="status-select" onchange="window.updateOrderStatus('${order.id}', this.value)" style="background-color: ${selectColor}; color: ${textColor}; margin-bottom: 5px; width: 100%;">
+                                <option value="New" ${order.status === 'New' ? 'selected' : ''}>New 🆕</option>
+                                <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing ⏳</option>
+                                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered ✅</option>
+                                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled ❌</option>
+                            </select>
+                            <br>
+                            <select class="status-select" onchange="window.assignDeliveryBoy('${order.id}', this.value)" style="width: 100%; border: 1px solid #128c7e; color: #128c7e; background: #e6f4ea;">
+                                ${boyOptions}
+                            </select>
+                        </td>
+                        <td style="white-space: nowrap;">
+                            <button class="action-btn" style="color: #2563eb; font-size: 22px;" onclick="window.viewOrderDetails('${order.id}')" title="View & Print Invoice">👁️</button>
+                            <button class="action-btn delete-btn" onclick="window.deleteOrder('${order.id}')" title="Delete Order">🗑️</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // 🛵 NAYA FUNCTION: Order ko delivery boy ko assign karne ke liye
+        window.assignDeliveryBoy = async function (orderId, boyName) {
+            try {
+                await updateDoc(doc(db, "orders", orderId), { deliveryBoy: boyName });
+                // Optional: window.showToast dikhana ho toh uncomment karein
+                // window.showToast(`Order assigned to ${boyName}`);
+            } catch (error) {
+                window.showToast("Error assigning delivery boy: " + error.message);
+            }
+        };
+        document.querySelectorAll('.order-tab').forEach(tab => {
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.order-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentOrderFilter = this.getAttribute('data-filter');
+                renderOrdersTable();
+            });
+        });
+
+        window.updateOrderStatus = async function (orderId, newStatus) {
+            await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+        };
+
+        window.deleteOrder = async function (orderId) {
+            if (confirm("Delete this order record?")) await deleteDoc(doc(db, "orders", orderId));
+        };
+
+
+
+
+        // ==========================================
+        // 👥 CUSTOMERS LOGIC
+        // ==========================================
+        let allCustomersData = [];
+
+        function listenCustomersDatabase() {
+            onSnapshot(collection(db, "customers"), (querySnapshot) => {
+                allCustomersData = [];
+                querySnapshot.forEach(docSnap => allCustomersData.push({ id: docSnap.id, ...docSnap.data() }));
+
+                if (document.getElementById('customersTableBody')) window.renderCustomersTable(allCustomersData);
+
+                if (document.getElementById('dashCustomers')) {
+                    document.getElementById('dashCustomers').innerText = allCustomersData.length;
+                }
+            });
+        }
+
+        window.renderCustomersTable = function (dataArray) {
+            const tbody = document.getElementById('customersTableBody');
+            tbody.innerHTML = '';
+            if (dataArray.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No customers found.</td></tr>';
+                return;
+            }
+            dataArray.forEach(cust => {
+                let lastActive = cust.lastLogin ? new Date(cust.lastLogin).toLocaleDateString('en-GB') : '-';
+                let displayName = cust.addresses && cust.addresses.length > 0 && typeof cust.addresses[0] === 'object' ? cust.addresses[0].fullName : `Customer ID - ${cust.mobileNumber.substring(0, 6)}`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><div class="cust-avatar"></div><span style="font-weight:600; color:#111;">${displayName}</span></td>
+                        <td>+91 ${cust.mobileNumber}</td>
+                        <td>${lastActive}</td>
+                        <td><span style="color:#28a745; font-weight:bold; font-size:12px;">ENABLED</span></td>
+                        <td><button class="btn-add" onclick="window.viewCustomer('${cust.mobileNumber}')" style="padding: 6px 12px; font-size:12px;">View Profile</button></td>
+                    </tr>`;
+            });
+        }
+
+        window.filterCustomers = function () {
+            const searchTerm = document.getElementById('searchCustomerInput').value.toLowerCase().trim();
+
+            const filteredData = allCustomersData.filter(c => {
+                // Number se match check karein
+                let mobileMatch = c.mobileNumber && c.mobileNumber.includes(searchTerm);
+
+                // Naam se match check karein
+                let nameMatch = false;
+                if (c.addresses && c.addresses.length > 0 && typeof c.addresses[0] === 'object' && c.addresses[0].fullName) {
+                    nameMatch = c.addresses[0].fullName.toLowerCase().includes(searchTerm);
+                }
+
+                return mobileMatch || nameMatch;
+            });
+
+            renderCustomersTable(filteredData);
+        }
+        window.viewCustomer = function (mobileNumber) {
+            const cust = allCustomersData.find(c => c.mobileNumber === mobileNumber);
+            if (!cust) return;
+
+            document.getElementById('customer-list-container').style.display = 'none';
+            document.getElementById('customer-detail-container').style.display = 'block';
+
+            let displayName = cust.addresses && cust.addresses.length > 0 && typeof cust.addresses[0] === 'object' ? cust.addresses[0].fullName : 'Customer';
+            document.getElementById('detSidebarName').innerText = displayName;
+            document.getElementById('detSidebarPhone').innerText = `+91 ${cust.mobileNumber}`;
+            document.getElementById('detJoinedOn').innerText = cust.lastLogin ? new Date(cust.lastLogin).toLocaleDateString('en-GB') : '-';
+
+            const custOrders = allLiveOrders.filter(o => o.customerMobile === mobileNumber);
+            let totalSpent = 0;
+            const historyBody = document.getElementById('detPurchaseHistoryBody');
+            historyBody.innerHTML = '';
+
+            if (custOrders.length > 0) {
+                custOrders.forEach(order => {
+                    if (order.status !== 'Cancelled') totalSpent += parseFloat(order.totalAmount || 0);
+                    let oDate = order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-GB') : '-';
+                    let itemsCount = order.items ? order.items.reduce((sum, i) => sum + i.quantity, 0) : 0;
+                    historyBody.innerHTML += `
+                        <tr>
+                           <td><strong>${order.displayOrderId || "ORD" + order.id.substring(0, 6).toUpperCase()}</strong></td>
+                            <td>${oDate}</td>
+                            <td>${itemsCount} Items</td>
+                            <td>₹${order.totalAmount}</td>
+                            <td><span class="status-badge ${order.status}">${order.status}</span></td>
+                        </tr>`;
+                });
+                document.getElementById('detLastPurchase').innerText = new Date(custOrders[0].orderDate).toLocaleDateString('en-GB');
+            } else {
+                historyBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No purchases made yet.</td></tr>`;
+                document.getElementById('detLastPurchase').innerText = '-';
+            }
+
+            document.getElementById('detTotalOrders').innerText = custOrders.length;
+            document.getElementById('detPurchaseWorth').innerText = `₹${totalSpent.toFixed(2)}`;
+        }
+
+        window.backToCustomerList = function () {
+            document.getElementById('customer-detail-container').style.display = 'none';
+            document.getElementById('customer-list-container').style.display = 'block';
+        }
+        // STEP 1 TEST: Close Order Modal
+        window.closeOrderModal = function () {
+            document.getElementById('orderDetailModal').style.display = 'none';
+        };
+
+        // STEP 3: Complete Order Details
+        window.viewOrderDetails = function (orderId) {
+            const order = allLiveOrders.find(o => o.id === orderId);
+            if (!order) {
+                window.showToast("Order nahi mila!");
+                return;
+            }
+
+            // 1. Basic details
+            document.getElementById('invOrderId').innerText = order.displayOrderId || ("ORD" + order.id.substring(0, 6).toUpperCase());
+            document.getElementById('invOrderDate').innerText = "Date: " + new Date(order.orderDate).toLocaleDateString('en-GB');
+            document.getElementById('invOrderStatus').innerText = order.status;
+
+            // 2. Customer & Address Details
+            let custName = "Customer";
+            let custPhone = "+91 " + order.customerMobile;
+            let fullAddress = "No address provided";
+
+            if (order.deliveryAddress) {
+                if (typeof order.deliveryAddress === 'object') {
+                    custName = order.deliveryAddress.fullName || custName;
+                    custPhone = order.deliveryAddress.mobile ? "+91 " + order.deliveryAddress.mobile : custPhone;
+                    fullAddress = `${order.deliveryAddress.building}, ${order.deliveryAddress.area}, ${order.deliveryAddress.city}, ${order.deliveryAddress.state} - ${order.deliveryAddress.pincode}`;
+                } else {
+                    fullAddress = order.deliveryAddress;
+                }
+            }
+
+            document.getElementById('invCustName').innerText = custName;
+            document.getElementById('invCustPhone').innerText = custPhone;
+            document.getElementById('invAddress').innerText = fullAddress;
+            document.getElementById('invPayment').innerText = order.paymentMethod || "COD";
+
+            // 3. Product Items List
+            const tbody = document.getElementById('invItemsBody');
+            tbody.innerHTML = '';
+            let subtotal = 0;
+
+            if (order.items && order.items.length > 0) {
+                order.items.forEach(item => {
+                    let itemTotal = parseFloat(item.sellingPrice) * item.quantity;
+                    subtotal += itemTotal;
+
+                    let freeTag = item.isFreeGift ? '<span style="color:#10b981; font-size:10px; font-weight:bold; margin-left:5px;">(FREE)</span>' : '';
+
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 10px 12px; font-size: 13px; color: #111;">${item.name} ${freeTag}</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 13px;">₹${item.sellingPrice}</td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 13px;">${item.quantity}</td>
+                            <td style="padding: 10px 12px; text-align: right; font-size: 13px; font-weight: bold;">₹${itemTotal}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // 4. Subtotal aur Discount set karna
+            let discount = 0;
+            if (order.couponApplied && order.couponApplied !== 'None') {
+                document.getElementById('invCouponCode').innerText = order.couponApplied;
+                discount = subtotal - parseFloat(order.totalAmount);
+            } else {
+                document.getElementById('invCouponCode').innerText = 'None';
+            }
+
+            document.getElementById('invSubtotal').innerText = "₹" + subtotal.toFixed(2);
+            document.getElementById('invDiscount').innerText = "-₹" + (discount > 0 ? discount.toFixed(2) : "0");
+            document.getElementById('invTotal').innerText = "₹" + parseFloat(order.totalAmount).toFixed(2);
+
+            // Modal show karo
+            document.getElementById('orderDetailModal').style.display = 'flex';
+        };
+
+        // FINAL CRASH-FREE PRINT FUNCTION
+        window.printInvoice = function () {
+            let printContent = document.getElementById('invoice-print-area').innerHTML;
+            let win = window.open('', '', 'width=900,height=700');
+            win.document.body.innerHTML = printContent;
+
+            setTimeout(function () {
+                win.print();
+                win.close();
+            }, 500);
+        };
+
+        // ==========================================
+        // 🛵 DELIVERY PARTNERS LOGIC
+        // ==========================================
+        let allDeliveryBoys = [];
+
+        function listenDeliveryBoys() {
+            onSnapshot(collection(db, "deliveryBoys"), (snapshot) => {
+                allDeliveryBoys = [];
+                const tbody = document.getElementById('deliveryBoysTableBody');
+                if (tbody) tbody.innerHTML = '';
+
+                if (snapshot.empty) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">No delivery boys found. Add one!</td></tr>';
+                } else {
+                    snapshot.forEach(docSnap => {
+                        const b = { id: docSnap.id, ...docSnap.data() };
+                        allDeliveryBoys.push(b);
+                        if (tbody) {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td><strong style="color: #111; font-size: 15px;">${b.name}</strong></td>
+                                    <td>
+                                        <button class="action-btn delete-btn" onclick="deleteDeliveryBoy('${b.id}')" title="Remove">🗑️</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }
+                    });
+                }
+                // Agar active orders screen khuli hai toh dropdown ko refresh karo
+                if (document.getElementById('ordersTableContainer')) window.renderOrdersTable();
+            });
+        }
+
+        window.addDeliveryBoy = async function () {
+            const nameInput = document.getElementById('newBoyName');
+            const pinInput = document.getElementById('newBoyPin'); // Naya code
+
+            const name = nameInput.value.trim();
+            const pin = pinInput.value.trim(); // Naya code
+
+            if (!name) { window.showToast("Please enter delivery boy name!"); return; }
+            if (!pin || pin.length !== 4) { window.showToast("Please set a valid 4-digit PIN!"); return; } // Naya validation
+
+            try {
+                await addDoc(collection(db, "deliveryBoys"), {
+                    name: name,
+                    pin: pin, // PIN ko database mein save kar rahe hain
+                    createdAt: new Date().toISOString()
+                });
+
+                nameInput.value = '';
+                pinInput.value = ''; // Clear input
+                window.showToast("Delivery Partner added successfully!");
+            } catch (e) { window.showToast("Error: " + e.message); }
+        }
+
+        window.deleteDeliveryBoy = async function (id) {
+            if (confirm("Are you sure you want to remove this delivery partner?")) {
+                await deleteDoc(doc(db, "deliveryBoys", id));
+            }
+        }
+
+        window.saveBanner = async function () {
+            const title = document.getElementById('bannerTitle').value;
+            const imgUrl = document.getElementById('bannerImgUrl').value;
+
+            if (!title || !imgUrl) {
+                window.showToast("Bhai, Title aur Image URL dono daalna zaroori hai!");
+                return;
+            }
+
+            try {
+                // Firebase me 'banners' naam ke naye folder me data save hoga
+                await addDoc(collection(db, "banners"), {
+                    title: title,
+                    imgUrl: imgUrl,
+                    createdAt: new Date().getTime()
+                });
+                window.showToast("Banner successfully add ho gaya!");
+                document.getElementById('bannerTitle').value = '';
+                document.getElementById('bannerImgUrl').value = '';
+            } catch (e) {
+                console.error("Banner add karne me error: ", e);
+                window.showToast("Error aaya, console check karo.");
+            }
+        }
+
+
+        // Banners ko list karna
+        function loadAdminBanners() {
+            onSnapshot(collection(db, "banners"), (snapshot) => {
+                const list = document.getElementById('admin-banner-list');
+                if (!list) return;
+                list.innerHTML = '';
+
+                snapshot.forEach((documentSnapshot) => {
+                    let data = documentSnapshot.data();
+                    let id = documentSnapshot.id;
+
+                    list.innerHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f4f6f8; border: 1px solid #eef0f2; border-radius: 5px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <img src="${data.imgUrl}" style="width: 80px; height: 45px; object-fit: cover; border-radius: 4px;">
+                        <strong style="color: #333;">${data.title}</strong>
+                    </div>
+                    <button onclick="deleteBanner('${id}')" style="background: #ff4d4d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">Delete</button>
+                </div>
+            `;
+                });
+            });
+        }
+
+        // Banner Delete karna
+        window.deleteBanner = async function (id) {
+            if (confirm("Kya aap is banner ko delete karna chahte hain?")) {
+                try {
+                    await deleteDoc(doc(db, "banners", id));
+                    window.showToast("Banner successfully deleted!");
+                } catch (e) {
+                    console.error("Delete error: ", e);
+                    window.showToast("Delete karne me dikkat aayi, console check karein.");
+                }
+            }
+        }
+
+        // File ke end mein isko call kar dein taaki page khulte hi banners dikhein
+        loadAdminBanners();
+
+        let allTagsData = [];
+
+        // 1. Naya Tag Database me save karna
+        window.saveNewTag = async function () {
+            const title = document.getElementById('tagTitle').value.trim();
+            const code = document.getElementById('tagCode').value.toLowerCase().trim();
+            const priority = Number(document.getElementById('tagPriority').value) || 99; // NAYA
+
+            if (!title || !code) { window.showToast("Title and Tag Code required!"); return; }
+            try {
+                await addDoc(collection(db, "tags"), { title, code, priority, createdAt: new Date().getTime() });
+                document.getElementById('tagTitle').value = '';
+                document.getElementById('tagCode').value = '';
+                document.getElementById('tagPriority').value = '';
+            } catch (e) { window.showToast("Error: " + e.message); }
+        }
+
+        // 🌟 UPDATED: Tags List jisme 'Manage Products' button lagaya gaya hai
+        window.listenAdminTags = function () {
+            onSnapshot(collection(db, "tags"), (snapshot) => {
+                const list = document.getElementById('admin-tags-list');
+                const checkboxContainer = document.getElementById('product-modal-tags-checkboxes');
+
+                if (list) list.innerHTML = '';
+                if (checkboxContainer) checkboxContainer.innerHTML = '';
+                allTagsData = [];
+
+                if (snapshot.empty) {
+                    if (list) list.innerHTML = '<p style="color:#888; font-size:13px; padding:10px;">No active tags found.</p>';
+                    if (checkboxContainer) checkboxContainer.innerHTML = '<p style="color:#888; font-size:12px;">Create tags first from Tags Master</p>';
+                    return;
+                }
+
+                snapshot.forEach((documentSnapshot) => {
+                    let data = documentSnapshot.data();
+                    let id = documentSnapshot.id;
+                    data.id = id;
+                    allTagsData.push(data);
+
+                    if (list) {
+                        list.innerHTML += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f4f6f8; border: 1px solid #eef0f2; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 10px; color: #777; font-weight: bold; margin-bottom: 2px;">ORDER</div>
+                                <input type="number" value="${data.priority || 99}" onchange="window.updateTagPriority('${id}', this.value)" style="width: 50px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; color: #128c7e; outline: none;">
+                            </div>
+                            
+                            <div>
+                                <strong style="color: #111; font-size: 15px;">${data.title}</strong> 
+                                <div style="font-size:12px; color:#128c7e; font-weight: bold; margin-top:4px;">Code: [${data.code}]</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="window.manageTagProducts('${data.code}', '${data.title}')" style="background: #e8f5e9; color: #1b5e20; border: 1px solid #4caf50; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">📦 Manage Products</button>
+                            <button onclick="window.deleteTag('${id}')" style="background: #fee2e2; color: #dc2626; border: 1px solid #f87171; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;">🗑️ Delete</button>
+                        </div>
+                    </div>
+                `;
+                    }
+
+                    if (checkboxContainer) {
+                        checkboxContainer.innerHTML += `
+                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-size:14px; margin-right:15px; margin-bottom:10px;">
+                        <input type="checkbox" class="product-tag-chk" value="${data.code}"> ${data.title}
+                    </label>
+                `;
+                    }
+                });
+            });
+        }
+
+        // 🌟 NAYA: Tag me se direct product add/remove karne ka logic
+        window.manageTagProducts = function (tagCode, tagTitle) {
+            document.getElementById('tagProductsModalTitle').innerText = "Home Section: " + tagTitle;
+            document.getElementById('manageTagCode').value = tagCode;
+
+            const listContainer = document.getElementById('tagProductsList');
+            listContainer.innerHTML = '';
+
+            if (allProductsData.length === 0) {
+                listContainer.innerHTML = '<p style="text-align:center; color:#777;">No products available in inventory.</p>';
+            } else {
+                allProductsData.forEach(p => {
+                    let isChecked = p.tags && Array.isArray(p.tags) && p.tags.includes(tagCode) ? 'checked' : '';
+                    listContainer.innerHTML += `
+                        <label style="display:flex; align-items:center; background:#fff; padding:12px; border-radius:8px; border:1px solid ${isChecked ? '#128c7e' : '#e0e0e0'}; cursor:pointer; gap:12px; transition: 0.2s;">
+                            <input type="checkbox" class="tag-manage-chk" value="${p.id}" ${isChecked} style="width: 20px; height: 20px; accent-color: #128c7e;">
+                            <img src="${p.img}" style="width: 45px; height: 45px; border-radius: 6px; object-fit: cover; border: 1px solid #eee;">
+                            <div style="flex: 1;">
+                                <div style="font-size: 14px; font-weight: bold; color: #111; margin-bottom: 4px;">${p.name}</div>
+                                <div style="font-size: 13px; color: #128c7e; font-weight: bold;">₹${p.sellingPrice}</div>
+                            </div>
+                        </label>
+                    `;
+                });
+            }
+            document.getElementById('tagProductsModal').style.display = 'flex';
+        }
+
+        window.closeTagProductsModal = function () {
+            document.getElementById('tagProductsModal').style.display = 'none';
+        }
+
+        window.saveTagProducts = async function () {
+            const tagCode = document.getElementById('manageTagCode').value;
+            const checkboxes = document.querySelectorAll('.tag-manage-chk');
+            const btn = document.querySelector('#tagProductsModal .btn-submit');
+
+            btn.innerText = "Saving..."; btn.disabled = true;
+
+            try {
+                let updatePromises = [];
+
+                checkboxes.forEach(chk => {
+                    let pId = chk.value;
+                    let isChecked = chk.checked;
+
+                    let p = allProductsData.find(item => item.id === pId);
+                    if (p) {
+                        let currentTags = p.tags && Array.isArray(p.tags) ? [...p.tags] : [];
+                        let hasTag = currentTags.includes(tagCode);
+
+                        let needsUpdate = false;
+                        if (isChecked && !hasTag) {
+                            currentTags.push(tagCode);
+                            needsUpdate = true;
+                        } else if (!isChecked && hasTag) {
+                            currentTags = currentTags.filter(t => t !== tagCode);
+                            needsUpdate = true;
+                        }
+
+                        if (needsUpdate) {
+                            let pRef = doc(db, "products", pId);
+                            updatePromises.push(updateDoc(pRef, { tags: currentTags }));
+                        }
+                    }
+                });
+
+                await Promise.all(updatePromises);
+                window.showToast("Products successfully updated for this Tag!");
+                closeTagProductsModal();
+                fetchProducts();
+            } catch (e) {
+                window.showToast("Error saving: " + e.message);
+            }
+
+            btn.innerText = "Save Products"; btn.disabled = false;
+        }
+
+        // 🌟 NAYA: Delete tag ko bhi 'window' ke sath global kiya
+        window.deleteTag = async function (id) {
+            if (confirm("Kya aap is tag ko delete karna chahte hain?")) {
+                try {
+                    await deleteDoc(doc(db, "tags", id));
+                    window.showToast("Tag successfully deleted!");
+                } catch (e) {
+                    window.showToast("Delete karne me dikkat aayi.");
+                }
+            }
+        }
+        // 🌟 NAYA: Tag ka order direct list se change karne ka function
+        window.updateTagPriority = async function (id, newVal) {
+            try {
+                await updateDoc(doc(db, "tags", id), { priority: Number(newVal) });
+            } catch (e) { window.showToast("Priority update error: " + e.message); }
+        }
+
+        // 🌟 NAYA: Category ka order direct list se change karne ka function
+        window.updateCatPriority = async function (colName, id, newVal) {
+            try {
+                await updateDoc(doc(db, colName, id), { priority: Number(newVal) });
+            } catch (e) { window.showToast("Priority update error: " + e.message); }
+        }
+
+
+        // ==========================================
+        // 📂 CATEGORY MASTER LOGIC
+        // ==========================================
+        // Admin panel save function
+        window.saveMasterMainCategory = async function () {
+            const name = document.getElementById('masterMainCatName').value.trim();
+            const priority = Number(document.getElementById('masterMainCatPriority').value) || 99; // Check karein ye line hai ya nahi
+
+            if (!name) { window.showToast("Please enter Main Category name"); return; }
+            try {
+                await addDoc(collection(db, "mainCategories"), { name: name, priority: priority, createdAt: new Date().getTime() });
+                // ...
+            } catch (e) { window.showToast("Error: " + e.message); }
+        }
+        window.saveMasterSubCategory = async function () {
+            const parent = document.getElementById('masterParentCatSelect').value;
+            const name = document.getElementById('masterSubCatName').value.trim();
+            const img = document.getElementById('masterSubCatImg').value.trim();
+            const priority = Number(document.getElementById('masterSubCatPriority').value) || 99; // NAYA
+
+            if (!parent || !name || !img) { window.showToast("Fill all fields!"); return; }
+            try {
+                await addDoc(collection(db, "subCategories"), { parent, name, img, priority, createdAt: new Date().getTime() });
+                document.getElementById('masterSubCatName').value = '';
+                document.getElementById('masterSubCatImg').value = '';
+                document.getElementById('masterSubCatPriority').value = '';
+            } catch (e) { window.showToast("Error: " + e.message); }
+        }
+
+        // ==========================================
+        // 📂 CATEGORY MASTER & DROPDOWN LOGIC
+        // ==========================================
+        let masterMainCatsList = [];
+        let masterSubCatsList = [];
+
+        window.listenCategoryMaster = function () {
+            // 1. Main Categories Load karke Product Form me dalna
+            onSnapshot(collection(db, "mainCategories"), (snapshot) => {
+                const list = document.getElementById('master-main-cat-list');
+                const select = document.getElementById('masterParentCatSelect');
+                const productMainCatSelect = document.getElementById('mainCatSelect');
+                const filterSubCatSelect = document.getElementById('filterMasterSubCat'); // 🌟 NAYA JODA
+
+                if (list) list.innerHTML = '';
+                if (select) select.innerHTML = '<option value="">-- Select Main Category --</option>';
+                if (productMainCatSelect) productMainCatSelect.innerHTML = '<option value="">-- Select Main Category --</option>';
+                if (filterSubCatSelect) filterSubCatSelect.innerHTML = '<option value="ALL">All Categories</option>'; // 🌟 NAYA JODA
+
+                masterMainCatsList = [];
+
+                snapshot.forEach(docSnap => {
+                    let data = docSnap.data();
+                    masterMainCatsList.push(data.name);
+
+                    if (list) list.innerHTML += `
+            <div style="padding: 8px; background: #f9f9f9; border: 1px solid #eee; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" value="${data.priority || 99}" onchange="window.updateCatPriority('mainCategories', '${docSnap.id}', this.value)" title="Change Order" style="width: 45px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; outline: none;">
+                    <strong>${data.name}</strong>
+                </div>
+                <button onclick="window.deleteCatMasterDoc('mainCategories', '${docSnap.id}')" style="color:#dc2626; border:none; background:none; cursor:pointer; font-weight:bold;">X</button>
+            </div>
+        `;
+                    if (select) select.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+                    if (productMainCatSelect) productMainCatSelect.innerHTML += `<option value="${data.name}">${data.name}</option>`;
+                    if (filterSubCatSelect) filterSubCatSelect.innerHTML += `<option value="${data.name}">${data.name}</option>`; // 🌟 NAYA JODA
+                });
+            });
+
+            // 2. Subcategories Load karna
+            onSnapshot(collection(db, "subCategories"), (snapshot) => {
+                masterSubCatsList = [];
+
+                snapshot.forEach(docSnap => {
+                    let data = docSnap.data();
+                    data.id = docSnap.id; // ID ko save kar rahe hain
+                    masterSubCatsList.push(data);
+                });
+
+                // Data aane ke baad list render karo
+                window.renderMasterSubCatList();
+            });
+
+            // 🌟 NAYA: Sub-category render aur filter karne ka function
+            window.renderMasterSubCatList = function () {
+                const list = document.getElementById('master-sub-cat-list');
+                const filterSelect = document.getElementById('filterMasterSubCat');
+                const filterValue = filterSelect ? filterSelect.value : 'ALL';
+
+                if (!list) return;
+                list.innerHTML = '';
+
+                // Filter Logic
+                let filteredList = masterSubCatsList;
+                if (filterValue !== 'ALL') {
+                    filteredList = masterSubCatsList.filter(sub => sub.parent === filterValue);
+                }
+
+                if (filteredList.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; color:#777; font-size:13px; padding: 10px;">No subcategories found for this category.</p>';
+                    return;
+                }
+
+                filteredList.forEach(data => {
+                    list.innerHTML += `
+            <div style="padding: 8px; background: #f9f9f9; border: 1px solid #eee; border-radius: 4px; display: flex; gap: 10px; align-items: center;">
+                <input type="number" value="${data.priority || 99}" onchange="window.updateCatPriority('subCategories', '${data.id}', this.value)" title="Change Order" style="width: 45px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; outline: none;">
+                <img src="${data.img}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px;">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 14px; color:#111;">${data.name}</div>
+                    <div style="font-size: 11px; color: #666;">Under: ${data.parent}</div>
+                </div>
+                <button onclick="window.deleteCatMasterDoc('subCategories', '${data.id}')" style="color:#dc2626; border:none; background:none; cursor:pointer; font-weight:bold;">X</button>
+            </div>
+        `;
+                });
+            }
+
+            // 🌟 3. Product Form me Main Category select hone par uske hisab se Subcategory dikhana
+            window.updateSubDropdown = function (selectedMainCat) {
+                const subSelect = document.getElementById('subCatSelect');
+                if (!subSelect) return;
+
+                subSelect.innerHTML = '<option value="">-- Select Subcategory --</option>';
+
+                // Master me se wahi subcategory nikalo jinki Main Category 'selectedMainCat' hai
+                const filteredSubs = masterSubCatsList.filter(sub => sub.parent === selectedMainCat);
+
+                filteredSubs.forEach(sub => {
+                    subSelect.innerHTML += `<option value="${sub.name}">${sub.name}</option>`;
+                });
+            }
+
+            window.deleteCatMasterDoc = async function (colName, id) {
+                if (confirm("Are you sure you want to delete this?")) {
+                    await deleteDoc(doc(db, colName, id));
+                }
+            }
+        }
+
+        window.sendBroadcastNotification = async function () {
+            const title = document.getElementById('notifTitle').value.trim();
+            const message = document.getElementById('notifMessage').value.trim();
+            const imageUrl = document.getElementById('notifImage').value.trim();
+            const linkUrl = document.getElementById('notifLink').value.trim();
+            const btn = document.getElementById('sendNotifBtn');
+
+            if (!title || !message) {
+                window.showToast("Title aur Message dono likhna zaroori hai!", "error");
+                return;
+            }
+
+            if (!confirm("Kya aap sach me yeh notification bhejna chahte hain?")) {
+                return;
+            }
+
+            btn.innerText = "Sending Request...";
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "notifications"), {
+                    title: title,
+                    body: message,
+                    image: imageUrl || null, // 🌟 Naya image data
+                    link: linkUrl || null,   // 🌟 Naya link data
+                    status: "pending",
+                    createdAt: new Date().toISOString()
+                });
+
+                window.showToast("Notification processing started!", "success");
+
+                document.getElementById('notifTitle').value = '';
+                document.getElementById('notifMessage').value = '';
+                document.getElementById('notifImage').value = '';
+                document.getElementById('notifLink').value = '';
+            } catch (error) {
+                console.error("Error creating notification:", error);
+                window.showToast("Failed to trigger notification!", "error");
+            }
+
+            btn.innerText = "🚀 Send Notification Now";
+            btn.disabled = false;
+        }
+
+    </script>
+    <div id="admin-toast"
+        style="display: none; position: fixed; top: 20px; right: 20px; color: #fff; padding: 15px 25px; border-radius: 8px; z-index: 10000; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.3s ease; opacity: 0;">
+    </div>
+</body>
+
+</html>
