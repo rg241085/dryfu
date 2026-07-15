@@ -28,6 +28,17 @@ function listenCoupons() {
     });
 }
 
+// 🌟 NAYA: Render ko control karne ke liye Debounce timer
+let renderTimer;
+window.safeRenderCatalog = function () {
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(() => {
+        if (typeof renderCatalog === 'function') {
+            renderCatalog(); // ✅ SAHI CODE (Asli render function ko call karega)
+        }
+    }, 150);
+};
+
 
 
 // 🌟 SMART LOGIN SYSTEM
@@ -109,7 +120,7 @@ function listenProducts() {
             document.getElementById('sub-category-nav').classList.add('hidden');
         } else {
             renderCategoryNav();
-            renderCatalog();
+            window.safeRenderCatalog();
 
             // 🌟 Yahan par Dynamic Sections aur Categories dono call ho rahi hain
             if (typeof window.renderDynamicHomeSections === 'function') {
@@ -146,7 +157,7 @@ function renderCategoryNav() {
         btn.onclick = () => {
             selectedCategory = cat;
             renderCategoryNav(); // Naya order update karne ke liye
-            renderCatalog();
+            window.safeRenderCatalog();
         };
         navContainer.appendChild(btn);
     });
@@ -182,23 +193,45 @@ function renderSubCategoryNav(productsGroupedBySub, subCatsArray) {
     });
 }
 
+// 🌟 NAYA: Global variable banayein observer ko track karne ke liye
+let catalogObserver = null;
+
+
+
 function setupIntersectionObserver() {
     const sections = document.querySelectorAll('.category-section');
+
+    if (catalogObserver) {
+        catalogObserver.disconnect();
+    }
+
     const observerOptions = { root: null, rootMargin: '-120px 0px -50% 0px', threshold: 0 };
-    const observer = new IntersectionObserver((entries) => {
+
+    catalogObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const subName = entry.target.id.replace('section-', '');
                 document.querySelectorAll('.sub-category-tab').forEach(tab => tab.classList.remove('active'));
                 const activeTab = document.getElementById(`tab-${subName}`);
+
                 if (activeTab) {
                     activeTab.classList.add('active');
-                    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                    // 🌟 FIX YAHAN HAI: scrollIntoView() ko hata kar manual scrollTo lagaya hai
+                    // Isse main screen ka scroll nahi hilega, sirf chhota sidebar scroll hoga
+                    const sidebar = document.getElementById('sub-category-nav');
+                    if (sidebar) {
+                        sidebar.scrollTo({
+                            top: activeTab.offsetTop - 50,
+                            behavior: 'smooth'
+                        });
+                    }
                 }
             }
         });
     }, observerOptions);
-    sections.forEach(section => observer.observe(section));
+
+    sections.forEach(section => catalogObserver.observe(section));
 }
 
 function renderCatalog() {
@@ -1799,7 +1832,7 @@ window.handleSearch = function () {
     let query = document.getElementById('searchInput').value.toLowerCase().trim();
     if (query === '') {
         renderCategoryNav();
-        renderCatalog(); // Wapas normal screen
+        window.safeRenderCatalog(); // Wapas normal screen
         return;
     }
 
@@ -2121,7 +2154,7 @@ installBtn.addEventListener('click', async () => {
 // ==========================================
 // 🚀 SMART SCROLL HEADER LOGIC
 // ==========================================
-let lastScrollTop = 0;
+/*let lastScrollTop = 0;
 
 window.addEventListener('scroll', function () {
     const topHeader = document.getElementById('main-top-header');
@@ -2139,7 +2172,7 @@ window.addEventListener('scroll', function () {
     }
 
     lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Negative scroll rokne ke liye
-}, false);
+}, false);*/
 
 // Later Button Click
 closeBtn.addEventListener('click', () => {
@@ -2449,7 +2482,7 @@ function listenMasterMainCategories() {
 
         if (typeof renderCategoryNav === 'function' && Object.keys(productsByCategory).length > 0) {
             renderCategoryNav();
-            renderCatalog();
+            window.safeRenderCatalog();
         }
     });
 }
@@ -2474,7 +2507,7 @@ function listenMasterCategories() {
 
         // 🌟 NAYA JODA: Sub-category ka order change hone par Catalog ko bhi turant update karo
         if (typeof renderCatalog === 'function' && Object.keys(productsByCategory).length > 0) {
-            renderCatalog();
+            window.safeRenderCatalog();
         }
     });
 }
@@ -2536,7 +2569,7 @@ window.openSubCategoryFromHome = function (parentCat, subCat) {
 
     if (typeof renderCategoryNav === 'function') {
         renderCategoryNav();
-        renderCatalog();
+        window.safeRenderCatalog();
 
         // 🌟 JADU: Smoothly scroll directly to that specific Subcategory section!
         setTimeout(() => {

@@ -110,9 +110,9 @@ body {
     width: 76px;
     flex-shrink: 0;
     background-color: #f3f5f7;
-    height: calc(100dvh - 167px);
+    height: calc(100dvh - 55px); /* Header scroll hone ke baad ki perfectly fit height */
     position: sticky;
-    top: 167px;
+    top: 55px; /* Ye category nav ke theek niche smoothly chipak jayega */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -120,16 +120,9 @@ body {
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.04);
     scrollbar-width: none;
     padding-bottom: 140px;
-    /* NAYA: Sliding animation jisse panel smoothly upar-niche hoga */
-    transition: top 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
-/* NAYA CODE: Jab upar ka header hide ho, tab left panel ki position change karein */
-#main-top-header.hide-header-up~.content-wrapper .sub-category-nav {
-    top: 48px;
-    /* Ab yeh sirf "All, Dry Fruits" wale bar ke theek niche chipkega */
-    height: calc(100dvh - 48px);
-}
+
 
 .sub-category-nav::-webkit-scrollbar {
     display: none;
