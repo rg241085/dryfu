@@ -1740,21 +1740,29 @@
             }
         };
 
-        window.quickUpdate = async function (productId, field, newValue) {
-            try {
-                const pRef = doc(db, "products", productId);
-                const updateData = {};
+     window.quickUpdate = async function (productId, field, newValue) {
+    try {
+        const pRef = doc(db, "products", productId);
+        const updateData = {};
 
-                // Weight ek text hai, par MRP/Selling Price Number hone chahiye
-                updateData[field] = (field === 'weight') ? newValue : Number(newValue);
+        // Weight ek text hai, par MRP/Selling Price Number hone chahiye
+        updateData[field] = (field === 'weight') ? newValue : Number(newValue);
 
-                await updateDoc(pRef, updateData);
-                window.showToast("Updated Successfully!", "success");
-            } catch (e) {
-                window.showToast("Error updating!", "error");
-                console.error(e);
-            }
+        await updateDoc(pRef, updateData);
+
+        // 🌟 BUG FIX YAHAN HAI: 
+        // Database update hone ke baad, local array ko bhi update kar do
+        const productIndex = allProductsData.findIndex(item => item.id === productId);
+        if (productIndex !== -1) {
+            allProductsData[productIndex][field] = updateData[field];
         }
+
+        window.showToast("Updated Successfully!", "success");
+    } catch (e) {
+        window.showToast("Error updating!", "error");
+        console.error(e);
+    }
+}
 
 
 
