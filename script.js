@@ -251,8 +251,25 @@ function renderCatalog() {
 
         sortedMainCats.forEach(categoryName => {
             let products = productsByCategory[categoryName];
-            // 🌟 NAYA JODA: Products ko unke priority number se sort karna
-            products.sort((a, b) => (a.priority || 99) - (b.priority || 99));
+
+            // 🌟 SMART SORTING: Pehle Sub-Category ki rank dekhega, phir Product ki rank
+            products.sort((a, b) => {
+                // 1. Dono products ki Sub-Category ki priority pata karo
+                let subA = masterSubCategories.find(m => m.name === a.subCategory && m.parent === categoryName);
+                let subB = masterSubCategories.find(m => m.name === b.subCategory && m.parent === categoryName);
+
+                let prioSubA = subA ? (subA.priority || 99) : 99;
+                let prioSubB = subB ? (subB.priority || 99) : 99;
+
+                // 2. Agar Sub-Categories alag-alag order ki hain, toh unhe alag karo
+                if (prioSubA !== prioSubB) {
+                    return prioSubA - prioSubB;
+                }
+
+                // 3. Agar same Sub-Category ke hain, tab product ka apna order dekho
+                return (a.priority || 99) - (b.priority || 99);
+            });
+
             let section = document.createElement('div');
             section.classList.add('category-section');
             section.innerHTML += `<div class="category-header"><h3>${categoryName}</h3></div>`;
