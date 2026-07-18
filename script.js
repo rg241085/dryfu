@@ -535,7 +535,11 @@ window.openCart = function () {
     document.getElementById('cart-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // 👇 Basket open hone par 'cart' icon ko green karo
+    // 🌟 1. NAYA LOGIC: HIDE BOTTOM NAVIGATION BAR
+    const bottomNav = document.querySelector('.bottom-navigation');
+    if (bottomNav) bottomNav.style.display = 'none';
+
+    // Basket open hone par 'cart' icon ko green karo
     window.updateNavHighlight('cart');
     renderCartItems();
 }
@@ -544,18 +548,21 @@ window.closeCart = function () {
     document.getElementById('cart-modal').classList.add('hidden');
     document.body.style.overflow = '';
 
-    // 👇 Basket band hone par wapas purane tab ko green karo
+    // 🌟 2. NAYA LOGIC: SHOW BOTTOM NAVIGATION BAR
+    const bottomNav = document.querySelector('.bottom-navigation');
+    if (bottomNav) bottomNav.style.display = 'flex'; // It's a flex container
+
+    // Basket band hone par wapas purane tab ko green karo
     window.updateNavHighlight(localStorage.getItem('dryfu_active_tab') || 'home');
 }
 
 function renderCartItems() {
     const container = document.getElementById('cart-items-container');
-    const checkoutBar = document.getElementById('cart-checkout-bar'); // NAYA: Checkout bar ko control karne ke liye
+    const checkoutBar = document.getElementById('cart-checkout-bar');
     container.innerHTML = '';
 
-    // 👇 NAYA FIX: "Empty State" Design
     if (cart.length === 0) {
-        if (checkoutBar) checkoutBar.style.display = 'none'; // Checkout bar chhupa do
+        if (checkoutBar) checkoutBar.style.display = 'none';
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center;">
                 <div style="font-size: 80px; margin-bottom: 10px; opacity: 0.9;">🛍️</div>
@@ -564,20 +571,17 @@ function renderCartItems() {
                 <button onclick="window.closeCart(); window.switchTab('catalog');" style="background: #128c7e; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(18,140,126,0.2);">Browse Products</button>
             </div>
         `;
-        return; // Function ko yahi rok do taaki aage ka code na chale
+        return;
     }
 
-    // Agar item hain, toh Checkout bar wapas dikha do
     if (checkoutBar) checkoutBar.style.display = 'flex';
 
     cart.forEach(item => {
         let div = document.createElement('div');
         div.classList.add('cart-item');
 
-        // 🌟 FIX 1: isFreeGift ke sath isPromoGift bhi check kiya
         let isGiftOrPromo = item.isFreeGift || item.isPromoGift;
 
-        // 🌟 FIX 2: Agar promo item hai, toh +/- buttons hide karke ek sundar tag dikhayenge
         let qtyControlsHtml = isGiftOrPromo ?
             `<span style="color:#10b981; font-weight:800; font-size:11px; padding: 6px 10px; background: #ecfdf5; border-radius: 6px; border: 1px dashed #10b981;">REWARD</span>` :
             `<div class="qty-controls">
@@ -591,12 +595,11 @@ function renderCartItems() {
             <div class="cart-item-info">
                 <div class="cart-item-title" style="${isGiftOrPromo ? 'color:#065f46; font-weight:bold;' : ''}">
                     ${item.name}
-                    
-                    <div style="font-size: 11px; color: #777; font-weight: 600; margin-top: 3px;">
-                        Pack Size: ${item.weight || 'Standard'}
-                    </div>
                 </div>
-                <!-- 🌟 FIX 3: Price section ko bhi isGiftOrPromo se handle kiya -->
+                <!-- 🌟 NAYA: Weight ko alag div mein properly style kiya hai -->
+                <div class="cart-item-weight" style="font-size: 11px; color: #777; font-weight: 600; margin-top: 3px;">
+                    Pack Size: ${item.weight || 'Standard Pack'}
+                </div>
                 <div class="cart-item-price">
                     ${(isGiftOrPromo && item.sellingPrice === 0) ? '<strike style="color:#999; font-size:12px;">₹' + item.mrp + '</strike> <span style="color:#10b981;">FREE</span>' : '₹' + item.sellingPrice}
                 </div>

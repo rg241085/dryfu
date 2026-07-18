@@ -412,20 +412,23 @@ body {
 /* 🌟 NAYA: Cart modal ka checkout bar aur uska perfect synchronized animation */
 #cart-checkout-bar {
     position: fixed;
-    bottom: 70px;
+    /* position at the bottom of the parda (layer) */
+    bottom: 0px;
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
     max-width: 480px;
     z-index: 2001;
+    /* higher than modal itself */
     transition: transform 0.9s ease-in-out;
 }
 
 /* 👈 CHECK 1: Kya aapne ye wala closing bracket lagaya hai? */
 
-/* 🌟 NAYA: Jab scroll down hoga, toh ye bar exact 70px niche slide hoga */
+/* NAYA: Cart parda hide animation class */
 .hide-checkout-down {
     transform: translate(-50%, 70px) !important;
+    /* Niche chhip jayega screen se */
 }
 
 /* 👈 CHECK 2: Kya ye wala bracket close hua hai? */
@@ -478,21 +481,36 @@ body {
     font-weight: 700;
     color: #111;
     margin-bottom: 6px;
-    /* nowrap hata kar normal kar diya taaki text agli line me aa sake */
+    /* 🌟 NAYA: restrictive styles hata diye, text wrapping enable ho gaya */
     white-space: normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    /* Safari/Chrome ke liye */
-    line-clamp: 2;
-    /* NAYA: Standard compatibility ke liye (VS Code warning hatane ke liye) */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+}
+
+/* 🌟 NAYA: consistent styling for weight text */
+.cart-item-weight {
+    font-size: 11px;
+    color: #777;
+    font-weight: 600;
+    margin-top: 3px;
+    display: block;
+    /* New line se start ho sake */
 }
 
 .cart-item-price {
     font-size: 15px;
     font-weight: 800;
     color: #111;
+}
+
+/* line 17 ke aas paas bottom padding ko adjust karenge taaki checkout bar safe rahe. */
+.app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    min-height: 100vh;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    position: relative;
+    /* fixed content ke piche content na chhupe isliye bottom padding badha di hai */
+    padding-bottom: 150px;
 }
 
 .login-overlay {
