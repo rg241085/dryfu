@@ -431,25 +431,29 @@ window.decreaseQuantity = function (productId) {
     }
 }
 
-function updateProductActionUI(productId) {
-    const actionDiv = document.getElementById(`action-${productId}`);
-    if (!actionDiv) return;
+window.updateProductActionUI = function (productId) {
+    // Ye function ab screen par maujud us product ke sabhi buttons ko dhundh kar update karega
+    const actionDivs = document.querySelectorAll(`#action-${productId}, .product-action-ui-${productId}`);
+    if (actionDivs.length === 0) return;
+
     const cartItem = cart.find(item => item.id === productId);
+    let btnStyle = "width: 100%; border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 6px; padding: 8px; font-size: 12px; cursor: pointer; text-transform: uppercase;";
+    let qtyStyle = "display: flex; align-items: center; justify-content: space-between; border: 1px solid #128c7e; border-radius: 6px; background: #f3fdf6; height: 32px; width: 100%;";
 
-    let btnStyle = "border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 8px; padding: 8px 24px; font-size: 13px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(18,140,126,0.25); transition: 0.2s;";
-    let qtyStyle = "display: flex; align-items: center; border: 1px solid #128c7e; border-radius: 8px; background: #f3fdf6; overflow: hidden; box-shadow: 0 2px 6px rgba(18,140,126,0.15); height: 34px;";
-
+    let html = '';
     if (cartItem) {
-        actionDiv.innerHTML = `<div style="${qtyStyle}">
-            <button onclick="window.decreaseQuantity('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:18px; font-weight:bold; width:30px; height:100%; cursor:pointer;">-</button>
-            <span style="font-size:14px; font-weight:800; color:#111; width:26px; text-align:center; background:#fff; line-height:34px; border-left:1px solid #128c7e; border-right:1px solid #128c7e;">${cartItem.quantity}</span>
-            <button onclick="window.addToCart('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:18px; font-weight:bold; width:30px; height:100%; cursor:pointer;">+</button>
+        html = `<div style="${qtyStyle}">
+            <button onclick="window.decreaseQuantity('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">-</button>
+            <span style="font-size:13px; font-weight:800; color:#111; width:40%; text-align:center; background:#fff; line-height:30px; border-left:1px solid #128c7e; border-right:1px solid #128c7e;">${cartItem.quantity}</span>
+            <button onclick="window.addToCart('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">+</button>
         </div>`;
     } else {
-        actionDiv.innerHTML = `<button style="${btnStyle}" onclick="window.addToCart('${productId}')">ADD</button>`;
+        html = `<button style="${btnStyle}" onclick="window.addToCart('${productId}')">ADD</button>`;
     }
+
+    actionDivs.forEach(div => { div.innerHTML = html; });
 }
-// let lastGiftEligibility = false;
+let lastGiftEligibility = false;
 
 
 
@@ -2595,8 +2599,93 @@ function listenMasterMainCategories() {
             renderCategoryNav();
             window.safeRenderCatalog();
         }
+
+        // 👇 NAYA CODE: Yahan bhi Grid Render ko call karo taaki race-condition na aaye
+        if (typeof window.renderGridCategories === 'function') {
+            window.renderGridCategories();
+        }
     });
 }
+
+// 🌟 NAYA: Global variable grid ke columns yaad rakhne ke liye
+window.currentGridCols = 3;
+
+// Load Layout Settings & Render Grid
+function listenAppLayoutSettings() {
+    onSnapshot(doc(db, "settings", "appLayout"), (docSnap) => {
+        if (docSnap.exists()) {
+            let data = docSnap.data();
+
+            // Update Flex Orders
+            document.getElementById('dynamic-banner-container').style.order = data.bannerOrder || 1;
+            document.getElementById('home-category-section').style.order = data.slideCatOrder || 2;
+            document.getElementById('dynamic-tags-sections-container').style.order = data.tagsOrder || 3;
+            document.getElementById('home-grid-category-section').style.order = data.gridCatOrder || 4;
+
+            // Grid columns save karna
+            window.currentGridCols = data.gridCols || 3;
+
+            // Agar settings change ho toh grid dubara render karo
+            if (typeof window.renderGridCategories === 'function') {
+                window.renderGridCategories();
+            }
+        }
+    });
+}
+
+// 🌟 NAYA: Master Category ke hisaab se Group karke Grid render karna
+window.renderGridCategories = function () {
+    const gridSection = document.getElementById('home-grid-category-section');
+    const gridContainer = document.getElementById('home-grid-category-container');
+
+    if (!gridContainer || masterSubCategories.length === 0) {
+        if (gridSection) gridSection.style.display = 'none';
+        return;
+    }
+
+    if (gridSection) gridSection.style.display = 'block';
+    gridContainer.innerHTML = '';
+
+    // Wrapper ko normal block banane ke liye purani class hata di
+    gridContainer.className = '';
+
+    // Main Categories (e.g. Dry Fruits, Spices) ke hisaab se loop chalana
+    masterMainCategories.forEach(mainCat => {
+
+        // Is main category ki sabhi sub-categories nikaalo
+        let subCats = masterSubCategories.filter(sub => sub.parent === mainCat.name);
+
+        // Agar is category me sub-categories hain, tabhi section dikhao
+        if (subCats.length > 0) {
+
+            // Amazon Fresh jaisi Heading aur naya Grid start
+            let sectionHTML = `
+                <h3 style="margin: 20px 0 15px 20px; font-size: 18px; font-weight: 800; color: #111;">${mainCat.name}</h3>
+                <div class="home-grid-categories cols-${window.currentGridCols}">
+            `;
+
+            // Us category ke items grid me add karna
+            subCats.forEach(sub => {
+                sectionHTML += `
+                    <div class="grid-cat-item" onclick="window.openSubCategoryFromHome('${sub.parent}', '${sub.name}')">
+                        <img src="${sub.img}" alt="${sub.name}">
+                        <span>${sub.name}</span>
+                    </div>
+                `;
+            });
+
+            sectionHTML += `</div>`; // Grid close
+
+            // HTML ko screen par add karna
+            gridContainer.insertAdjacentHTML('beforeend', sectionHTML);
+        }
+    });
+};
+
+// INITIALIZE APP ke andar (File ke end me) ise call karein:
+listenAppLayoutSettings();
+
+
 // ==========================================
 // 📂 MASTER SUBCATEGORIES FOR HOME PAGE
 // ==========================================
@@ -2614,6 +2703,7 @@ function listenMasterCategories() {
 
         if (typeof window.renderHomeCategories === 'function') {
             window.renderHomeCategories();
+            window.renderGridCategories();
         }
 
         // 🌟 NAYA JODA: Sub-category ka order change hone par Catalog ko bhi turant update karo
@@ -2627,15 +2717,10 @@ window.renderDynamicHomeSections = function () {
     try {
         const container = document.getElementById('dynamic-tags-sections-container');
         if (!container || typeof allProducts === 'undefined' || allProducts.length === 0) return;
-
         container.innerHTML = '';
 
-        // Har ek tag ke liye check karo
         activeAppTags.forEach(tag => {
-            // Is tag ke andar wale products filter karo
             const tagProducts = allProducts.filter(product => product.tags && product.tags.includes(tag.code));
-
-            // Agar is tag me ek bhi product hai tabhi screen par dabha (section) dikhao
             if (tagProducts.length > 0) {
                 let sectionHtml = `
                     <div class="dynamic-home-section" style="padding: 15px 0; background: #fff; margin-top: 10px;">
@@ -2649,18 +2734,36 @@ window.renderDynamicHomeSections = function () {
                 tagProducts.forEach(product => {
                     let pPrice = product.price || product.sellingPrice || 0;
                     let pImg = product.imageUrl || product.img || 'https://via.placeholder.com/150';
-
                     let priceHtml = `₹${pPrice}`;
                     if (product.mrp && product.mrp > pPrice) {
                         priceHtml = `<span style="text-decoration: line-through; color: #999; font-size: 11px; margin-right: 5px;">₹${product.mrp}</span>₹${pPrice}`;
                     }
 
+                    // --- NAYA: Add to Cart Button Logic for Tags ---
+                    const cartItem = cart.find(item => item.id === product.id);
+                    let actionHTML = '';
+                    let btnStyle = "width: 100%; border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 6px; padding: 8px; font-size: 12px; cursor: pointer; text-transform: uppercase;";
+                    let qtyStyle = "display: flex; align-items: center; justify-content: space-between; border: 1px solid #128c7e; border-radius: 6px; background: #f3fdf6; height: 32px; width: 100%;";
+
+                    if (product.stockQty !== undefined && product.stockQty <= 0) {
+                        actionHTML = `<span style="display:block; text-align:center; color:#dc3545; font-weight:bold; font-size:11px; padding: 6px; background: #fff0f0; border-radius: 6px;">Out of Stock</span>`;
+                    } else if (cartItem) {
+                        actionHTML = `<div style="${qtyStyle}">
+                            <button onclick="window.decreaseQuantity('${product.id}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">-</button>
+                            <span style="font-size:13px; font-weight:800; color:#111; width:40%; text-align:center; background:#fff; line-height:30px; border-left:1px solid #128c7e; border-right:1px solid #128c7e;">${cartItem.quantity}</span>
+                            <button onclick="window.addToCart('${product.id}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">+</button>
+                        </div>`;
+                    } else {
+                        actionHTML = `<button style="${btnStyle}" onclick="window.addToCart('${product.id}')">ADD</button>`;
+                    }
+
                     sectionHtml += `
-                        <div class="trending-card" onclick="if(typeof window.openPDP === 'function') window.openPDP('${product.id}')" style="min-width: 140px; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer;">
-                            <img src="${pImg}" alt="${product.name}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
-                            <div style="font-size: 12px; font-weight: bold; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${product.name}</div>
-                            <div style="font-size: 10px; color: #777; margin-bottom: 5px;">${product.weight || 'Standard'}</div>
-                            <div style="font-size: 14px; color: #128c7e; font-weight: 800;">${priceHtml}</div>
+                        <div class="trending-card" style="min-width: 140px; max-width: 140px; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                            <img src="${pImg}" alt="${product.name}" onclick="if(typeof window.openPDP === 'function') window.openPDP('${product.id}')" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; cursor: pointer;">
+                            <div class="card-title-text" onclick="if(typeof window.openPDP === 'function') window.openPDP('${product.id}')" style="font-size: 12px; font-weight: bold; color: #333; margin-bottom: 4px; cursor: pointer;">${product.name}</div>
+                            <div style="font-size: 10px; color: #777; margin-bottom: 8px;">${product.weight || 'Standard'}</div>
+                            <div style="font-size: 14px; color: #128c7e; font-weight: 800; margin-bottom: 10px;">${priceHtml}</div>
+                            <div class="product-action-ui-${product.id}">${actionHTML}</div>
                         </div>
                     `;
                 });
@@ -2669,9 +2772,7 @@ window.renderDynamicHomeSections = function () {
                 container.insertAdjacentHTML('beforeend', sectionHtml);
             }
         });
-    } catch (error) {
-        console.error("Dynamic sections load hone me error: ", error);
-    }
+    } catch (error) { console.error(error); }
 };
 // 🌟 NAYA: Home page se direct category open karne ka logic (With Auto-Scroll Fix)
 window.openSubCategoryFromHome = function (parentCat, subCat) {

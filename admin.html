@@ -490,6 +490,7 @@
                 <li data-target="banner-master-view">🖼️ Banner Master</li>
                 <li data-target="tags-master-view">🏷️ Tags Master</li>
                 <li data-target="category-master-view">📂 Category Master</li>
+                <li data-target="layout-settings-view">📱 App Layout Settings</li> <!-- Ye line add karein -->
                 <li data-target="notifications-view">📢 Push Notifications</li>
 
 
@@ -528,6 +529,44 @@
                                 <h3 id="dashCustomers" style="font-size:24px;">0</h3>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div id="layout-settings-view" class="view-section">
+                    <div class="page-header">
+                        <h2>App Layout Settings</h2>
+                    </div>
+
+                    <div
+                        style="background: #fff; padding: 25px; border-radius: 8px; border: 1px solid #ddd; max-width: 600px; margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 15px; color: #111;">1. Home Page Section Order</h3>
+                        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Number daalein (1, 2, 3, 4) ki
+                            kaunsa section kaha dikhana hai.</p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                            <div class="form-group"><label>Banner Slider Order</label><input type="number"
+                                    id="setBannerOrder" value="1"></div>
+                            <div class="form-group"><label>Sliding Category Order</label><input type="number"
+                                    id="setSlideCatOrder" value="2"></div>
+                            <div class="form-group"><label>Tags/Offers Order</label><input type="number"
+                                    id="setTagsOrder" value="3"></div>
+                            <div class="form-group"><label>Grid Categories Order</label><input type="number"
+                                    id="setGridCatOrder" value="4"></div>
+                        </div>
+
+                        <h3 style="margin-bottom: 15px; color: #111;">2. Category Grid Columns</h3>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label>Ek row me kitni categories dikhani hain?</label>
+                            <select id="setGridCols"
+                                style="padding: 10px; width: 100%; border: 1px solid #ccc; border-radius: 6px;">
+                                <option value="2">2 Columns (Bade Icons)</option>
+                                <option value="3" selected>3 Columns (Medium Icons)</option>
+                                <option value="4">4 Columns (Chhote Icons)</option>
+                            </select>
+                        </div>
+
+                        <button onclick="window.saveAppLayout()" class="btn-submit"
+                            style="width: 100%; height: 45px;">💾 Save Layout Settings</button>
                     </div>
                 </div>
 
@@ -1740,29 +1779,29 @@
             }
         };
 
-     window.quickUpdate = async function (productId, field, newValue) {
-    try {
-        const pRef = doc(db, "products", productId);
-        const updateData = {};
+        window.quickUpdate = async function (productId, field, newValue) {
+            try {
+                const pRef = doc(db, "products", productId);
+                const updateData = {};
 
-        // Weight ek text hai, par MRP/Selling Price Number hone chahiye
-        updateData[field] = (field === 'weight') ? newValue : Number(newValue);
+                // Weight ek text hai, par MRP/Selling Price Number hone chahiye
+                updateData[field] = (field === 'weight') ? newValue : Number(newValue);
 
-        await updateDoc(pRef, updateData);
+                await updateDoc(pRef, updateData);
 
-        // 🌟 BUG FIX YAHAN HAI: 
-        // Database update hone ke baad, local array ko bhi update kar do
-        const productIndex = allProductsData.findIndex(item => item.id === productId);
-        if (productIndex !== -1) {
-            allProductsData[productIndex][field] = updateData[field];
+                // 🌟 BUG FIX YAHAN HAI: 
+                // Database update hone ke baad, local array ko bhi update kar do
+                const productIndex = allProductsData.findIndex(item => item.id === productId);
+                if (productIndex !== -1) {
+                    allProductsData[productIndex][field] = updateData[field];
+                }
+
+                window.showToast("Updated Successfully!", "success");
+            } catch (e) {
+                window.showToast("Error updating!", "error");
+                console.error(e);
+            }
         }
-
-        window.showToast("Updated Successfully!", "success");
-    } catch (e) {
-        window.showToast("Error updating!", "error");
-        console.error(e);
-    }
-}
 
 
 
@@ -2859,6 +2898,31 @@
 
             btn.innerText = "🚀 Send Notification Now";
             btn.disabled = false;
+        }
+
+        // Load Layout Settings
+        onSnapshot(doc(db, "settings", "appLayout"), (docSnap) => {
+            if (docSnap.exists()) {
+                let data = docSnap.data();
+                document.getElementById('setBannerOrder').value = data.bannerOrder || 1;
+                document.getElementById('setSlideCatOrder').value = data.slideCatOrder || 2;
+                document.getElementById('setTagsOrder').value = data.tagsOrder || 3;
+                document.getElementById('setGridCatOrder').value = data.gridCatOrder || 4;
+                document.getElementById('setGridCols').value = data.gridCols || 3;
+            }
+        });
+
+        window.saveAppLayout = async function () {
+            try {
+                await setDoc(doc(db, "settings", "appLayout"), {
+                    bannerOrder: Number(document.getElementById('setBannerOrder').value),
+                    slideCatOrder: Number(document.getElementById('setSlideCatOrder').value),
+                    tagsOrder: Number(document.getElementById('setTagsOrder').value),
+                    gridCatOrder: Number(document.getElementById('setGridCatOrder').value),
+                    gridCols: Number(document.getElementById('setGridCols').value)
+                });
+                window.showToast("Layout settings saved successfully!");
+            } catch (e) { window.showToast("Error: " + e.message); }
         }
 
     </script>

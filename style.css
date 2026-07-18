@@ -1369,8 +1369,7 @@ body {
     /* NAYA: Golayi ke liye */
 }
 
-
-*/ .bottom-navigation .nav-item.active .nav-icon {
+ .bottom-navigation .nav-item.active .nav-icon {
     transform: scale(1.15);
     /* Active icon thoda bada dikhega */
     transition: transform 0.3s ease;
@@ -1572,4 +1571,67 @@ body>.app-container>#checkout-bar {
 
 .cart-badge.pop {
     transform: scale(1.3);
+}
+
+/* --- Fix: Product ka naam pura dikhane ke liye --- */
+.product-title {
+    display: block !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    -webkit-line-clamp: unset !important;
+}
+
+/* Trending/Tag items ka naam bhi pura dikhega */
+.trending-card .card-title-text {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    display: block;
+}
+
+/* --- New: Home Page Category Grid (Amazon Fresh Style) --- */
+.home-grid-categories {
+    display: grid;
+    gap: 15px;
+    padding: 0 20px;
+    margin-bottom: 20px;
+}
+
+/* Admin se aane wale column settings ke liye classes */
+.home-grid-categories.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.home-grid-categories.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.home-grid-categories.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-cat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+.grid-cat-item img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 50%;
+    background: #f4f6f8;
+    border: 2px solid #eef0f2;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 8px;
+}
+
+.grid-cat-item span {
+    font-size: 11px;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.2;
 }
