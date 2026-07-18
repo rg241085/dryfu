@@ -478,9 +478,15 @@ body {
     font-weight: 700;
     color: #111;
     margin-bottom: 6px;
-    white-space: nowrap;
+    /* nowrap hata kar normal kar diya taaki text agli line me aa sake */
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    /* Safari/Chrome ke liye */
+    line-clamp: 2;
+    /* NAYA: Standard compatibility ke liye (VS Code warning hatane ke liye) */
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .cart-item-price {
@@ -1369,7 +1375,7 @@ body {
     /* NAYA: Golayi ke liye */
 }
 
- .bottom-navigation .nav-item.active .nav-icon {
+.bottom-navigation .nav-item.active .nav-icon {
     transform: scale(1.15);
     /* Active icon thoda bada dikhega */
     transition: transform 0.3s ease;
@@ -1579,6 +1585,8 @@ body>.app-container>#checkout-bar {
     overflow: visible !important;
     white-space: normal !important;
     -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    /* NAYA: VS Code warning hatane ke liye */
 }
 
 /* Trending/Tag items ka naam bhi pura dikhega */

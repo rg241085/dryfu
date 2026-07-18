@@ -437,21 +437,43 @@ window.updateProductActionUI = function (productId) {
     if (actionDivs.length === 0) return;
 
     const cartItem = cart.find(item => item.id === productId);
-    let btnStyle = "width: 100%; border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 6px; padding: 8px; font-size: 12px; cursor: pointer; text-transform: uppercase;";
-    let qtyStyle = "display: flex; align-items: center; justify-content: space-between; border: 1px solid #128c7e; border-radius: 6px; background: #f3fdf6; height: 32px; width: 100%;";
 
-    let html = '';
-    if (cartItem) {
-        html = `<div style="${qtyStyle}">
-            <button onclick="window.decreaseQuantity('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">-</button>
-            <span style="font-size:13px; font-weight:800; color:#111; width:40%; text-align:center; background:#fff; line-height:30px; border-left:1px solid #128c7e; border-right:1px solid #128c7e;">${cartItem.quantity}</span>
-            <button onclick="window.addToCart('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">+</button>
-        </div>`;
-    } else {
-        html = `<button style="${btnStyle}" onclick="window.addToCart('${productId}')">ADD</button>`;
-    }
+    actionDivs.forEach(div => {
+        // Check karte hain ki button Catalog page par hai ya Home page slider mein
+        let isCatalog = div.id.startsWith('action-');
 
-    actionDivs.forEach(div => { div.innerHTML = html; });
+        // Catalog aur Home page dono ke alag styles
+        let btnStyle = isCatalog ?
+            "border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 8px; padding: 8px 24px; font-size: 13px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(18,140,126,0.25); transition: 0.2s;" :
+            "width: 100%; border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 6px; padding: 8px; font-size: 12px; cursor: pointer; text-transform: uppercase;";
+
+        let qtyStyle = isCatalog ?
+            "display: flex; align-items: center; border: 1px solid #128c7e; border-radius: 8px; background: #f3fdf6; overflow: hidden; box-shadow: 0 2px 6px rgba(18,140,126,0.15); height: 34px;" :
+            "display: flex; align-items: center; justify-content: space-between; border: 1px solid #128c7e; border-radius: 6px; background: #f3fdf6; height: 32px; width: 100%;";
+
+        let html = '';
+        if (cartItem) {
+            if (isCatalog) {
+                // Fixed Pixels for Catalog Page (Taaki chipke nahi)
+                html = `<div style="${qtyStyle}">
+                    <button onclick="window.decreaseQuantity('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:18px; font-weight:bold; width:30px; height:100%; cursor:pointer;">-</button>
+                    <span style="font-size:14px; font-weight:800; color:#111; width:26px; text-align:center; background:#fff; line-height:34px; border-left:1px solid #128c7e; border-right:1px solid #128c7e;">${cartItem.quantity}</span>
+                    <button onclick="window.addToCart('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:18px; font-weight:bold; width:30px; height:100%; cursor:pointer;">+</button>
+                </div>`;
+            } else {
+                // Percentages for Home Page Tags
+                html = `<div style="${qtyStyle}">
+                    <button onclick="window.decreaseQuantity('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">-</button>
+                    <span style="font-size:13px; font-weight:800; color:#111; width:40%; text-align:center; background:#fff; line-height:30px; border-left:1px solid #128c7e; border-right:1px solid #128c7e;">${cartItem.quantity}</span>
+                    <button onclick="window.addToCart('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">+</button>
+                </div>`;
+            }
+        } else {
+            html = `<button style="${btnStyle}" onclick="window.addToCart('${productId}')">ADD</button>`;
+        }
+
+        div.innerHTML = html;
+    });
 }
 let lastGiftEligibility = false;
 
@@ -552,8 +574,12 @@ function renderCartItems() {
         let div = document.createElement('div');
         div.classList.add('cart-item');
 
-        let qtyControlsHtml = item.isFreeGift ?
-            `<span style="color:#10b981; font-weight:bold; font-size:13px; padding: 5px 10px; background: #ecfdf5; border-radius: 4px;">FREE GIFT</span>` :
+        // 🌟 FIX 1: isFreeGift ke sath isPromoGift bhi check kiya
+        let isGiftOrPromo = item.isFreeGift || item.isPromoGift;
+
+        // 🌟 FIX 2: Agar promo item hai, toh +/- buttons hide karke ek sundar tag dikhayenge
+        let qtyControlsHtml = isGiftOrPromo ?
+            `<span style="color:#10b981; font-weight:800; font-size:11px; padding: 6px 10px; background: #ecfdf5; border-radius: 6px; border: 1px dashed #10b981;">REWARD</span>` :
             `<div class="qty-controls">
                 <button class="btn-qty" onclick="window.decreaseQuantity('${item.id}')">-</button>
                 <span class="qty-count">${item.quantity}</span>
@@ -563,8 +589,17 @@ function renderCartItems() {
         div.innerHTML = `
             <img src="${item.img}" alt="img" class="cart-item-img">
             <div class="cart-item-info">
-                <div class="cart-item-title" style="${item.isFreeGift ? 'color:#065f46; font-weight:bold;' : ''}">${item.name}</div>
-                <div class="cart-item-price">${item.isFreeGift ? '<strike>₹' + item.mrp + '</strike> ₹0' : '₹' + item.sellingPrice}</div>
+                <div class="cart-item-title" style="${isGiftOrPromo ? 'color:#065f46; font-weight:bold;' : ''}">
+                    ${item.name}
+                    
+                    <div style="font-size: 11px; color: #777; font-weight: 600; margin-top: 3px;">
+                        Pack Size: ${item.weight || 'Standard'}
+                    </div>
+                </div>
+                <!-- 🌟 FIX 3: Price section ko bhi isGiftOrPromo se handle kiya -->
+                <div class="cart-item-price">
+                    ${(isGiftOrPromo && item.sellingPrice === 0) ? '<strike style="color:#999; font-size:12px;">₹' + item.mrp + '</strike> <span style="color:#10b981;">FREE</span>' : '₹' + item.sellingPrice}
+                </div>
             </div>
             ${qtyControlsHtml}
         `;
@@ -762,7 +797,9 @@ window.renderCheckoutPage = async function (isSilentUpdate = false) {
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
                 <img src="${item.img}" style="width:50px; height:50px; border-radius:6px; border:1px solid #eee; object-fit:cover;">
                 <div style="flex:1;">
-                    <div style="font-size:13px; font-weight:600; color:#222;">${item.name}</div>
+                   <div style="font-size:13px; font-weight:600; color:#222;">
+    ${item.name} <span style="font-size: 11px; color: #777; font-weight: normal;">(${item.weight || 'Standard'})</span>
+</div>
                     <div style="font-size:12px; color:#555;">QTY: ${item.quantity}</div>
                 </div>
                 <div style="font-weight:700; font-size:14px;">₹${sp * item.quantity}</div>
@@ -1361,7 +1398,9 @@ window.renderMyOrders = function () {
                                 <div class="hist-item-left">
                                     <img src="${item.img}" class="hist-item-img" alt="img">
                                     <div>
-                                        <div class="hist-item-name">${item.name}</div>
+                                        <div class="hist-item-name">
+    ${item.name} <span style="font-size: 11px; color: #777; font-weight: normal;">(${item.weight || 'Standard'})</span>
+</div>
                                         <div class="hist-item-qty-price">₹${item.sellingPrice} x ${item.quantity}</div>
                                     </div>
                                 </div>
@@ -2722,13 +2761,15 @@ window.renderDynamicHomeSections = function () {
         activeAppTags.forEach(tag => {
             const tagProducts = allProducts.filter(product => product.tags && product.tags.includes(tag.code));
             if (tagProducts.length > 0) {
+
+                // 🌟 NAYA: horizontal-scroll div mein 'align-items: stretch;' add kiya hai
                 let sectionHtml = `
                     <div class="dynamic-home-section" style="padding: 15px 0; background: #fff; margin-top: 10px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 15px;">
                             <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #111;">${tag.title}</h3>
                             <span onclick="switchTab('catalog')" style="color: #128c7e; font-size: 13px; font-weight: bold; cursor: pointer;">See All ></span>
                         </div>
-                        <div class="horizontal-scroll" style="padding: 0 20px;">
+                        <div class="horizontal-scroll" style="padding: 0 20px; align-items: stretch;">
                 `;
 
                 tagProducts.forEach(product => {
@@ -2739,7 +2780,6 @@ window.renderDynamicHomeSections = function () {
                         priceHtml = `<span style="text-decoration: line-through; color: #999; font-size: 11px; margin-right: 5px;">₹${product.mrp}</span>₹${pPrice}`;
                     }
 
-                    // --- NAYA: Add to Cart Button Logic for Tags ---
                     const cartItem = cart.find(item => item.id === product.id);
                     let actionHTML = '';
                     let btnStyle = "width: 100%; border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 6px; padding: 8px; font-size: 12px; cursor: pointer; text-transform: uppercase;";
@@ -2757,13 +2797,19 @@ window.renderDynamicHomeSections = function () {
                         actionHTML = `<button style="${btnStyle}" onclick="window.addToCart('${product.id}')">ADD</button>`;
                     }
 
+                    // 🌟 NAYA: height: 100% hata kar 'align-self: stretch' lagaya hai jisse cards sabse lambe card ke barabar stretch honge
                     sectionHtml += `
-                        <div class="trending-card" style="min-width: 140px; max-width: 140px; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                        <div class="trending-card" style="min-width: 140px; max-width: 140px; align-self: stretch; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column;">
                             <img src="${pImg}" alt="${product.name}" onclick="if(typeof window.openPDP === 'function') window.openPDP('${product.id}')" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; cursor: pointer;">
+                            
                             <div class="card-title-text" onclick="if(typeof window.openPDP === 'function') window.openPDP('${product.id}')" style="font-size: 12px; font-weight: bold; color: #333; margin-bottom: 4px; cursor: pointer;">${product.name}</div>
-                            <div style="font-size: 10px; color: #777; margin-bottom: 8px;">${product.weight || 'Standard'}</div>
-                            <div style="font-size: 14px; color: #128c7e; font-weight: 800; margin-bottom: 10px;">${priceHtml}</div>
-                            <div class="product-action-ui-${product.id}">${actionHTML}</div>
+                            
+                            <!-- margin-top: auto button aur price ko hamesha bottom me set rakhega -->
+                            <div style="margin-top: auto;">
+                                <div style="font-size: 10px; color: #777; margin-bottom: 8px;">${product.weight || 'Standard'}</div>
+                                <div style="font-size: 14px; color: #128c7e; font-weight: 800; margin-bottom: 10px;">${priceHtml}</div>
+                                <div class="product-action-ui-${product.id}">${actionHTML}</div>
+                            </div>
                         </div>
                     `;
                 });
