@@ -457,15 +457,16 @@ function updateCartUI(showPopup = false) {
     // 🌟 NAYA: Har baar update hone par cart ko phone ki memory me save kar do
     localStorage.setItem('dryfu_cart', JSON.stringify(cart));
 
-    // Naya Coupon Nudge system call karega (sirf cart modal me dikhega, screen par nahi)
     if (typeof window.evaluateCouponNudges === 'function') {
         window.evaluateCouponNudges();
     }
 
-    const checkoutBar = document.getElementById('checkout-bar');
     const cartCount = document.getElementById('cart-count');
     const cartTotal = document.getElementById('cart-total');
     const modalCartTotal = document.getElementById('modal-cart-total');
+
+    // 🌟 NAYA: Bottom Nav Badge Logic
+    const navCartBadge = document.getElementById('nav-cart-badge');
 
     if (cart.length > 0) {
         let totalItems = 0, totalPrice = 0;
@@ -473,14 +474,27 @@ function updateCartUI(showPopup = false) {
             totalItems += item.quantity;
             totalPrice += (parseFloat(item.sellingPrice) * item.quantity);
         });
+
         if (cartCount) cartCount.innerText = `${totalItems} Items`;
         if (cartTotal) cartTotal.innerText = `₹${totalPrice}`;
         if (modalCartTotal) modalCartTotal.innerText = `₹${totalPrice}`;
-        if (checkoutBar) checkoutBar.classList.remove('hidden');
+
+        // Naye Red Badge ka number update karna
+        if (navCartBadge) {
+            navCartBadge.innerText = totalItems;
+            navCartBadge.classList.remove('hidden');
+            // Item add hone par chhota sa bounce effect
+            navCartBadge.classList.add('pop');
+            setTimeout(() => navCartBadge.classList.remove('pop'), 300);
+        }
     } else {
-        if (checkoutBar) checkoutBar.classList.add('hidden');
+        // Agar cart khali hai toh badge hata do
+        if (navCartBadge) {
+            navCartBadge.classList.add('hidden');
+        }
+
         const cartModal = document.getElementById('cart-modal');
-        if (cartModal && !cartModal.classList.contains('hidden')) { closeCart(); }
+        if (cartModal && !cartModal.classList.contains('hidden')) { window.closeCart(); }
     }
 
     const cartModal = document.getElementById('cart-modal');
@@ -490,12 +504,18 @@ function updateCartUI(showPopup = false) {
 window.openCart = function () {
     document.getElementById('cart-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+
+    // 👇 Basket open hone par 'cart' icon ko green karo
+    window.updateNavHighlight('cart');
     renderCartItems();
 }
 
 window.closeCart = function () {
     document.getElementById('cart-modal').classList.add('hidden');
     document.body.style.overflow = '';
+
+    // 👇 Basket band hone par wapas purane tab ko green karo
+    window.updateNavHighlight(localStorage.getItem('dryfu_active_tab') || 'home');
 }
 
 function renderCartItems() {
@@ -1196,12 +1216,18 @@ let currentSavedAddresses = [];
 window.openProfile = function () {
     document.getElementById('profile-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+
+    // 👇 Profile open hone par 'profile' icon ko green karo
+    window.updateNavHighlight('profile');
     renderProfileHome();
 }
 
 window.closeProfile = function () {
     document.getElementById('profile-modal').classList.add('hidden');
     document.body.style.overflow = '';
+
+    // 👇 Profile band hone par wapas purane tab ko green karo
+    window.updateNavHighlight(localStorage.getItem('dryfu_active_tab') || 'home');
 }
 
 window.handleProfileBack = function () {
@@ -2076,18 +2102,26 @@ if ('serviceWorker' in navigator) {
 let deferredPrompt;
 
 // 🌟 NAYA: Cinema Curtain Drop Style UI
+// 🌟 NAYA: VIP Cinema Curtain Drop Style UI
 const installBannerHTML = `
-    <div id="pwa-install-banner" style="position: fixed; top: 0; left: 0; width: 100%; background: #fff; padding: 25px 20px 20px 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); z-index: 5000; border-radius: 0 0 24px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #128c7e; transform: translateY(-100%); opacity: 0; transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease-in;">
-        <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
-            <div style="background: #e6f4ea; padding: 12px; border-radius: 14px; font-size: 26px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">🛍️</div>
+    <div id="pwa-install-banner" style="position: fixed; top: 0; left: 0; right: 0; margin: 0 auto; max-width: 480px; width: 100%; background: linear-gradient(180deg, #07473f 0%, #128c7e 100%); padding: 35px 20px 25px 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 5000; display: flex; align-items: center; justify-content: space-between; transform: translateY(-100%); opacity: 0; transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s ease-in; overflow: visible;">
+        
+        <!-- 🌟 Cinema Parda Wavy Design (Bottom Edge) -->
+        <svg viewBox="0 0 1200 40" preserveAspectRatio="none" style="position: absolute; bottom: -18px; left: 0; width: 100%; height: 20px; z-index: 10; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.2));">
+            <path d="M0,0 C150,40 150,40 300,0 C450,40 450,40 600,0 C750,40 750,40 900,0 C1050,40 1050,40 1200,0 L1200,0 L0,0 Z" fill="#128c7e" />
+        </svg>
+
+        <div style="display: flex; align-items: center; gap: 15px; flex: 1; z-index: 20;">
+            <div style="background: rgba(255, 255, 255, 0.15); padding: 12px; border-radius: 50%; font-size: 26px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 2px solid #f59e0b;">👑</div>
             <div>
-                <h4 style="margin: 0; font-size: 16px; color: #111; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">Install DRYFU App</h4>
-                <p style="margin: 0; font-size: 13px; color: #555; margin-top: 4px; font-weight: 500;">Faster checkout & easy access!</p>
+                <h4 style="margin: 0; font-size: 18px; color: #fff; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);">DRYFU VIP App</h4>
+                <p style="margin: 0; font-size: 13px; color: #f59e0b; margin-top: 4px; font-weight: 700;">Faster checkout & offers!</p>
             </div>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-            <button id="pwa-install-btn" style="background: #128c7e; color: white; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(18,140,126,0.3); text-transform: uppercase; letter-spacing: 0.5px;">Install Now</button>
-            <button id="pwa-close-btn" style="background: transparent; border: none; color: #888; font-size: 12px; cursor: pointer; padding: 2px; font-weight: bold; text-decoration: underline;">Maybe Later</button>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end; z-index: 20;">
+            <button id="pwa-install-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 10px 24px; border-radius: 20px; font-weight: 900; font-size: 14px; cursor: pointer; box-shadow: 0 6px 15px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 0.5px;">Install Now</button>
+            <button id="pwa-close-btn" style="background: transparent; border: none; color: #fff; font-size: 12px; cursor: pointer; padding: 2px; font-weight: bold; text-decoration: underline; opacity: 0.8;">Maybe Later</button>
         </div>
     </div>
 `;
@@ -2167,6 +2201,39 @@ installBtn.addEventListener('click', async () => {
         deferredPrompt = null;
     }
 });
+
+// ==========================================
+// 🚀 SMART SCROLL BOTTOM NAVIGATION & CART LOGIC
+// ==========================================
+let lastScrollTop = 0;
+const bottomNav = document.querySelector('.bottom-navigation');
+
+window.addEventListener('scroll', function (e) {
+    if (!bottomNav) return;
+
+    const cartCheckoutBar = document.getElementById('cart-checkout-bar');
+
+    let currentScroll = 0;
+    if (e.target === document || e.target === window) {
+        currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    } else {
+        currentScroll = e.target.scrollTop;
+    }
+
+    if (currentScroll === undefined) return;
+
+    if (currentScroll > lastScrollTop && currentScroll > 50) {
+        // 👇 Niche Scroll: Dono ko ek sath niche bhejo
+        bottomNav.classList.add('hide-nav-down');
+        if (cartCheckoutBar) cartCheckoutBar.classList.add('hide-checkout-down');
+    } else {
+        // 👇 Upar Scroll: Dono ko ek sath upar bulao
+        bottomNav.classList.remove('hide-nav-down');
+        if (cartCheckoutBar) cartCheckoutBar.classList.remove('hide-checkout-down');
+    }
+
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+}, true);
 
 // ==========================================
 // 🚀 SMART SCROLL HEADER LOGIC
@@ -2431,37 +2498,41 @@ window.bottomNavAction = function (action) {
     }
 };
 
+
+// 🌟 NAYA: Kisi bhi tab ko green (active) karne ka master function
+window.updateNavHighlight = function (activeTabName) {
+    // Pehle sabhi tabs se 'active' class (green color) hata do
+    document.querySelectorAll('.bottom-navigation .nav-item').forEach(el => el.classList.remove('active'));
+
+    // Ab jo tab khula hai, usko dhundho aur uspe 'active' class laga do
+    const activeNav = document.getElementById('nav-' + activeTabName);
+    if (activeNav) activeNav.classList.add('active');
+};
+
 window.switchTab = function (tabName) {
     try {
         localStorage.setItem('dryfu_active_tab', tabName);
         const homePage = document.getElementById('home-page');
         const catalogPage = document.getElementById('catalog-page');
-        const navHome = document.getElementById('nav-home');
-        const navCatalog = document.getElementById('nav-catalog');
+
+        // 👇 YAHAN HUMNE MASTER FUNCTION KO CALL KIYA HAI
+        window.updateNavHighlight(tabName);
 
         if (tabName === 'home') {
             if (homePage) homePage.style.display = 'block';
             if (catalogPage) catalogPage.style.display = 'none';
-            if (navHome) navHome.classList.add('active');
-            if (navCatalog) navCatalog.classList.remove('active');
-
-            // Home par aane par Trending Deals update karna
-            // Home par aane par Dynamic Sections update karna
             if (typeof window.renderDynamicHomeSections === 'function') {
                 window.renderDynamicHomeSections();
             }
         } else if (tabName === 'catalog') {
             if (homePage) homePage.style.display = 'none';
             if (catalogPage) catalogPage.style.display = 'block';
-            if (navCatalog) navCatalog.classList.add('active');
-            if (navHome) navHome.classList.remove('active');
         }
         window.scrollTo(0, 0);
     } catch (error) {
         console.error("Tab switch karne me dikkat: ", error);
     }
 };
-
 
 
 

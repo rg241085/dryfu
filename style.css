@@ -110,9 +110,11 @@ body {
     width: 76px;
     flex-shrink: 0;
     background-color: #f3f5f7;
-    height: calc(100dvh - 55px); /* Header scroll hone ke baad ki perfectly fit height */
+    height: calc(100dvh - 55px);
+    /* Header scroll hone ke baad ki perfectly fit height */
     position: sticky;
-    top: 55px; /* Ye category nav ke theek niche smoothly chipak jayega */
+    top: 55px;
+    /* Ye category nav ke theek niche smoothly chipak jayega */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -361,6 +363,8 @@ body {
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
     z-index: 1000;
     border-top: none;
+    /* 👇 NAYA: Cart bar ko bhi smooth animate karne ke liye ye line jodein */
+    transition: bottom 0.9s ease-in-out;
 }
 
 .checkout-bar.hidden {
@@ -405,19 +409,43 @@ body {
     transform: translate(100vw, 0);
 }
 
-.cart-modal .checkout-bar {
-    position: relative;
-    left: auto;
-    transform: none;
+/* 🌟 NAYA: Cart modal ka checkout bar aur uska perfect synchronized animation */
+#cart-checkout-bar {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
-    margin-top: auto;
+    max-width: 480px;
     z-index: 2001;
+    transition: transform 0.9s ease-in-out;
 }
 
+/* 👈 CHECK 1: Kya aapne ye wala closing bracket lagaya hai? */
+
+/* 🌟 NAYA: Jab scroll down hoga, toh ye bar exact 70px niche slide hoga */
+.hide-checkout-down {
+    transform: translate(-50%, 70px) !important;
+}
+
+/* 👈 CHECK 2: Kya ye wala bracket close hua hai? */
+
+/* Baki modals (Checkout, PDP) ke checkout bar hamesha screen ke ekdum niche chipke rahenge kyunki wo Navigation bar ko cover kar lete hain */
+#checkout-modal .checkout-bar,
+#pdp-modal .checkout-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+}
+
+/* 🌟 NAYA: Products container ki padding thodi badha di taaki aakhiri item checkout bar ke piche na chhupe */
 .cart-padding {
     flex: 1;
     overflow-y: auto;
-    padding: 15px 15px 100px 15px;
+    padding: 15px 15px 140px 15px;
 }
 
 .cart-item {
@@ -1302,11 +1330,13 @@ body {
     margin-bottom: 8px;
 }
 
-/* Bottom Navigation */
 .bottom-navigation {
     position: fixed;
     bottom: 0;
     left: 0;
+    right: 0;
+    margin: 0 auto;
+    max-width: 480px;
     width: 100%;
     background: #fff;
     display: flex;
@@ -1315,9 +1345,73 @@ body {
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
     border-top: 1px solid #eee;
     z-index: 2000;
+    /* 👇 Is line ko 0.5s kar diya hai taaki speed thodi slow aur smooth ho jaye */
+    transition: transform 0.9s ease-in-out;
+}
+
+/* 🌟 NAYA: Ye class lagne par bottom bar screen ke niche chhip jayega */
+.hide-nav-down {
+    transform: translateY(100%);
 }
 
 .bottom-navigation .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #888;
+    cursor: pointer;
+    /* 👇 NAYA: Bouncy aur smooth animation ke liye */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 6px 16px;
+    /* NAYA: Taki background pill theek se dikhe */
+    border-radius: 16px;
+    /* NAYA: Golayi ke liye */
+}
+
+
+*/ .bottom-navigation .nav-item.active .nav-icon {
+    transform: scale(1.15);
+    /* Active icon thoda bada dikhega */
+    transition: transform 0.3s ease;
+}
+
+/* 🌟 Press / Touch (Dabane) ka Effect */
+.bottom-navigation .nav-item:active {
+    transform: scale(0.9);
+    /* Click karte hi halka sa dabe ga */
+    background-color: #d1e7dd;
+}
+
+.bottom-navigation .nav-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+/* NAYA: SVG Icons ko smooth aur size mein perfect karne ke liye */
+.bottom-navigation .nav-icon svg {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Jab tab active hoga toh SVG icon thoda jump (scale) karega */
+.bottom-navigation .nav-item.active .nav-icon svg {
+    transform: scale(1.15);
+}
+
+
+
+
+
+
+
+
+
+
+/* .bottom-navigation .nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1338,7 +1432,7 @@ body {
 .bottom-navigation .nav-text {
     font-size: 11px;
     font-weight: 600;
-}
+} */
 
 /* BANNER SLIDER CSS */
 .banner-slider-container {
@@ -1359,4 +1453,123 @@ body {
 .banner-slide {
     min-width: 100%;
     scroll-snap-align: center;
+}
+
+
+/* 🌟 NAYA: Floating Checkout Bar ko main screen se chhupana */
+body>.app-container>#checkout-bar {
+    display: none !important;
+}
+
+/* 🌟 NAYA: Premium Cart Notification Badge (JioMart/Amazon style) */
+.cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    background-color: #ef4444;
+    /* Premium Red Color */
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    height: 18px;
+    min-width: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid #fff;
+    /* Cutout effect ke liye white border */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+}
+
+.cart-badge.hidden {
+    display: none;
+    transform: scale(0);
+}
+
+/* Jab naya item add hoga toh badge bounce karega */
+.cart-badge.pop {
+    transform: scale(1.3);
+}
+
+
+.bottom-navigation .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #888;
+    /* Inactive Tabs ka Grey Color */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    padding: 8px 12px;
+    background-color: transparent !important;
+    /* 🌟 Background hamesha transparent rahega */
+}
+
+/* 🌟 Active Tab ka Premium Design (No Background) */
+.bottom-navigation .nav-item.active {
+    color: #128c7e;
+    /* DRYFU ka Theme Color */
+    transform: translateY(-2px);
+    /* Halka sa upar uthega */
+}
+
+/* Active tab ka icon thoda bold aur bada ho jayega */
+.bottom-navigation .nav-item.active .nav-icon svg {
+    transform: scale(1.1);
+    stroke-width: 2.5;
+    /* Line thodi thick/bold ho jayegi */
+}
+
+/* Jab user touch karke rakhega */
+.bottom-navigation .nav-item:active {
+    transform: scale(0.95);
+}
+
+.bottom-navigation .nav-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.bottom-navigation .nav-icon svg {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.2s ease-in-out, stroke-width 0.2s ease-in-out;
+}
+
+/* 🌟 Red Cart Badge Design */
+.cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    height: 18px;
+    min-width: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+}
+
+.cart-badge.hidden {
+    display: none;
+    transform: scale(0);
+}
+
+.cart-badge.pop {
+    transform: scale(1.3);
 }

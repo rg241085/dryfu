@@ -24,10 +24,10 @@
                 style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff;">
                 <h1 style="margin: 0; font-size: 24px; color: #128c7e; font-weight: 900; letter-spacing: 1px;">DRYFU
                 </h1>
-                <div style="display: flex; gap: 15px;">
+                <!-- <div style="display: flex; gap: 15px;">
                     <span onclick="openCart()" style="font-size: 22px; cursor: pointer;">🛒</span>
                     <span onclick="openProfile()" style="font-size: 22px; cursor: pointer;">👤</span>
-                </div>
+                </div> -->
             </div>
 
             <div style="padding: 0 20px 15px 20px; background: #fff;">
@@ -68,8 +68,8 @@
                     <span class="back-btn" onclick="switchTab('home')"
                         style="font-size: 24px; cursor: pointer; font-weight: bold; color: #111;">←</span>
                     <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #111;">Catalogue</h2>
-                    <span class="profile-icon" style="font-size: 22px; cursor: pointer;"
-                        onclick="openProfile()">👤</span>
+                    <!-- <span class="profile-icon" style="font-size: 22px; cursor: pointer;"
+                        onclick="openProfile()">👤</span> -->
                 </div>
 
                 <div class="search-container" style="padding: 0 20px;">
@@ -92,14 +92,9 @@
                 </main>
             </div>
         </div>
-        <div id="checkout-bar" class="checkout-bar hidden" style="bottom: 70px;">
-            <div class="cart-info">
-                <span id="cart-count">0 Items</span> | <span id="cart-total">₹0</span>
-            </div>
-            <button class="btn-checkout" onclick="openCart()">View Cart ➔</button>
-        </div>
 
-        <div id="cart-modal" class="cart-modal hidden" style="padding-bottom: 65px;">
+
+        <div id="cart-modal" class="cart-modal hidden"> <!-- 🌟 NAYA: Yahan se inline style hata diya -->
             <header class="header">
                 <div class="header-left">
                     <span class="icon" onclick="closeCart()">←</span>
@@ -112,7 +107,8 @@
 
             <main id="cart-items-container" class="cart-padding"></main>
 
-            <div class="checkout-bar" style="border-top: 1px solid #eee;">
+            <!-- 🌟 NAYA: Is div ko id="cart-checkout-bar" diya gaya hai -->
+            <div id="cart-checkout-bar" class="checkout-bar" style="border-top: 1px solid #eee;">
                 <div class="cart-info">
                     <span style="font-size: 13px; color: #777;">To Pay</span><br>
                     <span id="modal-cart-total" style="font-size: 18px; color: #111;">₹0</span>
@@ -199,21 +195,59 @@
 
 
 
+    <!-- Premium Bottom Navigation -->
     <div class="bottom-navigation" style="z-index: 2200;">
+        <!-- Home Tab -->
         <div class="nav-item active" id="nav-home" onclick="window.bottomNavAction('home')">
-            <span class="nav-icon">🏠</span>
+            <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                </svg>
+            </span>
             <span class="nav-text">Home</span>
         </div>
+
+        <!-- Categories Tab -->
         <div class="nav-item" id="nav-catalog" onclick="window.bottomNavAction('catalog')">
-            <span class="nav-icon">📦</span>
+            <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                </svg>
+            </span>
             <span class="nav-text">Categories</span>
         </div>
+
+        <!-- Basket (Cart) Tab -->
         <div class="nav-item" id="nav-cart" onclick="window.bottomNavAction('cart')">
-            <span class="nav-icon">🛒</span>
-            <span class="nav-text">Cart</span>
+            <div style="position: relative; display: inline-block;">
+                <span class="nav-icon">
+                    <!-- Premium Shopping Bag Icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </span>
+                <!-- Red Notification Badge -->
+                <span id="nav-cart-badge" class="cart-badge hidden">0</span>
+            </div>
+            <span class="nav-text">Basket</span>
         </div>
+
+        <!-- Profile Tab -->
         <div class="nav-item" id="nav-profile" onclick="window.bottomNavAction('profile')">
-            <span class="nav-icon">👤</span>
+            <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </span>
             <span class="nav-text">Profile</span>
         </div>
     </div>
