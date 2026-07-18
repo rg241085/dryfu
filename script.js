@@ -493,10 +493,14 @@ function updateCartUI(showPopup = false) {
             navCartBadge.classList.add('hidden');
         }
 
+        // 👇 NAYA FIX: Puraani "window.closeCart()" wali line ko hatakar ye naya code daalein
         const cartModal = document.getElementById('cart-modal');
-        if (cartModal && !cartModal.classList.contains('hidden')) { window.closeCart(); }
+        if (cartModal && !cartModal.classList.contains('hidden')) {
+            renderCartItems(); // Empty design screen par dikhane ke liye render call karein
+        }
     }
 
+    // Puraani niche wali render line aisi hi rahegi:
     const cartModal = document.getElementById('cart-modal');
     if (cartModal && !cartModal.classList.contains('hidden')) { renderCartItems(); }
 }
@@ -520,7 +524,25 @@ window.closeCart = function () {
 
 function renderCartItems() {
     const container = document.getElementById('cart-items-container');
+    const checkoutBar = document.getElementById('cart-checkout-bar'); // NAYA: Checkout bar ko control karne ke liye
     container.innerHTML = '';
+
+    // 👇 NAYA FIX: "Empty State" Design
+    if (cart.length === 0) {
+        if (checkoutBar) checkoutBar.style.display = 'none'; // Checkout bar chhupa do
+        container.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center;">
+                <div style="font-size: 80px; margin-bottom: 10px; opacity: 0.9;">🛍️</div>
+                <h2 style="font-size: 20px; color: #111; font-weight: 800; margin-bottom: 8px;">No Items here!</h2>
+                <p style="color: #666; font-size: 14px; max-width: 80%; line-height: 1.5; margin-bottom: 25px;">Items will start appearing here once you shop with us.</p>
+                <button onclick="window.closeCart(); window.switchTab('catalog');" style="background: #128c7e; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(18,140,126,0.2);">Browse Products</button>
+            </div>
+        `;
+        return; // Function ko yahi rok do taaki aage ka code na chale
+    }
+
+    // Agar item hain, toh Checkout bar wapas dikha do
+    if (checkoutBar) checkoutBar.style.display = 'flex';
 
     cart.forEach(item => {
         let div = document.createElement('div');
@@ -545,7 +567,6 @@ function renderCartItems() {
         container.appendChild(div);
     });
 }
-
 // ==========================================
 // 🔐 3. FIREBASE OTP LOGIN & AUTH LOGIC
 // ==========================================
@@ -976,6 +997,9 @@ window.evaluateCouponNudges = function () {
     if (!banner) return;
     banner.style.display = 'none';
 
+    // 👇 NAYA FIX: Agar cart khali hai toh coupon ka hisab mat lagao, yahi se wapas jao
+    if (cart.length === 0) return;
+
     let eligibleTotal = 0;
     cart.forEach(item => { if (!item.isPromoGift && !item.isFreeGift) eligibleTotal += (parseFloat(item.sellingPrice) * item.quantity); });
 
@@ -991,7 +1015,6 @@ window.evaluateCouponNudges = function () {
         banner.style.display = 'block';
     }
 }
-
 // Update `updateCartUI` function to use new Nudge system
 // Find `evaluateFreeGift(showPopup);` inside updateCartUI and REPLACE it with:
 // window.evaluateCouponNudges();
