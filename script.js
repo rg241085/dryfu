@@ -535,10 +535,6 @@ window.openCart = function () {
     document.getElementById('cart-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
-    // 🌟 1. NAYA LOGIC: HIDE BOTTOM NAVIGATION BAR
-    const bottomNav = document.querySelector('.bottom-navigation');
-    if (bottomNav) bottomNav.style.display = 'none';
-
     // Basket open hone par 'cart' icon ko green karo
     window.updateNavHighlight('cart');
     renderCartItems();
@@ -547,10 +543,6 @@ window.openCart = function () {
 window.closeCart = function () {
     document.getElementById('cart-modal').classList.add('hidden');
     document.body.style.overflow = '';
-
-    // 🌟 2. NAYA LOGIC: SHOW BOTTOM NAVIGATION BAR
-    const bottomNav = document.querySelector('.bottom-navigation');
-    if (bottomNav) bottomNav.style.display = 'flex'; // It's a flex container
 
     // Basket band hone par wapas purane tab ko green karo
     window.updateNavHighlight(localStorage.getItem('dryfu_active_tab') || 'home');

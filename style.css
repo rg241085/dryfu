@@ -412,23 +412,22 @@ body {
 /* 🌟 NAYA: Cart modal ka checkout bar aur uska perfect synchronized animation */
 #cart-checkout-bar {
     position: fixed;
-    /* position at the bottom of the parda (layer) */
-    bottom: 0px;
+    bottom: 85px; /* 🌟 NAYA: Isko 65px/70px se badhakar 85px kar diya hai */
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
     max-width: 480px;
     z-index: 2001;
-    /* higher than modal itself */
     transition: transform 0.9s ease-in-out;
+    background-color: #fff; /* Ensure transparent na ho */
+    border-radius: 12px 12px 0 0; /* Halka sa upar curve dene ke liye (optional but looks good) */
 }
 
 /* 👈 CHECK 1: Kya aapne ye wala closing bracket lagaya hai? */
 
 /* NAYA: Cart parda hide animation class */
 .hide-checkout-down {
-    transform: translate(-50%, 70px) !important;
-    /* Niche chhip jayega screen se */
+    transform: translate(-50%, 85px) !important;
 }
 
 /* 👈 CHECK 2: Kya ye wala bracket close hua hai? */
@@ -448,7 +447,7 @@ body {
 .cart-padding {
     flex: 1;
     overflow-y: auto;
-    padding: 15px 15px 140px 15px;
+    padding: 15px 15px 180px 15px; /* 🌟 NAYA: Bottom padding 180px kar di hai */
 }
 
 .cart-item {
