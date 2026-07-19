@@ -1371,11 +1371,9 @@ body {
     display: flex;
     justify-content: space-around;
 
-    /* 🌟 NAYA: Yahan humne bottom padding ko 15px se hata kar 5px kar diya hai */
-    padding: 10px 0 5px 0;
-
-    /* NOTE: Agar aapne picchla 'safe-area' wala code lagaya hua hai, toh isko use karein: */
-    /* padding-bottom: calc(5px + env(safe-area-inset-bottom)); */
+    /* 🌟 NAYA: Upar ki padding 10px, aur neeche ki padding mein safe-area jod diya hai */
+    padding-top: 10px;
+    padding-bottom: calc(5px + env(safe-area-inset-bottom));
 
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
     border-top: 1px solid #eee;
