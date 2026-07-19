@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>DRYFU - Premium Dryfruits & Spices</title>
 
     <link rel="manifest" href="manifest.json?v=2">
@@ -24,8 +25,9 @@
 
             <!-- Top Header & Search Bar -->
             <div id="home-header-section" style="order: 0;">
+                <!-- NAYA: padding-top mein safe-area-inset-top joda gaya hai -->
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fff;">
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; padding-top: calc(15px + env(safe-area-inset-top)); background: #fff;">
                     <h1 style="margin: 0; font-size: 24px; color: #128c7e; font-weight: 900; letter-spacing: 1px;">DRYFU
                     </h1>
                 </div>
