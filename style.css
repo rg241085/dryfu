@@ -1370,9 +1370,13 @@ body {
     background: #fff;
     display: flex;
     justify-content: space-around;
-    /* 🌟 NAYA: Neeche ki padding phone ke hisab se dynamically adjust hogi */
-    padding-top: 10px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+
+    /* 🌟 NAYA: Yahan humne bottom padding ko 15px se hata kar 5px kar diya hai */
+    padding: 10px 0 5px 0;
+
+    /* NOTE: Agar aapne picchla 'safe-area' wala code lagaya hua hai, toh isko use karein: */
+    /* padding-bottom: calc(5px + env(safe-area-inset-bottom)); */
+
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
     border-top: 1px solid #eee;
     z-index: 2000;
@@ -1673,7 +1677,7 @@ body>.app-container>#checkout-bar {
 #cart-checkout-bar {
     position: fixed;
     /* 🌟 NAYA: Bottom nav ke theek upar dynamic safe area ke sath set hoga */
-    bottom: calc(72px + env(safe-area-inset-bottom)); 
+    bottom: calc(72px + env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
@@ -1704,5 +1708,6 @@ body>.app-container>#checkout-bar {
     transform: translateX(-50%);
     width: 100%;
     max-width: 480px;
-    padding-bottom: calc(15px + env(safe-area-inset-bottom)); /* 🌟 NAYA */
+    padding-bottom: calc(15px + env(safe-area-inset-bottom));
+    /* 🌟 NAYA */
 }
