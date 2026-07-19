@@ -2296,30 +2296,8 @@ window.addEventListener('scroll', function (e) {
     lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
 }, true);
 
-// ==========================================
-// 🚀 SMART SCROLL HEADER LOGIC
-// ==========================================
-/*let lastScrollTop = 0;
 
-window.addEventListener('scroll', function () {
-    const topHeader = document.getElementById('main-top-header');
-    if (!topHeader) return;
 
-    let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-
-    // Agar 50px se zyada niche scroll kiya hai
-    if (currentScroll > lastScrollTop && currentScroll > 50) {
-        // Niche ki taraf scroll kar rahe hain -> Header hide karo
-        topHeader.classList.add('hide-header-up');
-    } else {
-        // Upar ki taraf scroll kar rahe hain -> Header wapas dikhao
-        topHeader.classList.remove('hide-header-up');
-    }
-
-    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Negative scroll rokne ke liye
-}, false);*/
-
-// Later Button Click
 closeBtn.addEventListener('click', () => {
     // 🌟 NAYA: Sirf parda upar jayega, system kuch bhi yaad nahi rakhega.
     installBanner.style.transform = 'translateY(-100%)';
