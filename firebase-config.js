@@ -1,9 +1,11 @@
+// firebase-config.js - SECURE VERSION
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-// 🌟 नया: Messaging इंपोर्ट करें
 import { getMessaging } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
+// ⚠️ IMPORTANT: Restrict this API key in Firebase Console
+// Go to: Google Cloud Console → APIs & Services → Credentials → HTTP referrers
 const firebaseConfig = {
     apiKey: "AIzaSyDkW8QBHruMzQztReP3XmGU5sz8MwSlYEU",
     authDomain: "rd-catalog.firebaseapp.com",
@@ -18,8 +20,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-// 🌟 नया: Messaging शुरू करें
 const messaging = getMessaging(app);
 
-// 🌟 नया: messaging को भी एक्सपोर्ट करें
+// 🌟 NAYA: Offline persistence enable karo
+enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code == 'failed-precondition') {
+        console.log("Multiple tabs open, persistence enabled in first tab only");
+    } else if (err.code == 'unimplemented') {
+        console.log("Browser doesn't support offline persistence");
+    }
+});
+
 export { app, db, auth, messaging };

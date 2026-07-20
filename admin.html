@@ -1221,48 +1221,6 @@
         </div>
     </div>
 
-    <!-- 🎟️ ADD NEW PROMO CODE MODAL -->
-    <div class="modal" id="couponModal">
-        <div class="modal-content" style="width: 600px;">
-            <span class="close-btn" id="closeCouponModalBtn">&times;</span>
-            <h3 id="couponModalTitle">Create New Promo Code</h3>
-
-            <form id="addCouponForm">
-                <input type="hidden" id="editCouponId" value="">
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Promo Code (e.g. DIWALI50)</label>
-                        <input type="text" id="couponCodeInput" placeholder="Enter code in capital letters" required
-                            style="text-transform: uppercase;">
-                    </div>
-                    <div class="form-group">
-                        <label>Discount Type</label>
-                        <select id="couponTypeSelect" required>
-                            <option value="FLAT">Flat Discount (Fixed ₹)</option>
-                            <option value="PERCENT">Percentage Discount (%)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Discount Value (₹ or %)</label>
-                        <input type="number" id="couponValueInput" placeholder="e.g. 50" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Minimum Order Value (₹)</label>
-                        <input type="number" id="couponMinOrderInput" placeholder="e.g. 500" required>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" id="cancelCouponBtn">Cancel</button>
-                    <button type="submit" class="btn-submit" id="submitCouponBtn">Save Coupon</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- 📄 DETAILED ORDER VIEW & INVOICE MODAL -->
     <div class="modal" id="orderDetailModal">
@@ -1473,55 +1431,54 @@
             });
         });
 
+        
         // ==========================================
-        // 👕 PRODUCTS MANAGEMENT LOGIC
-        // ==========================================
-        let allProductsData = [];
-        let existingMainCats = new Set();
-        let categoryMap = {};
+// 👕 PRODUCTS MANAGEMENT LOGIC (FIXED)
+// ==========================================
+let allProductsData = [];
+let existingMainCats = new Set();
+let categoryMap = {};
 
-        async function fetchProducts() {
-            const tableBody = document.getElementById('tableBody');
-            try {
-                const querySnapshot = await getDocs(collection(db, "products"));
-                tableBody.innerHTML = '';
-                existingMainCats.clear();
-                categoryMap = {};
-                allProductsData = [];
+window.fetchProducts = async function () {
+    const tableBody = document.getElementById('tableBody');
+    try {
+        const querySnapshot = await getDocs(collection(db, "products"));
+        tableBody.innerHTML = '';
+        existingMainCats.clear();
+        categoryMap = {};
+        allProductsData = [];
 
-                if (querySnapshot.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No products found. Add your first product!</td></tr>';
-                    updateMainDropdown();
-                    return;
-                }
-
-                querySnapshot.forEach((docSnap) => {
-                    let p = docSnap.data();
-                    p.id = docSnap.id;
-                    allProductsData.push(p);
-
-                    // Category dropdown ko update karne ke liye data jama karna
-                    if (p.mainCategory) {
-                        existingMainCats.add(p.mainCategory);
-                        // Filter Dropdown me categories add karna
-                        const filterSelect = document.getElementById('prodCatFilterSelect');
-                        if (filterSelect && !Array.from(filterSelect.options).some(opt => opt.value === p.mainCategory)) {
-                            filterSelect.innerHTML += `<option value="${p.mainCategory}">${p.mainCategory}</option>`;
-                        }
-                        // NAYA: Filter Dropdown me sub-categories add karna
-
-                    }
-                });
-
-                // 🌟 LOOP KHATAM HONE KE BAAD YE CALL KAREIN:
-                // 🌟 LOOP KHATAM HONE KE BAAD YE CALL KAREIN:
-                window.updateFilterSubCategoryDropdown(); // Yeh automatically applyProductFilters ko bhi chala dega
-                // updateMainDropdown();
-                // window.populateGiftDropdown();
-            } catch (error) {
-                console.error(error);
-            }
+        if (querySnapshot.empty) {
+            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No products found. Add your first product!</td></tr>';
+            // updateMainDropdown(); // Agar ye purana function nahi hai toh isko comment hi rakhein
+            window.populateCouponDropdowns(); 
+            return;
         }
+
+        querySnapshot.forEach((docSnap) => {
+            let p = docSnap.data();
+            p.id = docSnap.id;
+            allProductsData.push(p);
+
+            if (p.mainCategory) {
+                existingMainCats.add(p.mainCategory);
+                const filterSelect = document.getElementById('prodCatFilterSelect');
+                if (filterSelect && !Array.from(filterSelect.options).some(opt => opt.value === p.mainCategory)) {
+                    filterSelect.innerHTML += `<option value="${p.mainCategory}">${p.mainCategory}</option>`;
+                }
+            }
+        });
+
+        // 🌟 FIX: Loop ke baad ek saath call karo
+        window.updateFilterSubCategoryDropdown();
+        window.populateCouponDropdowns(); 
+        
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:red;">Error loading products. Please refresh.</td></tr>';
+    }
+}
+
 
 
 
@@ -1885,13 +1842,7 @@
             });
         }
 
-        // Ensure this runs when products are fetched
-        const originalFetchProducts = window.fetchProducts;
-        window.fetchProducts = async function () {
-            await originalFetchProducts();
-            if (allProductsData.length > 0) window.populateCouponDropdowns();
-        };
-
+       
         // 2. Open / Close Modal Logic
         document.getElementById('openCouponModalBtn').addEventListener('click', () => {
             document.getElementById('addCouponForm').reset();
