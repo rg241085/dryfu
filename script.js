@@ -2237,7 +2237,21 @@ installBtn.addEventListener('click', async () => {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
 
-        if (outcome === 'accepted') {
+      if (outcome === 'accepted') {
+            
+            // 👇 YAHAN SE NAYA TRACKING CODE SHURU 👇
+            try {
+                const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                await addDoc(collection(db, "appInstalls"), {
+                    timestamp: new Date().toISOString(),
+                    platform: navigator.platform || 'Unknown',
+                    userMobile: loggedInUser ? loggedInUser : 'Guest'
+                });
+            } catch (error) {
+                console.error("Install tracking failed:", error);
+            }
+            // 👆 NAYA TRACKING CODE KHATAM 👆
+
             // 3. User ke Install dabate hi Play Store jaisa Loading kholna
             const overlay = document.getElementById('installing-overlay');
             overlay.classList.add('active');
