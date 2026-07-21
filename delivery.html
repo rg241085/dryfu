@@ -188,20 +188,19 @@
     </div>
 
     <script type="module">
-        // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
+      
         import { collection, query, where, onSnapshot, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        // Yahan Apna Firebase Config Daalein (admin.html se copy karke)
-        import { db } from "./firebase-config.js";
-        // File ke top par jahan imports hain, wahan ye line add karna na bhoolein:
+        
+        // 👇 YEH NAYI LINE ADD KARNI HAI (Auth ke liye)
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { auth, db } from "./firebase-config.js";
+        
+        // 👇 YAHAN 'auth' BHI LIKHNA HAI db ke sath
+        import { db, auth } from "./firebase-config.js";
 
         let currentBoy = localStorage.getItem('deliveryBoyName');
 
         if (currentBoy) { showOrdersScreen(); }
 
-        // Database ka data yahan temporary save karenge check karne ke liye
         let allDeliveryBoysList = [];
 
         window.login = async function () {
@@ -216,19 +215,18 @@
             btn.disabled = true;
 
             try {
-                // NAYA LOGIC: Naam aur PIN ko wapas Dummy Email aur Password mein convert karein
+                // NAYA LOGIC: Dummy Email aur Password
                 const dummyEmail = name.toLowerCase().replace(/\s+/g, '') + "@delivery.dryfu.com";
                 const dummyPassword = enteredPin + "DF";
 
                 // REAL FIREBASE AUTHENTICATION 🔥
                 await signInWithEmailAndPassword(auth, dummyEmail, dummyPassword);
 
-                // Agar code yahan tak aa gaya, matlab PIN 100% sahi hai!
                 currentBoy = name;
                 localStorage.setItem('deliveryBoyName', name);
                 document.getElementById('boyPin').value = '';
                 showOrdersScreen();
-
+                
             } catch (error) {
                 alert("Incorrect PIN! Access Denied.");
                 console.error("Login failed:", error.message);
@@ -238,6 +236,7 @@
             btn.disabled = false;
         }
 
+        // ... BAAKI KA PURANA CODE (window.logout, showOrdersScreen, fetchAssignedOrders, loadDeliveryBoys etc) AISA HI RAHEGA ...
 
 
 
