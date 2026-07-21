@@ -2845,6 +2845,23 @@ onMessage(messaging, (payload) => {
     window.showToast(`🔔 ${payload.notification.title}`, true);
 });
 
+// 🌟 TRACK PWA INSTALLATIONS
+window.addEventListener('appinstalled', async (evt) => {
+    try {
+        // App install hote hi Firebase mein ek record save ho jayega
+        const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        
+        await addDoc(collection(db, "appInstalls"), {
+            timestamp: new Date().toISOString(),
+            platform: navigator.platform || 'Unknown',
+            userMobile: loggedInUser ? loggedInUser : 'Guest'
+        });
+        console.log("App Install Recorded Successfully!");
+    } catch (error) {
+        console.error("Error recording app install:", error);
+    }
+});
+
 // ==========================================
 // 🚀 INITIALIZE APP
 // ==========================================

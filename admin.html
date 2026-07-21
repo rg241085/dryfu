@@ -78,6 +78,16 @@
                                 <h3 id="dashCustomers" style="font-size:24px;">0</h3>
                             </div>
                         </div>
+
+                        <!-- 👇 NAYA CARD YAHAN ADD KAREIN 👇 -->
+                        <div class="stat-card" style="padding:30px; background: #fff3e0; color: #e65100;">
+                            <div style="font-size:30px;">📱</div>
+                            <div class="stat-info"><span>Total App Downloads</span>
+                                <h3 id="dashDownloads" style="font-size:24px;">0</h3>
+                            </div>
+                        </div>
+                        <!-- 👆 NAYA CARD END 👆 -->
+
                     </div>
                 </div>
 
@@ -909,6 +919,7 @@
                 // loadGiftSettings();
                 window.listenAdminTags();
                 window.listenCategoryMaster();
+                listenAppDownloads();
             } else {
                 document.getElementById('admin-login-screen').style.display = 'flex';
                 document.getElementById('admin-dashboard-content').style.display = 'none';
@@ -2429,6 +2440,21 @@
                 window.showToast("Layout settings saved successfully!");
             } catch (e) { window.showToast("Error: " + e.message); }
         }
+
+        // 🌟 TRACK TOTAL APP DOWNLOADS
+        function listenAppDownloads() {
+            onSnapshot(collection(db, "appInstalls"), (snapshot) => {
+                // Snapshot ki size se pata chal jayega kitne documents (installs) hain
+                const downloadCount = snapshot.size;
+                const dashDownloadsEl = document.getElementById('dashDownloads');
+
+                if (dashDownloadsEl) {
+                    dashDownloadsEl.innerText = downloadCount;
+                }
+            });
+        }
+
+
 
     </script>
     <div id="admin-toast"
