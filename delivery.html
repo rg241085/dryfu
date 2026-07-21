@@ -188,12 +188,12 @@
     </div>
 
     <script type="module">
-      
+
         import { collection, query, where, onSnapshot, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        
+
         // 👇 YEH NAYI LINE ADD KARNI HAI (Auth ke liye)
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        
+
         // 👇 YAHAN 'auth' BHI LIKHNA HAI db ke sath
         import { db, auth } from "./firebase-config.js";
 
@@ -203,12 +203,31 @@
 
         let allDeliveryBoysList = [];
 
+        let toastTimeout;
+        window.showToast = function (msg, type = "error") {
+            const toast = document.getElementById('delivery-toast');
+            if (!toast) return;
+
+            toast.innerHTML = msg;
+            toast.style.backgroundColor = type === "success" ? "#128c7e" : "#dc3545";
+
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.opacity = '1', 10);
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.style.display = 'none', 300);
+            }, 3000);
+        }
+
+
         window.login = async function () {
             const name = document.getElementById('boySelect').value;
             const enteredPin = document.getElementById('boyPin').value.trim();
 
-            if (!name) { alert("Please select your name!"); return; }
-            if (!enteredPin || enteredPin.length !== 4) { alert("Please enter 4-digit PIN!"); return; }
+            if (!name) { window.showToast("Please select your name!", "error"); return; }
+            if (!enteredPin || enteredPin.length !== 4) { window.showToast("Please enter 4-digit PIN!", "error"); return; }
 
             const btn = document.querySelector('#login-screen button');
             btn.innerText = "Verifying...";
@@ -226,9 +245,9 @@
                 localStorage.setItem('deliveryBoyName', name);
                 document.getElementById('boyPin').value = '';
                 showOrdersScreen();
-                
+
             } catch (error) {
-                alert("Incorrect PIN! Access Denied.");
+                window.showToast("Incorrect PIN! Access Denied.", "error");
                 console.error("Login failed:", error.message);
             }
 
@@ -329,7 +348,7 @@
                 try {
                     await updateDoc(doc(db, "orders", orderId), { status: "Delivered" });
                 } catch (e) {
-                    alert("Error updating order: " + e.message);
+                   window.showToast("Error updating order: " + e.message, "error");
                 }
             }
         }
@@ -417,6 +436,9 @@
             installBanner.style.transform = 'translateY(-100%)'; // Banner wapas upar bhej do
         });
     </script>
+    <div id="delivery-toast"
+        style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); color: #fff; padding: 12px 24px; border-radius: 8px; z-index: 10000; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.3s ease; opacity: 0; text-align: center;">
+    </div>
 
 </body>
 

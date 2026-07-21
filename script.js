@@ -670,7 +670,7 @@ window.sendOTP = function () {
             btn.disabled = false;
         }).catch((error) => {
             console.error("SMS not sent", error);
-            alert("Firebase Error: " + error.code + "\n\n" + error.message);
+            window.showToast("SMS not sent: " + error.message, false);
             btn.innerText = "Send OTP";
             btn.disabled = false;
             if (recaptchaWidgetId !== null) {
@@ -1057,7 +1057,7 @@ window.evaluateCouponNudges = function () {
 
 window.applyCoupon = function (code) {
     const coupon = availableCoupons.find(c => c.code === code);
-    if (!coupon) { alert("Invalid Promo Code!"); return; }
+    if (!coupon) { window.showToast("Invalid Promo Code!", false); return; }
 
     // 🌟 BUG FIX: Naya coupon process karne se pehle, purana coupon aur uske free items cart se hata do
     window.removeCoupon(false);
@@ -1249,7 +1249,7 @@ window.finalizeOrder = async function () {
         btn.innerText = "Proceed to pay"; btn.disabled = false;
 
     } catch (error) {
-        alert("Order error: " + error.message);
+        window.showToast("Order error: " + error.message, false);
         btn.innerText = "Proceed to pay"; btn.disabled = false;
     }
 }
@@ -1298,7 +1298,7 @@ window.logoutUser = function () {
     loggedInUser = null;
     localStorage.removeItem('customerMobile');
     closeProfile();
-    alert("Logged out successfully");
+    window.showToast("Logged out successfully", true);
 }
 
 window.renderProfileHome = function () {
@@ -1337,7 +1337,7 @@ window.renderProfileHome = function () {
                 <div class="menu-item-left"><span class="menu-icon">📍</span> Address Book</div>
                 <div class="menu-arrow">›</div>
             </div>
-            <div class="profile-menu-item" onclick="alert('Help & Support coming soon!')">
+            <div class="profile-menu-item" onclick="window.showToast('Help & Support coming soon!', true)">
                 <div class="menu-item-left"><span class="menu-icon">🎧</span> Help & Support</div>
                 <div class="menu-arrow">›</div>
             </div>
@@ -1460,9 +1460,9 @@ window.cancelOrder = async function (orderId) {
             await updateDoc(doc(db, "orders", orderId), {
                 status: "Cancelled"
             });
-            alert("Order cancelled successfully!");
+            window.showToast("Order cancelled successfully!", true);
         } catch (error) {
-            alert("Error cancelling order: " + error.message);
+            window.showToast("Error cancelling order: " + error.message, false)
         }
     }
 }
@@ -1910,7 +1910,7 @@ window.saveNewAddress = async function () {
 
         btn.innerText = "Save address"; btn.disabled = false;
     } catch (e) {
-        alert("Error saving address");
+        window.showToast("Error saving address", false);
         btn.innerText = "Try Again"; btn.disabled = false;
     }
 }
