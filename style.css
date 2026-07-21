@@ -1402,3 +1402,26 @@ body>.app-container>#checkout-bar {
     color: #333;
     line-height: 1.2;
 }
+
+/* --- Address Modal Inputs Style --- */
+.addr-input {
+    width: 100%;
+    padding: 14px 15px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+    transition: all 0.2s ease;
+    background-color: #fff;
+    box-sizing: border-box; /* Padding ke baad bhi width 100% maintain rakhega */
+}
+
+.addr-input:focus {
+    border-color: #128c7e;
+    box-shadow: 0 0 0 3px rgba(18, 140, 126, 0.1);
+}
+
+.addr-input::placeholder {
+    color: #999;
+}
