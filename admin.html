@@ -832,7 +832,7 @@
 
 
 
-              
+
 
 
                 <div id="customers-view" class="view-section">
@@ -1332,10 +1332,18 @@
     </div>
 
     <script type="module">
-        // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc, getDoc, query, orderBy, limit, where, getAggregateFromServer, sum, count } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc, onSnapshot, setDoc, getDoc, query, orderBy, limit, where, getAggregateFromServer, sum, count } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { signInWithEmailAndPassword, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { app, db, auth } from "./firebase-config.js";
 
-        import { db, auth } from "./firebase-config.js";
+        // 🌟 NAYA TRICK: Admin ko bina logout kiye naya user banane ke liye ek "Secondary App" banayenge
+        const secondaryApp = initializeApp(app.options, "SecondaryApp");
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        const secondaryAuth = getAuth(secondaryApp);
+
+
+
         // ==========================================
         // 🔐 ADMIN LOGIN LOGIC
         // ==========================================
@@ -1431,53 +1439,53 @@
             });
         });
 
-        
+
         // ==========================================
-// 👕 PRODUCTS MANAGEMENT LOGIC (FIXED)
-// ==========================================
-let allProductsData = [];
-let existingMainCats = new Set();
-let categoryMap = {};
+        // 👕 PRODUCTS MANAGEMENT LOGIC (FIXED)
+        // ==========================================
+        let allProductsData = [];
+        let existingMainCats = new Set();
+        let categoryMap = {};
 
-window.fetchProducts = async function () {
-    const tableBody = document.getElementById('tableBody');
-    try {
-        const querySnapshot = await getDocs(collection(db, "products"));
-        tableBody.innerHTML = '';
-        existingMainCats.clear();
-        categoryMap = {};
-        allProductsData = [];
+        window.fetchProducts = async function () {
+            const tableBody = document.getElementById('tableBody');
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                tableBody.innerHTML = '';
+                existingMainCats.clear();
+                categoryMap = {};
+                allProductsData = [];
 
-        if (querySnapshot.empty) {
-            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No products found. Add your first product!</td></tr>';
-            // updateMainDropdown(); // Agar ye purana function nahi hai toh isko comment hi rakhein
-            window.populateCouponDropdowns(); 
-            return;
-        }
-
-        querySnapshot.forEach((docSnap) => {
-            let p = docSnap.data();
-            p.id = docSnap.id;
-            allProductsData.push(p);
-
-            if (p.mainCategory) {
-                existingMainCats.add(p.mainCategory);
-                const filterSelect = document.getElementById('prodCatFilterSelect');
-                if (filterSelect && !Array.from(filterSelect.options).some(opt => opt.value === p.mainCategory)) {
-                    filterSelect.innerHTML += `<option value="${p.mainCategory}">${p.mainCategory}</option>`;
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No products found. Add your first product!</td></tr>';
+                    // updateMainDropdown(); // Agar ye purana function nahi hai toh isko comment hi rakhein
+                    window.populateCouponDropdowns();
+                    return;
                 }
-            }
-        });
 
-        // 🌟 FIX: Loop ke baad ek saath call karo
-        window.updateFilterSubCategoryDropdown();
-        window.populateCouponDropdowns(); 
-        
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:red;">Error loading products. Please refresh.</td></tr>';
-    }
-}
+                querySnapshot.forEach((docSnap) => {
+                    let p = docSnap.data();
+                    p.id = docSnap.id;
+                    allProductsData.push(p);
+
+                    if (p.mainCategory) {
+                        existingMainCats.add(p.mainCategory);
+                        const filterSelect = document.getElementById('prodCatFilterSelect');
+                        if (filterSelect && !Array.from(filterSelect.options).some(opt => opt.value === p.mainCategory)) {
+                            filterSelect.innerHTML += `<option value="${p.mainCategory}">${p.mainCategory}</option>`;
+                        }
+                    }
+                });
+
+                // 🌟 FIX: Loop ke baad ek saath call karo
+                window.updateFilterSubCategoryDropdown();
+                window.populateCouponDropdowns();
+
+            } catch (error) {
+                console.error("Error fetching products:", error);
+                tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:red;">Error loading products. Please refresh.</td></tr>';
+            }
+        }
 
 
 
@@ -1842,7 +1850,7 @@ window.fetchProducts = async function () {
             });
         }
 
-       
+
         // 2. Open / Close Modal Logic
         document.getElementById('openCouponModalBtn').addEventListener('click', () => {
             document.getElementById('addCouponForm').reset();
@@ -2385,27 +2393,37 @@ window.fetchProducts = async function () {
 
         window.addDeliveryBoy = async function () {
             const nameInput = document.getElementById('newBoyName');
-            const pinInput = document.getElementById('newBoyPin'); // Naya code
+            const pinInput = document.getElementById('newBoyPin');
 
             const name = nameInput.value.trim();
-            const pin = pinInput.value.trim(); // Naya code
+            const pin = pinInput.value.trim();
 
             if (!name) { window.showToast("Please enter delivery boy name!"); return; }
-            if (!pin || pin.length !== 4) { window.showToast("Please set a valid 4-digit PIN!"); return; } // Naya validation
+            if (!pin || pin.length !== 4) { window.showToast("Please set a valid 4-digit PIN!"); return; }
 
             try {
+                // 1. Dummy Email & Expanded Password Generate karein
+                // Spaces hata kar lowercase kar dega (Eg: Ramesh Singh -> rameshsingh@delivery.dryfu.com)
+                const dummyEmail = name.toLowerCase().replace(/\s+/g, '') + "@delivery.dryfu.com";
+                const dummyPassword = pin + "DF"; // Minimum 6 characters ke liye "DF" lagaya
+
+                // 2. Secondary Auth mein naya account banayein (Admin logout nahi hoga)
+                await createUserWithEmailAndPassword(secondaryAuth, dummyEmail, dummyPassword);
+
+                // 3. Database mein save karein (Par ab PIN save karna zaroori nahi hai)
                 await addDoc(collection(db, "deliveryBoys"), {
                     name: name,
-                    pin: pin, // PIN ko database mein save kar rahe hain
+                    email: dummyEmail, // PIN ki jagah bas email reference rakh liya
                     createdAt: new Date().toISOString()
                 });
 
                 nameInput.value = '';
-                pinInput.value = ''; // Clear input
-                window.showToast("Delivery Partner added successfully!");
-            } catch (e) { window.showToast("Error: " + e.message); }
+                pinInput.value = '';
+                window.showToast("Delivery Partner added & secured successfully!");
+            } catch (e) {
+                window.showToast("Error: " + e.message, "error");
+            }
         }
-
         window.deleteDeliveryBoy = async function (id) {
             if (confirm("Are you sure you want to remove this delivery partner?")) {
                 await deleteDoc(doc(db, "deliveryBoys", id));
