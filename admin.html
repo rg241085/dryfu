@@ -664,7 +664,14 @@
                             <div id="dynamic-coupon-fields"
                                 style="background: #f4f7f6; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
 
-                                <!-- a. FLAT -->
+                                <!-- 🔍 NAYA: Product Search Box -->
+                                <div id="promoProductSearchBox" style="display:none; margin-bottom: 15px;">
+                                    <input type="text" id="promoSearchInput" onkeyup="window.filterPromoProducts()"
+                                        placeholder="🔍 Search product by name or weight..."
+                                        style="width: 100%; padding: 10px; border: 1px solid #128c7e; border-radius: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                                </div>
+
+                                <!-- a. FLAT --> <!-- a. FLAT -->
                                 <div id="type-flat" class="coupon-type-section">
                                     <div class="form-group">
                                         <label>Flat Discount Value (₹)</label>
@@ -1411,7 +1418,7 @@
             return dateString;
         }
 
-        // 1. Populate Dropdowns & Lists from Catalog
+        // 1. Populate Dropdowns & Lists from Catalog (WITH WEIGHT)
         window.populateCouponDropdowns = function () {
             const freeGiftSelect = document.getElementById('freeGiftSelect');
             const freeChoiceList = document.getElementById('freeChoiceList');
@@ -1422,27 +1429,53 @@
             discountedChoiceList.innerHTML = '';
 
             allProductsData.forEach(p => {
+                // 🌟 NAYA: Weight/Quantity format karna
+                let weightText = p.weight ? `[${p.weight}]` : '[Standard]';
+
                 // Dropdown for Type C
-                freeGiftSelect.innerHTML += `<option value="${p.id}">${p.name} (MRP: ₹${p.mrp})</option>`;
+                freeGiftSelect.innerHTML += `<option value="${p.id}" class="promo-opt">${p.name} ${weightText} (MRP: ₹${p.mrp})</option>`;
 
                 // List for Type D (Checkbox)
                 freeChoiceList.innerHTML += `
-            <label style="display: block; margin-bottom: 8px; cursor: pointer; padding: 5px; border-bottom: 1px solid #f1f1f1;">
+            <label class="promo-chk-label" style="display: block; margin-bottom: 8px; cursor: pointer; padding: 5px; border-bottom: 1px solid #f1f1f1;">
                 <input type="checkbox" class="fc-check" value="${p.id}" style="margin-right: 8px;">
-                ${p.name} (Price: ₹${p.sellingPrice})
+                ${p.name} <strong style="color:#128c7e;">${weightText}</strong> (Price: ₹${p.sellingPrice})
             </label>
         `;
 
                 // List for Type E (Checkbox + Price Input)
                 discountedChoiceList.innerHTML += `
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #f1f1f1;">
+            <div class="promo-dc-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #f1f1f1;">
                 <label style="cursor: pointer; flex: 1;">
                     <input type="checkbox" class="dc-check" value="${p.id}" onchange="document.getElementById('dc-price-${p.id}').disabled = !this.checked;" style="margin-right: 8px;">
-                    ${p.name} <span style="color:#777; font-size:12px;">(₹${p.sellingPrice})</span>
+                    ${p.name} <strong style="color:#128c7e;">${weightText}</strong> <span style="color:#777; font-size:12px;">(₹${p.sellingPrice})</span>
                 </label>
                 <input type="number" id="dc-price-${p.id}" placeholder="Special Price ₹" disabled style="width: 120px; padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
             </div>
         `;
+            });
+        }
+
+        // 🔍 NAYA: Live Search Filter Logic (Bina checkbox state hataye)
+        window.filterPromoProducts = function () {
+            let term = document.getElementById('promoSearchInput').value.toLowerCase().trim();
+
+            // Filter Dropdown (Type C)
+            document.querySelectorAll('.promo-opt').forEach(opt => {
+                let text = opt.innerText.toLowerCase();
+                opt.style.display = text.includes(term) ? 'block' : 'none';
+            });
+
+            // Filter Checkbox List (Type D)
+            document.querySelectorAll('.promo-chk-label').forEach(label => {
+                let text = label.innerText.toLowerCase();
+                label.style.display = text.includes(term) ? 'block' : 'none';
+            });
+
+            // Filter Discounted List (Type E)
+            document.querySelectorAll('.promo-dc-row').forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? 'flex' : 'none';
             });
         }
 
@@ -1462,10 +1495,19 @@
 
         document.getElementById('closeCouponModalBtn').addEventListener('click', () => couponModal.style.display = 'none');
         document.getElementById('cancelCouponBtn').addEventListener('click', () => couponModal.style.display = 'none');
-
-        // 3. Handle Dropdown Change to show correct input fields
+        // 3. Handle Dropdown Change to show correct input fields & Search Box
         document.getElementById('couponTypeSelect').addEventListener('change', function () {
             document.querySelectorAll('.coupon-type-section').forEach(el => el.style.display = 'none');
+
+            // 🔍 Search Box sirf List wale options mein dikhega
+            const searchBox = document.getElementById('promoProductSearchBox');
+            if (this.value === 'FREE_GIFT' || this.value === 'FREE_CHOICE' || this.value === 'DISCOUNTED_CHOICE') {
+                searchBox.style.display = 'block';
+                document.getElementById('promoSearchInput').value = ''; // Naya option khulte hi search saaf kar do
+                window.filterPromoProducts(); // List reset kar do
+            } else {
+                searchBox.style.display = 'none';
+            }
 
             if (this.value === 'FLAT') document.getElementById('type-flat').style.display = 'block';
             if (this.value === 'PERCENT') document.getElementById('type-percent').style.display = 'block';
