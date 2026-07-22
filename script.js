@@ -1112,12 +1112,19 @@ window.openPromoChoiceModal = function (coupon) {
 
         if (productData) {
             let isChecked = index === 0 ? 'checked' : '';
+
+            // 🌟 NAYA: Yahan humne weight nikal liya hai
+            let weightText = productData.weight ? `[${productData.weight}]` : '[Standard Pack]';
+
             list.innerHTML += `
                 <label style="display:flex; align-items:center; background:#fff; padding:12px; border-radius:8px; border:1px solid ${isChecked ? '#128c7e' : '#ddd'}; cursor:pointer; gap:10px;">
                     <input type="radio" name="promoChoiceRadio" value="${productId}" data-price="${specialPrice}" style="accent-color:#128c7e; width:18px; height:18px;" ${isChecked}>
                     <img src="${productData.img}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;">
                     <div style="flex:1;">
-                        <div style="font-size:14px; font-weight:bold; color:#111;">${productData.name}</div>
+                        <!-- 🌟 NAYA: Naam ke aage weight dikhane ka code -->
+                        <div style="font-size:14px; font-weight:bold; color:#111;">
+                            ${productData.name} <span style="font-size: 12px; color: #128c7e; margin-left: 4px;">${weightText}</span>
+                        </div>
                         <div style="font-size:13px; color:#128c7e; font-weight:bold;">${specialPrice === 0 ? 'FREE' : 'Special Price: ₹' + specialPrice} <strike style="color:#999; font-size:11px; font-weight:normal;">₹${productData.sellingPrice}</strike></div>
                     </div>
                 </label>
