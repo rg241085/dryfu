@@ -39,7 +39,7 @@ self.addEventListener('notificationclick', function(event) {
 // ----------------------------------------------------
 
 // Version update karte rahein (eg: v13, v14...)
-const CACHE_NAME = 'dryfu-cache-v13'; 
+const CACHE_NAME = 'dryfu-cache-v14'; 
 
 const urlsToCache = [
   'index.html',

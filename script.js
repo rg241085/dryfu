@@ -1301,13 +1301,36 @@ window.logoutUser = function () {
     window.showToast("Logged out successfully", true);
 }
 
-window.renderProfileHome = function () {
+window.renderProfileHome = async function () {
     currentProfileScreen = 'home';
     document.getElementById('profile-title').innerText = "My Account";
     const container = document.getElementById('profile-content-container');
-    let displayPhone = loggedInUser ? `+91 ${loggedInUser}` : 'Not Logged In';
 
-    // 🌟 नया लॉजिक: चेक करें कि यूज़र लॉग इन है या नहीं
+    // Data aane tak loading dikhao
+    container.innerHTML = '<p style="text-align:center; padding: 30px; color:#666;">Loading Profile...</p>';
+
+    let displayPhone = loggedInUser ? `+91 ${loggedInUser}` : 'Not Logged In';
+    let displayName = 'Guest';
+
+    // 🌟 JADU: Database se customer ka asli naam nikalna
+    if (loggedInUser) {
+        try {
+            const docRef = doc(db, "customers", loggedInUser);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                let data = docSnap.data();
+                // Agar address save hai toh uska naam le lo
+                if (data.addresses && data.addresses.length > 0 && typeof data.addresses[0] === 'object') {
+                    displayName = data.addresses[0].fullName;
+                } else {
+                    displayName = 'User';
+                }
+            }
+        } catch (e) {
+            displayName = 'User';
+        }
+    }
+
     let authBtnHTML = "";
     if (loggedInUser) {
         authBtnHTML = `<div class="logout-btn-card" onclick="logoutUser()" style="color: #dc3545;">Logout from DRYFU</div>`;
@@ -1315,14 +1338,13 @@ window.renderProfileHome = function () {
         authBtnHTML = `<div class="logout-btn-card" onclick="openLoginModal('profile')" style="color: #128c7e;">Login / Sign Up</div>`;
     }
 
-    // 🌟 एक और सुधार: अगर यूज़र लॉग इन नहीं है और 'My Orders' पर क्लिक करता है, तो उसे पहले Login का पॉपअप दिखेगा।
     let ordersAction = loggedInUser ? 'renderMyOrders()' : "openLoginModal('profile')";
     let addressAction = loggedInUser ? 'renderMyAddresses()' : "openLoginModal('profile')";
 
     container.innerHTML = `
         <div class="user-info-card">
             <div class="user-info-text">
-                <h3>Hi! ${loggedInUser ? 'User' : 'Guest'}</h3>
+                <h3>Hi! ${displayName}</h3>
                 <p>${displayPhone}</p>
             </div>
             <div class="user-avatar">👤</div>
@@ -1914,6 +1936,32 @@ window.saveNewAddress = async function () {
         btn.innerText = "Try Again"; btn.disabled = false;
     }
 }
+
+// ==========================================
+// 🗑️ DELETE ADDRESS LOGIC
+// ==========================================
+window.deleteAddress = async function (index) {
+    if (confirm("Are you sure you want to delete this address?")) {
+        try {
+            // Purani address list mein se ye wala address hatao
+            let updatedAddresses = [...currentSavedAddresses];
+            updatedAddresses.splice(index, 1);
+
+            // Firebase database ko update karo
+            const docRef = doc(db, "customers", loggedInUser);
+            await updateDoc(docRef, { addresses: updatedAddresses });
+
+            window.showToast("Address deleted successfully!", true);
+
+            // Screen ko refresh karo taaki address gayab ho jaye
+            window.renderMyAddresses();
+        } catch (error) {
+            window.showToast("Error deleting address: " + error.message, false);
+        }
+    }
+}
+
+
 let toastTimeout;
 window.showToast = function (msg, isSuccess) {
     const toast = document.getElementById('toast-notification');
@@ -2237,8 +2285,8 @@ installBtn.addEventListener('click', async () => {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
 
-      if (outcome === 'accepted') {
-            
+        if (outcome === 'accepted') {
+
             // 👇 YAHAN SE NAYA TRACKING CODE SHURU 👇
             try {
                 const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
@@ -2864,7 +2912,7 @@ window.addEventListener('appinstalled', async (evt) => {
     try {
         // App install hote hi Firebase mein ek record save ho jayega
         const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        
+
         await addDoc(collection(db, "appInstalls"), {
             timestamp: new Date().toISOString(),
             platform: navigator.platform || 'Unknown',
