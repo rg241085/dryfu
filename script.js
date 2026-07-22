@@ -1094,7 +1094,6 @@ window.applyCoupon = function (code) {
         window.openPromoChoiceModal(coupon);
     }
 }
-
 window.openPromoChoiceModal = function (coupon) {
     document.getElementById('activePromoCodeSelected').value = coupon.code;
     document.getElementById('activePromoCodeType').value = coupon.type;
@@ -1113,7 +1112,6 @@ window.openPromoChoiceModal = function (coupon) {
         if (productData) {
             let isChecked = index === 0 ? 'checked' : '';
 
-            // 🌟 NAYA: Yahan humne weight nikal liya hai
             let weightText = productData.weight ? `[${productData.weight}]` : '[Standard Pack]';
 
             list.innerHTML += `
@@ -1121,11 +1119,11 @@ window.openPromoChoiceModal = function (coupon) {
                     <input type="radio" name="promoChoiceRadio" value="${productId}" data-price="${specialPrice}" style="accent-color:#128c7e; width:18px; height:18px;" ${isChecked}>
                     <img src="${productData.img}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;">
                     <div style="flex:1;">
-                        <!-- 🌟 NAYA: Naam ke aage weight dikhane ka code -->
                         <div style="font-size:14px; font-weight:bold; color:#111;">
                             ${productData.name} <span style="font-size: 12px; color: #128c7e; margin-left: 4px;">${weightText}</span>
                         </div>
-                        <div style="font-size:13px; color:#128c7e; font-weight:bold;">${specialPrice === 0 ? 'FREE' : 'Special Price: ₹' + specialPrice} <strike style="color:#999; font-size:11px; font-weight:normal;">₹${productData.sellingPrice}</strike></div>
+                        <!-- 🌟 NAYA: Yahan sellingPrice ki jagah MRP set kar diya gaya hai -->
+                        <div style="font-size:13px; color:#128c7e; font-weight:bold;">${specialPrice === 0 ? 'FREE' : 'Special Price: ₹' + specialPrice} <strike style="color:#999; font-size:11px; font-weight:normal;">₹${productData.mrp}</strike></div>
                     </div>
                 </label>
             `;
@@ -1134,7 +1132,6 @@ window.openPromoChoiceModal = function (coupon) {
 
     document.getElementById('promo-choice-overlay').classList.add('active');
 }
-
 window.confirmPromoChoice = function () {
     const selectedRadio = document.querySelector('input[name="promoChoiceRadio"]:checked');
     if (!selectedRadio) { window.showToast("Please select an item!"); return; }
