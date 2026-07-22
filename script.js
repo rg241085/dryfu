@@ -1300,43 +1300,34 @@ window.logoutUser = function () {
     closeProfile();
     window.showToast("Logged out successfully", true);
 }
-
 window.renderProfileHome = async function () {
     currentProfileScreen = 'home';
     document.getElementById('profile-title').innerText = "My Account";
     const container = document.getElementById('profile-content-container');
 
-    // Data aane tak loading dikhao
     container.innerHTML = '<p style="text-align:center; padding: 30px; color:#666;">Loading Profile...</p>';
 
     let displayPhone = loggedInUser ? `+91 ${loggedInUser}` : 'Not Logged In';
     let displayName = 'Guest';
 
-    // 🌟 JADU: Database se customer ka asli naam nikalna
     if (loggedInUser) {
         try {
             const docRef = doc(db, "customers", loggedInUser);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 let data = docSnap.data();
-                // Agar address save hai toh uska naam le lo
                 if (data.addresses && data.addresses.length > 0 && typeof data.addresses[0] === 'object') {
                     displayName = data.addresses[0].fullName;
                 } else {
                     displayName = 'User';
                 }
             }
-        } catch (e) {
-            displayName = 'User';
-        }
+        } catch (e) { displayName = 'User'; }
     }
 
-    let authBtnHTML = "";
-    if (loggedInUser) {
-        authBtnHTML = `<div class="logout-btn-card" onclick="logoutUser()" style="color: #dc3545;">Logout from DRYFU</div>`;
-    } else {
-        authBtnHTML = `<div class="logout-btn-card" onclick="openLoginModal('profile')" style="color: #128c7e;">Login / Sign Up</div>`;
-    }
+    let authBtnHTML = loggedInUser
+        ? `<div class="logout-btn-card" onclick="logoutUser()" style="color: #dc3545;">Logout from DRYFU</div>`
+        : `<div class="logout-btn-card" onclick="openLoginModal('profile')" style="color: #128c7e;">Login / Sign Up</div>`;
 
     let ordersAction = loggedInUser ? 'renderMyOrders()' : "openLoginModal('profile')";
     let addressAction = loggedInUser ? 'renderMyAddresses()' : "openLoginModal('profile')";
@@ -1359,15 +1350,106 @@ window.renderProfileHome = async function () {
                 <div class="menu-item-left"><span class="menu-icon">📍</span> Address Book</div>
                 <div class="menu-arrow">›</div>
             </div>
-            <div class="profile-menu-item" onclick="window.showToast('Help & Support coming soon!', true)">
+        </div>
+
+        <!-- 🌟 NAYA: More Options Section -->
+        <h4 style="margin: 20px 0 10px 5px; font-size: 13px; color: #888; text-transform: uppercase; font-weight: bold;">More Options</h4>
+        
+        <div class="profile-menu">
+            <div class="profile-menu-item" onclick="window.openHelpSupport()">
                 <div class="menu-item-left"><span class="menu-icon">🎧</span> Help & Support</div>
+                <div class="menu-arrow">›</div>
+            </div>
+            <div class="profile-menu-item" onclick="window.openAboutUs()">
+                <div class="menu-item-left"><span class="menu-icon">🏢</span> About DRYFU</div>
+                <div class="menu-arrow">›</div>
+            </div>
+            <div class="profile-menu-item" onclick="window.openPolicies()">
+                <div class="menu-item-left"><span class="menu-icon">📜</span> Policies (Returns & Privacy)</div>
+                <div class="menu-arrow">›</div>
+            </div>
+            <div class="profile-menu-item" onclick="window.shareApp()">
+                <div class="menu-item-left"><span class="menu-icon">🚀</span> Share App with Friends</div>
                 <div class="menu-arrow">›</div>
             </div>
         </div>
         
         ${authBtnHTML}
+        
+        <div style="text-align: center; margin-top: 25px; margin-bottom: 10px;">
+            <p style="color: #bbb; font-size: 12px; font-weight: bold;">DRYFU App Version 1.0</p>
+        </div>
     `;
 }
+
+// ==========================================
+// 🌟 ADVANCE PROFILE OPTIONS LOGIC
+// ==========================================
+
+window.openHelpSupport = function () {
+    currentProfileScreen = 'support';
+    document.getElementById('profile-title').innerText = "Help & Support";
+    const container = document.getElementById('profile-content-container');
+
+    // Yahan maine aapka image wala number "9887938518" daal diya hai WhatsApp aur Call ke liye
+    container.innerHTML = `
+        <div style="background: #fff; padding: 30px 20px; border-radius: 12px; text-align: center; border: 1px solid #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+            <div style="font-size: 55px; margin-bottom: 15px;">🎧</div>
+            <h3 style="color: #111; margin-bottom: 10px; font-size: 20px;">We are here to help!</h3>
+            <p style="color: #666; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">Aapko order, delivery ya product se judi koi bhi samasya ho, toh turant humse sampark karein.</p>
+            
+            <a href="https://wa.me/919887938518" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-decoration: none; margin-bottom: 15px; font-size: 16px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">
+                <span style="font-size:20px;">💬</span> Chat on WhatsApp
+            </a>
+            
+            <a href="tel:+919887938518" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #f4f6f8; color: #111; border: 1px solid #ddd; padding: 15px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 16px;">
+                <span style="font-size:20px;">📞</span> Call Us Direct
+            </a>
+        </div>
+    `;
+}
+
+window.openAboutUs = function () {
+    currentProfileScreen = 'about';
+    document.getElementById('profile-title').innerText = "About DRYFU";
+    document.getElementById('profile-content-container').innerHTML = `
+        <div style="background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #eee;">
+            <h2 style="color: #128c7e; font-size: 26px; font-weight: 900; margin-bottom: 15px; letter-spacing: 1px;">DRYFU</h2>
+            <p style="color: #444; font-size: 15px; line-height: 1.6; margin-bottom: 15px;">Welcome to DRYFU! We are your most trusted destination for premium quality dry fruits, nuts, seeds, and exotic spices.</p>
+            <p style="color: #444; font-size: 15px; line-height: 1.6; margin-bottom: 15px;">Our mission is to bring 100% natural, unadulterated, and hand-picked goodness directly from the best farms to your doorstep at wholesale prices.</p>
+            <p style="color: #111; font-size: 15px; line-height: 1.6; font-weight: bold;">Eat Healthy, Live Better. 🌿</p>
+        </div>
+    `;
+}
+
+window.openPolicies = function () {
+    currentProfileScreen = 'policies';
+    document.getElementById('profile-title').innerText = "Our Policies";
+    document.getElementById('profile-content-container').innerHTML = `
+        <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 15px;">
+            <h3 style="color: #111; font-size: 16px; margin-bottom: 10px; display:flex; align-items:center; gap:8px;"><span>🔄</span> Return & Refund Policy</h3>
+            <p style="color: #555; font-size: 14px; line-height: 1.5;">Customer satisfaction is our priority. If you receive a damaged or incorrect item, please contact us within 2 days of delivery. Approved refunds will be processed within 5-7 working days directly to your original payment method.</p>
+        </div>
+        <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee;">
+            <h3 style="color: #111; font-size: 16px; margin-bottom: 10px; display:flex; align-items:center; gap:8px;"><span>🔒</span> Privacy Policy</h3>
+            <p style="color: #555; font-size: 14px; line-height: 1.5;">Your personal data is 100% safe and encrypted. We use your mobile number and address details strictly for order processing and delivery logistics. We never sell or share your data with any third-party marketing agencies.</p>
+        </div>
+    `;
+}
+
+window.shareApp = function () {
+    if (navigator.share) {
+        navigator.share({
+            title: 'DRYFU - Premium Dry Fruits',
+            text: 'Hey! Check out DRYFU app for the best quality dry fruits and spices at amazing prices. Download now! 🛒✨',
+            url: 'https://dryfu.in'
+        }).catch((error) => console.log('Error sharing', error));
+    } else {
+        window.showToast("App link copied to clipboard! Share it with your friends.", true);
+        navigator.clipboard.writeText("https://dryfu.in");
+    }
+}
+
 
 let unsubscribeOrders = null;
 
@@ -1938,26 +2020,36 @@ window.saveNewAddress = async function () {
 }
 
 // ==========================================
-// 🗑️ DELETE ADDRESS LOGIC
+// 🗑️ SMART DELETE ADDRESS LOGIC
 // ==========================================
-window.deleteAddress = async function (index) {
-    if (confirm("Are you sure you want to delete this address?")) {
-        try {
-            // Purani address list mein se ye wala address hatao
-            let updatedAddresses = [...currentSavedAddresses];
-            updatedAddresses.splice(index, 1);
+window.deleteAddress = function (index) {
+    // 🌟 Browser ka purana alert nahi, ab hamara custom popup aayega
+    const overlayHtml = `
+    <div id="delete-confirm-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(3px);">
+        <div style="background:#fff; width:300px; border-radius:12px; padding:20px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+            <div style="font-size:40px; margin-bottom:10px;">🗑️</div>
+            <h3 style="color:#111; font-size:18px; margin-bottom:10px;">Delete Address?</h3>
+            <p style="color:#666; font-size:14px; margin-bottom:20px;">Are you sure you want to remove this address permanently?</p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="document.getElementById('delete-confirm-overlay').remove()" style="flex:1; background:#f1f1f1; color:#333; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">Cancel</button>
+                <button onclick="document.getElementById('delete-confirm-overlay').remove(); window.executeDeleteAddress(${index});" style="flex:1; background:#dc3545; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">Delete</button>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', overlayHtml);
+}
 
-            // Firebase database ko update karo
-            const docRef = doc(db, "customers", loggedInUser);
-            await updateDoc(docRef, { addresses: updatedAddresses });
+window.executeDeleteAddress = async function (index) {
+    try {
+        let updatedAddresses = [...currentSavedAddresses];
+        updatedAddresses.splice(index, 1);
+        const docRef = doc(db, "customers", loggedInUser);
+        await updateDoc(docRef, { addresses: updatedAddresses });
 
-            window.showToast("Address deleted successfully!", true);
-
-            // Screen ko refresh karo taaki address gayab ho jaye
-            window.renderMyAddresses();
-        } catch (error) {
-            window.showToast("Error deleting address: " + error.message, false);
-        }
+        window.showToast("Address deleted successfully!", true);
+        window.renderMyAddresses();
+    } catch (error) {
+        window.showToast("Error deleting address: " + error.message, false);
     }
 }
 
@@ -2190,15 +2282,23 @@ if ('serviceWorker' in navigator) {
             .then(reg => {
                 console.log('Service Worker Registered!');
 
-                // 🌟 NAYA: Check karo ki kya koi naya update (sw.js) aaya hai?
+                // Check karo ki kya koi naya update (sw.js) aaya hai?
                 reg.onupdatefound = () => {
                     const installingWorker = reg.installing;
                     installingWorker.onstatechange = () => {
                         if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            // Agar naya update mil gaya, toh customer ko Update karne ko bolo
-                            if (confirm("🚀 A new version of DRYFU app is available! Click OK to update now.")) {
-                                window.location.reload(); // Ek click me hard refresh
-                            }
+
+                            // 🌟 NAYA SMART UPDATE POPUP (Bina alert box ke)
+                            const updateHtml = `
+                            <div id="app-update-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(5px);">
+                                <div style="background:#fff; width:300px; border-radius:16px; padding:25px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+                                    <div style="font-size:50px; margin-bottom:15px; animation: bounce 1s infinite alternate;">🚀</div>
+                                    <h2 style="color:#128c7e; font-size:20px; font-weight:900; margin-bottom:10px;">Update Available!</h2>
+                                    <p style="color:#555; font-size:14px; margin-bottom:20px; line-height:1.4;">A new version of DRYFU app is ready. Update now for new features and a faster experience.</p>
+                                    <button onclick="window.location.reload(true)" style="background:linear-gradient(135deg, #128c7e, #0f766a); color:white; border:none; padding:12px 20px; width:100%; border-radius:8px; font-weight:bold; font-size:15px; cursor:pointer; box-shadow:0 4px 10px rgba(18,140,126,0.2);">Update App Now</button>
+                                </div>
+                            </div>`;
+                            document.body.insertAdjacentHTML('beforeend', updateHtml);
                         }
                     };
                 };
@@ -2786,6 +2886,55 @@ function listenMasterCategories() {
         }
     });
 }
+
+// 🌟 DYNAMIC APP SETTINGS (Admin Panel se link)
+let appSettings = {
+    whatsapp: "9887938518",
+    call: "9887938518",
+    about: "Welcome to DRYFU! We are your most trusted destination for premium quality dry fruits, nuts, seeds, and exotic spices.\n\nOur mission is to bring 100% natural, unadulterated, and hand-picked goodness directly from the best farms to your doorstep at wholesale prices.\n\nEat Healthy, Live Better. 🌿",
+    returnPolicy: "Customer satisfaction is our priority. If you receive a damaged or incorrect item, please contact us within 2 days of delivery. Approved refunds will be processed within 5-7 working days directly to your original payment method.",
+    privacyPolicy: "Your personal data is 100% safe and encrypted. We use your mobile number and address details strictly for order processing and delivery logistics. We never sell or share your data with any third-party marketing agencies.",
+    shareText: "Hey! Check out DRYFU app for the best quality dry fruits and spices at amazing prices. Download now! 🛒✨"
+};
+
+function listenAppSettings() {
+    onSnapshot(doc(db, "settings", "storeInfo"), (docSnap) => {
+        if (docSnap.exists()) {
+            appSettings = { ...appSettings, ...docSnap.data() };
+        }
+    });
+}
+// Isko Initialize karne ke liye file ke sabse end me (jahan `listenProducts()` hai) likh dein:
+listenAppSettings();
+
+
+// 🚀 NAYA: Footer ke Download Button se App Install karwana
+window.triggerAppInstall = async function () {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            const overlay = document.getElementById('installing-overlay');
+            if (overlay) overlay.classList.add('active');
+            setTimeout(() => {
+                document.getElementById('pwa-spinner-icon').style.display = 'none';
+                document.getElementById('pwa-success-icon').style.display = 'block';
+                document.getElementById('pwa-loading-title').innerText = "App Installed!";
+                document.getElementById('pwa-loading-title').style.color = "#128c7e";
+                document.getElementById('pwa-loading-sub').innerText = "Check your home screen.";
+                setTimeout(() => { if (overlay) overlay.classList.remove('active'); }, 2000);
+            }, 2500);
+        }
+        deferredPrompt = null;
+    } else {
+        window.showToast("App is already installed on your device! 🎉", true);
+    }
+}
+
+
+
+
+
 
 window.renderDynamicHomeSections = function () {
     try {

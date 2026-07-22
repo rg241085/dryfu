@@ -40,6 +40,7 @@
                 <li data-target="tags-master-view">🏷️ Tags Master</li>
                 <li data-target="category-master-view">📂 Category Master</li>
                 <li data-target="layout-settings-view">📱 App Layout Settings</li> <!-- Ye line add karein -->
+                <li data-target="store-info-view">📝 Store Policies & Info</li>
                 <li data-target="notifications-view">📢 Push Notifications</li>
 
 
@@ -126,6 +127,41 @@
 
                         <button onclick="window.saveAppLayout()" class="btn-submit"
                             style="width: 100%; height: 45px;">💾 Save Layout Settings</button>
+                    </div>
+                </div>
+
+                <!-- 📝 STORE INFO & POLICIES VIEW -->
+                <div id="store-info-view" class="view-section">
+                    <div class="page-header">
+                        <h2>Store Policies & App Info</h2>
+                    </div>
+                    <div
+                        style="background: #fff; padding: 25px; border-radius: 8px; border: 1px solid #ddd; max-width: 700px;">
+                        <h3 style="margin-bottom: 15px; color: #128c7e;">1. Help & Support (Numbers)</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>WhatsApp Number (without +91)</label><input type="text"
+                                    id="setWhatsapp" placeholder="e.g. 9887938518"></div>
+                            <div class="form-group"><label>Calling Number (without +91)</label><input type="text"
+                                    id="setCall" placeholder="e.g. 9887938518"></div>
+                        </div>
+
+                        <h3 style="margin-bottom: 15px; margin-top:20px; color: #128c7e;">2. About DRYFU</h3>
+                        <div class="form-group"><textarea id="setAbout" rows="4"
+                                placeholder="Type about your company here..."></textarea></div>
+
+                        <h3 style="margin-bottom: 15px; margin-top:20px; color: #128c7e;">3. Policies</h3>
+                        <div class="form-group"><label>Return & Refund Policy</label><textarea id="setReturn"
+                                rows="3"></textarea></div>
+                        <div class="form-group"><label>Privacy Policy</label><textarea id="setPrivacy"
+                                rows="3"></textarea></div>
+
+                        <h3 style="margin-bottom: 15px; margin-top:20px; color: #128c7e;">4. Share App Text</h3>
+                        <div class="form-group"><textarea id="setShareText" rows="2"
+                                placeholder="Text to send when someone shares the app..."></textarea></div>
+
+                        <button onclick="window.saveStoreInfo()" class="btn-submit"
+                            style="width: 100%; margin-top: 20px; height: 45px; font-size: 16px;">💾 Save
+                            Details</button>
                     </div>
                 </div>
 
@@ -2452,6 +2488,33 @@
                     dashDownloadsEl.innerText = downloadCount;
                 }
             });
+        }
+
+        // Load Store Info Settings
+        onSnapshot(doc(db, "settings", "storeInfo"), (docSnap) => {
+            if (docSnap.exists()) {
+                let data = docSnap.data();
+                document.getElementById('setWhatsapp').value = data.whatsapp || '';
+                document.getElementById('setCall').value = data.call || '';
+                document.getElementById('setAbout').value = data.about || '';
+                document.getElementById('setReturn').value = data.returnPolicy || '';
+                document.getElementById('setPrivacy').value = data.privacyPolicy || '';
+                document.getElementById('setShareText').value = data.shareText || '';
+            }
+        });
+
+        window.saveStoreInfo = async function () {
+            try {
+                await setDoc(doc(db, "settings", "storeInfo"), {
+                    whatsapp: document.getElementById('setWhatsapp').value,
+                    call: document.getElementById('setCall').value,
+                    about: document.getElementById('setAbout').value,
+                    returnPolicy: document.getElementById('setReturn').value,
+                    privacyPolicy: document.getElementById('setPrivacy').value,
+                    shareText: document.getElementById('setShareText').value
+                }, { merge: true });
+                window.showToast("Store details saved successfully!");
+            } catch (e) { window.showToast("Error saving data: " + e.message); }
         }
 
 

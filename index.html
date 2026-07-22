@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>DRYFU - Premium Dryfruits & Spices</title>
 
     <link rel="manifest" href="manifest.json?v=2">
@@ -51,15 +52,53 @@
             <!-- Dynamic Tags Section -->
             <div id="dynamic-tags-sections-container" style="order: 3;"></div>
 
-            
+
             <!-- NAYA: Grid Category Section (Amazon Fresh jaisa) -->
             <div id="home-grid-category-section" style="padding: 15px 0; order: 4; display: none;">
                 <!-- Yahan se 'All Categories' wali <h3> line hata di gayi hai -->
                 <div id="home-grid-category-container"></div>
             </div>
 
+            <!-- 🌟 NAYA: App Footer (Home page ke last mein) -->
+            <div id="home-footer"
+                style="order: 5; padding: 30px 20px 40px 20px; background: #f8fafc; text-align: center; margin-top: 20px; border-top: 1px dashed #e2e8f0;">
+                <h2 style="color: #128c7e; font-size: 24px; font-weight: 900; letter-spacing: 1px; margin-bottom: 5px;">
+                    DRYFU</h2>
+                <p style="color: #64748b; font-size: 12px; margin-bottom: 25px;">Premium Dryfruits & Spices</p>
+
+                <div style="display: flex; justify-content: center; gap: 25px; margin-bottom: 25px;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <span style="font-size: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">🛡️</span>
+                        <span
+                            style="font-size: 10px; color: #475569; font-weight: bold; text-transform: uppercase;">100%
+                            Secure</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <span style="font-size: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">💎</span>
+                        <span style="font-size: 10px; color: #475569; font-weight: bold; text-transform: uppercase;">Top
+                            Quality</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <span style="font-size: 26px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">⚡</span>
+                        <span
+                            style="font-size: 10px; color: #475569; font-weight: bold; text-transform: uppercase;">Fast
+                            Delivery</span>
+                    </div>
+                </div>
+
+                <!-- 🚀 NAYA: Download App Button -->
+                <button onclick="window.triggerAppInstall()"
+                    style="background: linear-gradient(135deg, #128c7e, #0f766a); color: white; border: none; padding: 12px 25px; border-radius: 25px; font-weight: 800; font-size: 14px; margin-bottom: 25px; cursor: pointer; box-shadow: 0 4px 10px rgba(18,140,126,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; width: fit-content; margin-left: auto; margin-right: auto;">
+                    <span style="font-size: 18px;">📱</span> Download DRYFU App
+                </button>
+
+                <p style="color: #94a3b8; font-size: 11px; font-weight: bold;">Made with ❤️ in India</p>
+            </div>
+
+
+
         </div>
-      
+
 
         <div id="catalog-page" style="display: none;">
             <div id="main-top-header" style="background: #fff; padding-bottom: 10px;">
@@ -68,7 +107,7 @@
                     <span class="back-btn" onclick="switchTab('home')"
                         style="font-size: 24px; cursor: pointer; font-weight: bold; color: #111;">←</span>
                     <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #111;">Catalogue</h2>
-                  
+
                 </div>
 
                 <div class="search-container" style="padding: 0 20px;">

@@ -26,7 +26,7 @@ messaging.onBackgroundMessage(function (payload) {
 });
 
 // 🌟 NAYA: Notification par click karne se App open hogi
-self.addEventListener('notificationclick', function(event) {
+self.addEventListener('notificationclick', function (event) {
   event.notification.close();
   event.waitUntil(
     clients.openWindow('/') // Customer ko home page par le jayega
@@ -39,7 +39,7 @@ self.addEventListener('notificationclick', function(event) {
 // ----------------------------------------------------
 
 // Version update karte rahein (eg: v13, v14...)
-const CACHE_NAME = 'dryfu-cache-v14'; 
+const CACHE_NAME = 'dryfu-cache-v15';
 
 const urlsToCache = [
   'index.html',
@@ -77,9 +77,9 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // 🚨 BOHOT ZAROORI: Firebase Database aur Auth ko cache hone se rokein
   // Taki customer ko hamesha live products aur orders dikhein
-  if (event.request.url.includes('firestore.googleapis.com') || 
-      event.request.url.includes('identitytoolkit.googleapis.com')) {
-      return; 
+  if (event.request.url.includes('firestore.googleapis.com') ||
+    event.request.url.includes('identitytoolkit.googleapis.com')) {
+    return;
   }
 
   // Sirf GET requests ko cache karenge
