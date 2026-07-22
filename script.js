@@ -1382,27 +1382,18 @@ window.renderProfileHome = async function () {
     `;
 }
 
-// ==========================================
-// 🌟 ADVANCE PROFILE OPTIONS LOGIC
-// ==========================================
-
 window.openHelpSupport = function () {
     currentProfileScreen = 'support';
     document.getElementById('profile-title').innerText = "Help & Support";
-    const container = document.getElementById('profile-content-container');
-
-    // Yahan maine aapka image wala number "9887938518" daal diya hai WhatsApp aur Call ke liye
-    container.innerHTML = `
+    document.getElementById('profile-content-container').innerHTML = `
         <div style="background: #fff; padding: 30px 20px; border-radius: 12px; text-align: center; border: 1px solid #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
             <div style="font-size: 55px; margin-bottom: 15px;">🎧</div>
             <h3 style="color: #111; margin-bottom: 10px; font-size: 20px;">We are here to help!</h3>
             <p style="color: #666; font-size: 14px; margin-bottom: 25px; line-height: 1.5;">Aapko order, delivery ya product se judi koi bhi samasya ho, toh turant humse sampark karein.</p>
-            
-            <a href="https://wa.me/919887938518" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-decoration: none; margin-bottom: 15px; font-size: 16px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">
+            <a href="https://wa.me/91${appSettings.whatsapp}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-decoration: none; margin-bottom: 15px; font-size: 16px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);">
                 <span style="font-size:20px;">💬</span> Chat on WhatsApp
             </a>
-            
-            <a href="tel:+919887938518" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #f4f6f8; color: #111; border: 1px solid #ddd; padding: 15px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 16px;">
+            <a href="tel:+91${appSettings.call}" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #f4f6f8; color: #111; border: 1px solid #ddd; padding: 15px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 16px;">
                 <span style="font-size:20px;">📞</span> Call Us Direct
             </a>
         </div>
@@ -1412,12 +1403,12 @@ window.openHelpSupport = function () {
 window.openAboutUs = function () {
     currentProfileScreen = 'about';
     document.getElementById('profile-title').innerText = "About DRYFU";
+    // 🌟 Line breaks \n ko html ke <br> mein convert kar rahe hain taaki paragraph theek dikhein
+    let formattedAbout = appSettings.about.replace(/\n/g, '<br><br>');
     document.getElementById('profile-content-container').innerHTML = `
         <div style="background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #eee;">
             <h2 style="color: #128c7e; font-size: 26px; font-weight: 900; margin-bottom: 15px; letter-spacing: 1px;">DRYFU</h2>
-            <p style="color: #444; font-size: 15px; line-height: 1.6; margin-bottom: 15px;">Welcome to DRYFU! We are your most trusted destination for premium quality dry fruits, nuts, seeds, and exotic spices.</p>
-            <p style="color: #444; font-size: 15px; line-height: 1.6; margin-bottom: 15px;">Our mission is to bring 100% natural, unadulterated, and hand-picked goodness directly from the best farms to your doorstep at wholesale prices.</p>
-            <p style="color: #111; font-size: 15px; line-height: 1.6; font-weight: bold;">Eat Healthy, Live Better. 🌿</p>
+            <p style="color: #444; font-size: 15px; line-height: 1.6;">${formattedAbout}</p>
         </div>
     `;
 }
@@ -1428,11 +1419,11 @@ window.openPolicies = function () {
     document.getElementById('profile-content-container').innerHTML = `
         <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 15px;">
             <h3 style="color: #111; font-size: 16px; margin-bottom: 10px; display:flex; align-items:center; gap:8px;"><span>🔄</span> Return & Refund Policy</h3>
-            <p style="color: #555; font-size: 14px; line-height: 1.5;">Customer satisfaction is our priority. If you receive a damaged or incorrect item, please contact us within 2 days of delivery. Approved refunds will be processed within 5-7 working days directly to your original payment method.</p>
+            <p style="color: #555; font-size: 14px; line-height: 1.5;">${appSettings.returnPolicy.replace(/\n/g, '<br>')}</p>
         </div>
         <div style="background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee;">
             <h3 style="color: #111; font-size: 16px; margin-bottom: 10px; display:flex; align-items:center; gap:8px;"><span>🔒</span> Privacy Policy</h3>
-            <p style="color: #555; font-size: 14px; line-height: 1.5;">Your personal data is 100% safe and encrypted. We use your mobile number and address details strictly for order processing and delivery logistics. We never sell or share your data with any third-party marketing agencies.</p>
+            <p style="color: #555; font-size: 14px; line-height: 1.5;">${appSettings.privacyPolicy.replace(/\n/g, '<br>')}</p>
         </div>
     `;
 }
@@ -1441,12 +1432,12 @@ window.shareApp = function () {
     if (navigator.share) {
         navigator.share({
             title: 'DRYFU - Premium Dry Fruits',
-            text: 'Hey! Check out DRYFU app for the best quality dry fruits and spices at amazing prices. Download now! 🛒✨',
+            text: appSettings.shareText,
             url: 'https://dryfu.in'
         }).catch((error) => console.log('Error sharing', error));
     } else {
         window.showToast("App link copied to clipboard! Share it with your friends.", true);
-        navigator.clipboard.writeText("https://dryfu.in");
+        navigator.clipboard.writeText(appSettings.shareText + " https://dryfu.in");
     }
 }
 
