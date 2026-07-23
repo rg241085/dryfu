@@ -450,31 +450,38 @@
                         <div class="page-header">
                             <h2>Customers</h2>
                         </div>
-                        <div class="filter-card">
-                            <div class="filter-group">
-                                <label>Enter Client's ID / Mobile</label>
-                                <input type="text" id="searchCustomerInput" placeholder="Search by Mobile No..."
-                                    onkeyup="filterCustomers()">
+                        <!-- 🌟 NAYA: Smart Filter & Sort Box -->
+                        <div class="filter-card"
+                            style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
+                            <div class="filter-group" style="flex: 2; min-width: 200px; margin: 0;">
+                                <input type="text" id="searchCustomerInput"
+                                    placeholder="🔍 Search by Name or Mobile No..." onkeyup="filterCustomers()"
+                                    style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
                             </div>
-                            <div class="filter-group">
-                                <label>Joined On</label>
-                                <input type="date">
+                            <div class="filter-group" style="flex: 1; min-width: 200px; margin: 0;">
+                                <select id="sortCustomerSelect" onchange="filterCustomers()"
+                                    style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; color: #128c7e;">
+                                    <option value="NEWEST">Sort: Newest Joined First</option>
+                                    <option value="OLDEST">Sort: Oldest Joined First</option>
+                                </select>
                             </div>
                         </div>
+
                         <div class="table-container">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Customer Info</th>
                                         <th>Contact</th>
-                                        <th>Join Date / Last Active</th>
+                                        <th>Join Date & Time</th> <!-- 🌟 NAYA ALAG KIYA -->
+                                        <th>Last Active</th> <!-- 🌟 NAYA ALAG KIYA -->
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="customersTableBody">
                                     <tr>
-                                        <td colspan="5" style="text-align:center;">Loading customer profiles...</td>
+                                        <td colspan="6" style="text-align:center;">Loading customer profiles...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1950,40 +1957,63 @@
             const tbody = document.getElementById('customersTableBody');
             tbody.innerHTML = '';
             if (dataArray.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No customers found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No customers found.</td></tr>';
                 return;
             }
             dataArray.forEach(cust => {
-                let lastActive = cust.lastLogin ? new Date(cust.lastLogin).toLocaleDateString('en-GB') : '-';
+                // 🌟 NAYA: Join Date ke sath Time bhi nikalna
+                let joinDateStr = '-';
+                let rawJoinDate = cust.createdAt || cust.lastLogin; // Agar createdAt nahi hai toh lastLogin ko fallback lenge
+                if (rawJoinDate) {
+                    let d = new Date(rawJoinDate);
+                    // Date & Time format: 23/07/2026, 11:30 AM
+                    joinDateStr = d.toLocaleDateString('en-GB') + ', ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                }
+
+                // 🌟 Last Active (Pehle ki tarah date)
+                let lastActiveStr = cust.lastLogin ? new Date(cust.lastLogin).toLocaleDateString('en-GB') : '-';
+
                 let displayName = cust.addresses && cust.addresses.length > 0 && typeof cust.addresses[0] === 'object' ? cust.addresses[0].fullName : `Customer ID - ${cust.mobileNumber.substring(0, 6)}`;
 
                 tbody.innerHTML += `
                     <tr>
-                        <td><div class="cust-avatar"></div><span style="font-weight:600; color:#111;">${displayName}</span></td>
+                        <td><div class="cust-avatar"></div><span style="font-weight:600; color:#111; text-transform: capitalize;">${displayName}</span></td>
                         <td>+91 ${cust.mobileNumber}</td>
-                        <td>${lastActive}</td>
+                        <td style="font-size: 13px; color: #128c7e; font-weight: bold;">${joinDateStr}</td> <!-- Join Date -->
+                        <td style="font-size: 13px; color: #666;">${lastActiveStr}</td> <!-- Last Active -->
                         <td><span style="color:#28a745; font-weight:bold; font-size:12px;">ENABLED</span></td>
                         <td><button class="btn-add" onclick="window.viewCustomer('${cust.mobileNumber}')" style="padding: 6px 12px; font-size:12px;">View Profile</button></td>
                     </tr>`;
             });
         }
 
-        window.filterCustomers = function () {
+      window.filterCustomers = function () {
             const searchTerm = document.getElementById('searchCustomerInput').value.toLowerCase().trim();
+            const sortBy = document.getElementById('sortCustomerSelect').value;
 
-            const filteredData = allCustomersData.filter(c => {
-                // Number se match check karein
+            // 1. Pehle Search ke hisaab se filter karo
+            let filteredData = allCustomersData.filter(c => {
                 let mobileMatch = c.mobileNumber && c.mobileNumber.includes(searchTerm);
-
-                // Naam se match check karein
                 let nameMatch = false;
                 if (c.addresses && c.addresses.length > 0 && typeof c.addresses[0] === 'object' && c.addresses[0].fullName) {
                     nameMatch = c.addresses[0].fullName.toLowerCase().includes(searchTerm);
                 }
-
                 return mobileMatch || nameMatch;
             });
 
+            // 2. 🌟 NAYA: Filter hone ke baad Dropdown ke hisaab se Sort karo (Join Date)
+            filteredData.sort((a, b) => {
+                let timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.lastLogin ? new Date(a.lastLogin).getTime() : 0);
+                let timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.lastLogin ? new Date(b.lastLogin).getTime() : 0);
+                
+                if (sortBy === 'NEWEST') {
+                    return timeB - timeA; // Bada time upar (Newest First)
+                } else {
+                    return timeA - timeB; // Chhota time upar (Oldest First)
+                }
+            });
+
+            // 3. Screen par dikhao
             renderCustomersTable(filteredData);
         }
         window.viewCustomer = function (mobileNumber) {
