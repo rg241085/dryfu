@@ -88,6 +88,21 @@
                             </div>
                         </div>
                         <!-- 👆 NAYA CARD END 👆 -->
+                        <!-- 👇 AJK KE NAYE CARDS 👇 -->
+                        <div class="stat-card" style="padding:30px; background: #e0f7fa; color: #00796b;">
+                            <div style="font-size:30px;">🆕</div>
+                            <div class="stat-info"><span>Today's Orders</span>
+                                <h3 id="dashTodayOrders" style="font-size:24px;">0</h3>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="padding:30px; background: #f3e5f5; color: #6a1b9a;">
+                            <div style="font-size:30px;">🌟</div>
+                            <div class="stat-info"><span>Today's New Users</span>
+                                <h3 id="dashTodayCustomers" style="font-size:24px;">0</h3>
+                            </div>
+                        </div>
+                        <!-- 👆 AJK KE CARDS END 👆 -->
 
                     </div>
                 </div>
@@ -1719,20 +1734,34 @@
         let currentOrderFilter = 'All';
 
         function listenLiveOrders() {
-            // 1. Table ke liye sirf latest 100 orders layenge (Browser hang nahi hoga)
+            // Table ke liye sirf latest 100 orders layenge
             const q = query(collection(db, "orders"), orderBy("orderDate", "desc"), limit(100));
 
             onSnapshot(q, (querySnapshot) => {
                 allLiveOrders = [];
+                let todayOrdersCount = 0;
+                let startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0); // Aaj ki raat 12 baje ka time
+
                 querySnapshot.forEach(docSnap => {
                     let o = { id: docSnap.id, ...docSnap.data() };
                     allLiveOrders.push(o);
+
+                    // 🌟 NAYA: Aaj ke orders count karna
+                    if (o.orderDate && new Date(o.orderDate) >= startOfToday) {
+                        todayOrdersCount++;
+                    }
                 });
+
+                // Dashboard par number update karna
+                if (document.getElementById('dashTodayOrders')) {
+                    document.getElementById('dashTodayOrders').innerText = todayOrdersCount;
+                }
 
                 if (document.getElementById('ordersTableContainer')) window.renderOrdersTable();
             });
 
-            // 2. Dashboard Stats (Revenue) ko server par calculate karwayenge
+            // Dashboard Stats (Revenue)
             fetchDashboardStats();
         }
 
@@ -1888,12 +1917,31 @@
         function listenCustomersDatabase() {
             onSnapshot(collection(db, "customers"), (querySnapshot) => {
                 allCustomersData = [];
-                querySnapshot.forEach(docSnap => allCustomersData.push({ id: docSnap.id, ...docSnap.data() }));
+                let todayCustomersCount = 0;
+                let startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0);
+
+                querySnapshot.forEach(docSnap => {
+                    let c = { id: docSnap.id, ...docSnap.data() };
+                    allCustomersData.push(c);
+
+                    // 🌟 NAYA: Aaj jude naye customers count karna
+                    // 'createdAt' ya 'lastLogin' se check karenge ki account aaj bana hai ya nahi
+                    let joinDate = c.createdAt ? new Date(c.createdAt) : (c.lastLogin ? new Date(c.lastLogin) : null);
+                    if (joinDate && joinDate >= startOfToday) {
+                        todayCustomersCount++;
+                    }
+                });
 
                 if (document.getElementById('customersTableBody')) window.renderCustomersTable(allCustomersData);
 
                 if (document.getElementById('dashCustomers')) {
                     document.getElementById('dashCustomers').innerText = allCustomersData.length;
+                }
+
+                // Dashboard par number update karna
+                if (document.getElementById('dashTodayCustomers')) {
+                    document.getElementById('dashTodayCustomers').innerText = todayCustomersCount;
                 }
             });
         }
