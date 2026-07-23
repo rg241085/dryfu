@@ -866,144 +866,105 @@
 
             <!-- Print Area Start -->
             <div id="invoice-print-area"
-                style="font-family: Arial, sans-serif; color: #000; background: #fff; max-width: 800px; margin: 0 auto; line-height: 1.4;">
+                style="font-family: Arial, sans-serif; color: #000; background: #fff; width: 148mm; margin: 0 auto; line-height: 1.4; padding: 15px; box-sizing: border-box;">
 
-                <div style="font-size: 11px; margin-bottom: 5px; text-transform: uppercase;">
-                    <span style="border: 1px solid #000; padding: 2px 6px; font-weight: bold;">BILL OF SUPPLY</span>
-                    <span style="border: 1px solid #999; color: #555; padding: 2px 6px; margin-left: 5px;">ORIGINAL FOR
-                        RECIPIENT</span>
+                <div
+                    style="text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 5px;">
+                    TAX INVOICE / BILL OF SUPPLY
                 </div>
 
-                <div style="border: 1px solid #000;">
-                    <!-- Header -->
-                    <div style="display: flex; border-bottom: 1px solid #000;">
-                        <div
-                            style="width: 150px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #fff;">
-                            <!-- Aapka Logo -->
-                            <div
-                                style="width: 80px; height: 80px; background: #4caf50; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; border: 2px solid #111;">
-                                DRYFU
-                            </div>
-                        </div>
-                        <div style="flex: 1; text-align: center; padding: 10px;">
-                            <h2
-                                style="margin: 0 0 5px 0; font-size: 22px; font-weight: bold; text-transform: uppercase; color: #000;">
-                                DRYFU</h2>
-                            <div style="font-size: 13px; color: #000;">
-                                JAIPUR, jaipur, Rajasthan,<br>
-                                <strong>Mobile:</strong> 7014702933<br>
-                                <strong>WEBSITE:</strong> WWW.DRYFU.IN
-                            </div>
+                <!-- Header -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                    <div
+                        style="width: 70px; height: 70px; background: #4caf50; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; border: 2px solid #111;">
+                        DRYFU
+                    </div>
+                    <div style="text-align: right; flex: 1; padding-left: 10px;">
+                        <h2 style="margin: 0 0 3px 0; font-size: 22px; font-weight: bold; text-transform: uppercase;">
+                            DRYFU</h2>
+                        <div style="font-size: 12px; color: #333;">
+                            Jaipur, Rajasthan<br>
+                            <strong>Mob:</strong> 7014702933 | <strong>Web:</strong> www.dryfu.in
                         </div>
                     </div>
+                </div>
 
-                    <!-- Bill To & Invoice Info -->
-                    <div style="display: flex; border-bottom: 1px solid #000;">
-                        <div style="flex: 1.2; border-right: 1px solid #000; padding: 10px; font-size: 13px;">
-                            <div style="margin-bottom: 5px; color: #333;">BILL TO</div>
-                            <strong id="invCustName" style="font-size: 15px; text-transform: uppercase;">CUSTOMER
-                                NAME</strong>
-                            <div style="margin-top: 5px;">Address: <span id="invAddress">Address</span></div>
-                            <div style="margin-top: 2px;">Mobile: <span id="invCustPhone">Mobile</span></div>
+                <!-- Bill To & Invoice Info -->
+                <div
+                    style="display: flex; justify-content: space-between; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 10px 0; margin-bottom: 15px; font-size: 12px;">
+                    <div style="flex: 1.2; padding-right: 10px;">
+                        <div style="color: #555; margin-bottom: 3px; font-size: 10px; font-weight: bold;">BILL TO:</div>
+                        <strong id="invCustName" style="font-size: 14px; text-transform: uppercase;">CUSTOMER
+                            NAME</strong>
+                        <div style="margin-top: 3px;"><strong>Mob:</strong> <span id="invCustPhone">Mobile</span></div>
+                        <div style="margin-top: 3px;"><strong>Add:</strong> <span id="invAddress">Address</span></div>
+                    </div>
+                    <div style="flex: 0.8; text-align: right; border-left: 1px solid #ccc; padding-left: 10px;">
+                        <div style="margin-bottom: 5px;">
+                            <strong>Invoice No:</strong> <span id="invOrderId">1004</span>
                         </div>
-                        <div style="flex: 0.8; display: flex; text-align: center; font-size: 13px;">
-                            <div
-                                style="flex: 1; padding: 10px; display: flex; flex-direction: column; justify-content: center;">
-                                <strong>Invoice No.</strong>
-                                <span id="invOrderId" style="margin-top: 4px;">1004</span>
-                            </div>
-                            <div
-                                style="flex: 1; padding: 10px; display: flex; flex-direction: column; justify-content: center;">
-                                <strong>Invoice Date</strong>
-                                <span id="invOrderDate" style="margin-top: 4px;">--/--/----</span>
-                            </div>
+                        <div>
+                            <strong>Date:</strong> <span id="invOrderDate">--/--/----</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Items Table -->
-                    <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid #000; background: #f9f9f9;">
-                                <th style="padding: 8px; border-right: 1px solid #000; width: 60px;">S.NO.</th>
-                                <th style="padding: 8px; border-right: 1px solid #000; text-align: left;">ITEMS</th>
-                                <th style="padding: 8px; border-right: 1px solid #000; width: 80px;">QTY.</th>
-                                <th style="padding: 8px; border-right: 1px solid #000; width: 80px;">RATE</th>
-                                <th style="padding: 8px; width: 100px;">AMOUNT</th>
-                            </tr>
-                        </thead>
-                        <tbody id="invItemsBody">
-                            <!-- Items JavaScript se aayenge -->
-                        </tbody>
-                        <tfoot>
-                            <tr
-                                style="border-top: 1px solid #000; border-bottom: 1px solid #000; font-weight: bold; background: #f9f9f9;">
-                                <td colspan="2" style="padding: 8px; text-align: right; border-right: 1px solid #000;">
-                                    TOTAL</td>
-                                <td style="padding: 8px; border-right: 1px solid #000;" id="invTotalQty">0</td>
-                                <td style="padding: 8px; border-right: 1px solid #000;"></td>
-                                <td style="padding: 8px;" id="invSubtotal">₹0</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <!-- Items Table -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #000; text-align: left;">
+                            <th style="padding: 5px 2px; width: 30px;">#</th>
+                            <th style="padding: 5px 2px;">Item Description</th>
+                            <th style="padding: 5px 2px; text-align: center; width: 40px;">Qty</th>
+                            <th style="padding: 5px 2px; text-align: right; width: 60px;">Rate</th>
+                            <th style="padding: 5px 2px; text-align: right; width: 70px;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invItemsBody">
+                        <!-- Items JavaScript se aayenge -->
+                    </tbody>
+                    <tfoot>
+                        <tr style="border-top: 1px solid #000;">
+                            <td colspan="2" style="padding: 5px 2px; text-align: right; font-weight: bold;">Subtotal
+                            </td>
+                            <td style="padding: 5px 2px; text-align: center; font-weight: bold;" id="invTotalQty">0</td>
+                            <td></td>
+                            <td style="padding: 5px 2px; text-align: right; font-weight: bold;" id="invSubtotal">₹0</td>
+                        </tr>
+                        <tr id="invDiscountRow" style="display: none; color: #d9381e;">
+                            <td colspan="4" style="padding: 3px 2px; text-align: right;">Discount (<span
+                                    id="invCouponCode"></span>)</td>
+                            <td style="padding: 3px 2px; text-align: right;" id="invDiscount">-₹0</td>
+                        </tr>
+                        <tr style="border-top: 2px solid #000; font-size: 14px;">
+                            <td colspan="4" style="padding: 8px 2px; text-align: right; font-weight: bold;">GRAND TOTAL
+                            </td>
+                            <td style="padding: 8px 2px; text-align: right; font-weight: bold;" id="invGrandTotal">₹0
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
 
-                    <!-- Discount Row -->
-                    <div id="invDiscountRow"
-                        style="display: none; border-bottom: 1px solid #000; padding: 6px 10px; font-size: 13px; text-align: right;">
-                        <strong>Discount (<span id="invCouponCode"></span>):</strong> <span id="invDiscount"
-                            style="margin-left: 10px;">-₹0</span>
+                <!-- Payment & QR Section (No Bank Details) -->
+                <div
+                    style="border: 1px dashed #999; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; background: #fafafa;">
+                    <div style="font-size: 12px;">
+                        <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">Payment Mode: <span
+                                id="invPaymentModeTag"
+                                style="color: #128c7e; padding: 2px 6px; border: 1px solid #128c7e; border-radius: 4px;">COD</span>
+                        </div>
+                        <div style="color: #555; margin-bottom: 3px;">Scan to Pay via UPI</div>
+                        <strong><span id="invUpiText">7014702933@YBL</span></strong>
                     </div>
-
-                    <!-- Grand Total Row -->
-                    <div style="display: flex; border-bottom: 1px solid #000; font-size: 14px; font-weight: bold;">
-                        <div style="flex: 1; border-right: 1px solid #000; padding: 6px 10px;">
-                            Received Amount: <span id="invGrandTotal">₹0</span>
-                            <span id="invPaymentModeTag"
-                                style="margin-left: 10px; font-size: 11px; padding: 2px 6px; border: 1px solid #000; border-radius: 3px;">COD</span>
-                        </div>
-                        <div style="flex: 1; padding: 6px 10px;">
-                            Balance Amount: ₹0
-                        </div>
+                    <div>
+                        <!-- Naya QR Code Image -->
+                        <img id="invQRCode" src="" alt="QR Code"
+                            style="width: 90px; height: 90px; border: 1px solid #ccc; padding: 2px; background: #fff; border-radius: 6px;">
                     </div>
+                </div>
 
-                    <!-- Footer Details (Bank & QR) -->
-                    <div style="display: flex;">
-                        <div style="flex: 1; border-right: 1px solid #000; padding: 10px; font-size: 12px;">
-                            <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">Bank Details</div>
-                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                                <tr>
-                                    <td style="width: 80px; padding-bottom: 4px;">Name:</td>
-                                    <td style="padding-bottom: 4px;">DRYFU</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 4px;">IFSC Code:</td>
-                                    <td style="padding-bottom: 4px;">MAHB0001372</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 4px;">Account No:</td>
-                                    <td style="padding-bottom: 4px;">60462320857</td>
-                                </tr>
-                                <tr>
-                                    <td style="vertical-align: top;">Bank:</td>
-                                    <td>Bank of Maharashtra, JAIPUR-GOPALPURA BYPASS</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div
-                            style="flex: 1; padding: 10px; font-size: 12px; display: flex; justify-content: space-between;">
-                            <div>
-                                <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">Payment QR Code
-                                </div>
-                                <div style="margin-bottom: 4px;">PhonePe / Google Pay / PayTM</div>
-                                <strong>UPI ID:</strong><br>
-                                <span id="invUpiText">7014702933@YBL</span>
-                            </div>
-                            <div
-                                style="display: flex; align-items: center; justify-content: center; padding-right: 10px;">
-                                <img id="invQRCode" src="" alt="Scan to Pay"
-                                    style="width: 100px; height: 100px; border: 1px solid #ccc; padding: 2px;">
-                            </div>
-                        </div>
-                    </div>
+                <div style="text-align: center; font-size: 11px; color: #555; margin-top: 20px; font-weight: bold;">
+                    Thank you for shopping with DRYFU!<br>Eat Healthy, Live Better. 🌿
                 </div>
             </div>
             <!-- Print Area End -->
@@ -2147,7 +2108,7 @@
             document.getElementById('orderDetailModal').style.display = 'none';
         };
 
-        // STEP 3: Complete Order Details & Dynamic QR Code
+        // STEP 3: Complete Order Details & Dynamic QR Code (A5 Format)
         window.viewOrderDetails = function (orderId) {
             const order = allLiveOrders.find(o => o.id === orderId);
             if (!order) {
@@ -2174,7 +2135,7 @@
             document.getElementById('invCustPhone').innerText = custPhone;
             document.getElementById('invAddress').innerText = fullAddress;
 
-            // 3. Product Items List (Table Format)
+            // 3. Product Items List (A5 Clean Table Format)
             const tbody = document.getElementById('invItemsBody');
             tbody.innerHTML = '';
             let subtotal = 0;
@@ -2187,25 +2148,19 @@
                     totalQty += item.quantity;
 
                     let rateText = item.isFreeGift ? '0' : item.sellingPrice;
-                    let itemName = item.isFreeGift ? `${item.name} (FREE GIFT)` : `${item.name} (${item.weight || 'Standard'})`;
+                    let itemName = item.isFreeGift ? `${item.name} <br><small style="color:#10b981;">(FREE GIFT)</small>` : `${item.name} <br><small style="color:#666;">(${item.weight || 'Standard'})</small>`;
 
-                    // Dhyan dein: Table ki lines border-right se ban rahi hain
+                    // Clean rows without heavy vertical borders
                     tbody.innerHTML += `
-                        <tr>
-                            <td style="padding: 8px; border-right: 1px solid #000;">${index + 1}</td>
-                            <td style="padding: 8px; border-right: 1px solid #000; text-align: left;">${itemName}</td>
-                            <td style="padding: 8px; border-right: 1px solid #000;">${item.quantity} PCS</td>
-                            <td style="padding: 8px; border-right: 1px solid #000;">${rateText}</td>
-                            <td style="padding: 8px;">${itemTotal}</td>
+                        <tr style="border-bottom: 1px dashed #ddd;">
+                            <td style="padding: 8px 2px;">${index + 1}</td>
+                            <td style="padding: 8px 2px;">${itemName}</td>
+                            <td style="padding: 8px 2px; text-align: center;">${item.quantity}</td>
+                            <td style="padding: 8px 2px; text-align: right;">${rateText}</td>
+                            <td style="padding: 8px 2px; text-align: right;">${itemTotal}</td>
                         </tr>
                     `;
                 });
-            }
-
-            // Empty rows fill karna taaki table ki height achi dikhe (Optional but looks professional)
-            let emptyRows = 5 - (order.items ? order.items.length : 0);
-            for (let i = 0; i < emptyRows; i++) {
-                tbody.innerHTML += `<tr><td style="padding: 12px; border-right: 1px solid #000;"></td><td style="border-right: 1px solid #000;"></td><td style="border-right: 1px solid #000;"></td><td style="border-right: 1px solid #000;"></td><td></td></tr>`;
             }
 
             document.getElementById('invTotalQty').innerText = totalQty;
@@ -2216,7 +2171,7 @@
             let discount = subtotal - parseFloat(order.totalAmount);
 
             if (discount > 0 && order.couponApplied) {
-                document.getElementById('invDiscountRow').style.display = 'block';
+                document.getElementById('invDiscountRow').style.display = 'table-row';
                 document.getElementById('invCouponCode').innerText = order.couponApplied;
                 document.getElementById('invDiscount').innerText = "-₹" + discount.toFixed(2);
             } else {
@@ -2227,18 +2182,15 @@
             document.getElementById('invGrandTotal').innerText = "₹" + finalAmount;
             document.getElementById('invPaymentModeTag').innerText = (order.paymentMethod || "COD").toUpperCase();
 
-            // 🌟 6. DYNAMIC QR CODE LOGIC (Exact Amount Wala)
-            // Admin panel se save ki hui UPI ID uthayenge
+            // 🌟 6. DYNAMIC QR CODE LOGIC (100% Working API)
             let upiId = globalStoreUpiId || "7014702933@YBL";
             let payeeName = "DRYFU";
 
-            // Bill par likha hua UPI ID bhi update kar do
             document.getElementById('invUpiText').innerText = upiId;
-
             let upiString = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
 
-            // Google Chart API QR code generate karta hai is link se
-            let qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(upiString)}`;
+            // 🌟 NAYA: QRServer API (Google Chart API hata diya kyunki wo block ho jata hai)
+            let qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiString)}&margin=2`;
 
             document.getElementById('invQRCode').src = qrUrl;
 
