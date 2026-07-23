@@ -1919,6 +1919,13 @@
                             <select class="status-select" onchange="window.assignDeliveryBoy('${order.id}', this.value)" style="width: 100%; border: 1px solid #128c7e; color: #128c7e; background: #e6f4ea;">
                                 ${boyOptions}
                             </select>
+                            <br>
+                            <!-- 🌟 NAYA: Payment Status Dropdown (Sirf Admin ke liye) -->
+                            <select class="status-select" onchange="window.updatePaymentStatus('${order.id}', this.value)" style="width: 100%; border: 1px solid #d97706; color: #d97706; background: #fef3c7; margin-top: 5px; font-weight: bold;">
+                                <option value="Pending" ${(!order.adminPaymentStatus || order.adminPaymentStatus === 'Pending') ? 'selected' : ''}>⏳ Payment: Pending</option>
+                                <option value="Cash" ${order.adminPaymentStatus === 'Cash' ? 'selected' : ''}>💵 Paid: Cash</option>
+                                <option value="UPI" ${order.adminPaymentStatus === 'UPI' ? 'selected' : ''}>🏦 Paid: Bank/UPI</option>
+                            </select>
                         </td>
                         <td style="white-space: nowrap;">
                             <button class="action-btn" style="color: #2563eb; font-size: 22px;" onclick="window.viewOrderDetails('${order.id}')" title="View & Print Invoice">👁️</button>
@@ -1947,10 +1954,15 @@
             });
         });
 
-        window.updateOrderStatus = async function (orderId, newStatus) {
-            await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+        // 💰 NAYA FUNCTION: Admin Payment Status Update Karne Ke Liye
+        window.updatePaymentStatus = async function (orderId, newStatus) {
+            try {
+                await updateDoc(doc(db, "orders", orderId), { adminPaymentStatus: newStatus });
+                window.showToast("Payment status updated to: " + newStatus, "success");
+            } catch (error) {
+                window.showToast("Error updating payment: " + error.message, "error");
+            }
         };
-
         window.deleteOrder = async function (orderId) {
             if (confirm("Delete this order record?")) await deleteDoc(doc(db, "orders", orderId));
         };
