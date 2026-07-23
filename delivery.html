@@ -225,7 +225,11 @@
         window.markAsDelivered = async function (orderId) {
             if (confirm("Are you sure you have delivered this order and collected the cash (if COD)?")) {
                 try {
-                    await updateDoc(doc(db, "orders", orderId), { status: "Delivered" });
+                    await updateDoc(doc(db, "orders", orderId), {
+                        status: "Delivered",
+                        updatedBy: "Delivery Boy (" + currentBoy + ")", // 🌟 NAYA: Delivery Boy ka naam jayega
+                        statusUpdatedAt: new Date().toISOString()
+                    });
                 } catch (e) {
                     window.showToast("Error updating order: " + e.message, "error");
                 }
