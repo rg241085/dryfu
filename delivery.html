@@ -157,13 +157,30 @@
                     let custName = typeof addr === 'object' ? addr.fullName : "Customer";
                     let mobile = typeof addr === 'object' && addr.mobile ? addr.mobile : order.customerMobile;
 
-                    // Maps Button (Agar Lat Lng hai toh Maps link, warna normal address text)
+                    // Maps Button
                     let mapLink = "";
                     if (addr.lat && addr.lng) {
                         mapLink = `https://www.google.com/maps?q=${addr.lat},${addr.lng}`;
                     } else {
                         mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
                     }
+
+                    // 🌟 NAYA: Order Items List Banana
+                    let itemsHtml = '<div style="background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 12px; font-size: 13px; color: #333;">';
+                    itemsHtml += '<strong style="display:block; margin-bottom: 5px; color: #111;">📦 Items to Deliver:</strong>';
+
+                    if (order.items && order.items.length > 0) {
+                        order.items.forEach(item => {
+                            let freeTag = item.isFreeGift ? '<span style="color:#10b981; font-weight:bold; font-size:11px;">(FREE)</span>' : '';
+                            itemsHtml += `<div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px dashed #e0e0e0;">
+                                • ${item.name} <span style="color:#128c7e; font-weight:bold;">(${item.weight || 'Standard'})</span> ${freeTag} 
+                                <strong style="float: right;">x ${item.quantity}</strong>
+                            </div>`;
+                        });
+                    } else {
+                        itemsHtml += '<div>No items found</div>';
+                    }
+                    itemsHtml += '</div>';
 
                     list.innerHTML += `
                         <div class="order-card">
@@ -179,6 +196,9 @@
                                 💳 <strong>Payment:</strong> <span style="color:${order.paymentMethod === 'COD' ? '#d97706' : '#16a34a'}; font-weight:bold;">${order.paymentMethod}</span>
                             </div>
                             
+                            <!-- 🌟 NAYA: Items List Yahan Inject Hogi -->
+                            ${itemsHtml}
+
                             <div style="display:flex; gap:10px;">
                                 <a href="tel:${mobile}" class="call-btn">📞 Call</a>
                                 <a href="${mapLink}" target="_blank" class="map-btn">🧭 Open Maps</a>
@@ -189,11 +209,15 @@
                     `;
                 });
 
+                // 🌟 NAYA: Pending Deliveries ka count update karna
+                document.getElementById('welcome-msg').innerText = "Pending Deliveries: " + activeOrdersCount;
+
                 if (activeOrdersCount === 0) {
                     list.innerHTML = `<div style="text-align:center; padding: 40px 20px; color:#777; background:#fff; border-radius:10px;">
                         <div style="font-size:40px; margin-bottom:10px;">☕</div>
                         No pending deliveries right now. Take a break!
                     </div>`;
+                    document.getElementById('welcome-msg').innerText = "Pending Deliveries: 0";
                 }
             });
         }
