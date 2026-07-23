@@ -1936,11 +1936,13 @@
                             </select>
                             <br>
                             <!-- 🌟 NAYA: Payment Status Dropdown (Sirf Admin ke liye) -->
-                            <select class="status-select" onchange="window.updatePaymentStatus('${order.id}', this.value)" style="width: 100%; border: 1px solid #d97706; color: #d97706; background: #fef3c7; margin-top: 5px; font-weight: bold;">
+                          <select class="status-select" onchange="window.updatePaymentStatus('${order.id}', this.value)" style="width: 100%; border: 1px solid #d97706; color: #d97706; background: #fef3c7; margin-top: 5px; font-weight: bold;">
                                 <option value="Pending" ${(!order.adminPaymentStatus || order.adminPaymentStatus === 'Pending') ? 'selected' : ''}>⏳ Payment: Pending</option>
                                 <option value="Cash" ${order.adminPaymentStatus === 'Cash' ? 'selected' : ''}>💵 Paid: Cash</option>
                                 <option value="UPI" ${order.adminPaymentStatus === 'UPI' ? 'selected' : ''}>🏦 Paid: Bank/UPI</option>
                             </select>
+                            <!-- 🌟 NAYA: Kisne update kiya wo dikhane ke liye -->
+                            ${order.updatedBy ? `<div style="font-size: 11px; color: #e65100; margin-top: 6px; font-weight: bold;">🔄 Last Updated by: ${order.updatedBy}</div>` : ''}
                         </td>
                         <td style="white-space: nowrap;">
                             <button class="action-btn" style="color: #2563eb; font-size: 22px;" onclick="window.viewOrderDetails('${order.id}')" title="View & Print Invoice">👁️</button>
@@ -2816,7 +2818,11 @@
             try {
                 // Firebase Database update command
                 const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-                await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+                await updateDoc(doc(db, "orders", orderId), {
+                    status: newStatus,
+                    updatedBy: "Admin (You)", // 🌟 NAYA: Admin ka thappa
+                    statusUpdatedAt: new Date().toISOString()
+                });
 
                 // Success message
                 window.showToast("Order Status updated to " + newStatus, "success");
@@ -2825,7 +2831,6 @@
                 window.showToast("Error updating status: " + error.message, "error");
             }
         };
-
 
     </script>
     <div id="admin-toast"
