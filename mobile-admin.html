@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DRYFU Admin Lite</title>
+    <meta name="theme-color" content="#128c7e">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; color: #333; padding-bottom: 70px; }
+        
+        /* HEADER */
+        .header { background: #128c7e; color: white; padding: 15px 20px; text-align: center; font-size: 18px; font-weight: bold; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-between; align-items: center; }
+        .logout-btn { font-size: 13px; font-weight: normal; cursor: pointer; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px; border: none; color: white; }
+        
+        /* LOGIN SCREEN */
+        #login-screen { padding: 40px 20px; text-align: center; margin-top: 50px; }
+        .input-field { width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; outline: none; }
+        .btn-primary { background: #128c7e; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* DASHBOARD */
+        #dashboard-screen { display: none; padding: 10px; }
+        
+        /* TABS */
+        .tabs { display: flex; overflow-x: auto; gap: 10px; padding: 10px 0; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { padding: 8px 15px; background: #fff; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; font-weight: bold; color: #555; white-space: nowrap; cursor: pointer; }
+        .tab-btn.active { background: #128c7e; color: white; border-color: #128c7e; }
+        
+        /* ORDER CARD */
+        .order-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); border: 1px solid #e0e0e0; }
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
+        .order-id { font-size: 16px; font-weight: bold; color: #128c7e; }
+        .order-time { font-size: 11px; color: #888; margin-top: 3px; }
+        .order-amount { font-size: 18px; font-weight: 900; color: #111; }
+        .cust-details { font-size: 13px; color: #555; margin-bottom: 10px; line-height: 1.5; }
+        
+        /* ITEMS BOX */
+        .items-box { background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 12px; font-size: 12px; color: #333; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .items-box.expanded { max-height: 500px; padding-top: 10px; padding-bottom: 10px; }
+        .view-items-btn { width: 100%; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; margin-bottom: 10px; }
+        
+        /* STATUS SELECTORS */
+        .select-group { display: flex; gap: 10px; margin-top: 10px; }
+        .status-select { flex: 1; padding: 8px; font-size: 12px; font-weight: bold; border-radius: 6px; outline: none; }
+        .status-order { border: 1px solid #2563eb; color: #2563eb; background: #eff6ff; }
+        .status-pay { border: 1px solid #d97706; color: #d97706; background: #fef3c7; }
+
+        /* TOAST */
+        #toast { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); color: #fff; padding: 12px 24px; border-radius: 8px; z-index: 10000; font-size: 13px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.3s ease; opacity: 0; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span id="header-title">DRYFU Admin Lite</span>
+        <button class="logout-btn" id="logout-btn" style="display:none;" onclick="logoutAdmin()">Logout</button>
+    </div>
+
+    <!-- 🔐 LOGIN SCREEN -->
+    <div id="login-screen">
+        <div style="font-size: 50px; margin-bottom: 10px;">⚙️</div>
+        <h2 style="color: #333; margin-bottom: 25px;">Admin Login</h2>
+        <input type="email" id="adminEmail" class="input-field" placeholder="Admin Email">
+        <input type="password" id="adminPassword" class="input-field" placeholder="Password">
+        <button class="btn-primary" id="login-btn" onclick="loginAdmin()">Login</button>
+    </div>
+
+    <!-- 📊 DASHBOARD SCREEN -->
+    <div id="dashboard-screen">
+        <div class="tabs">
+            <button class="tab-btn active" data-filter="All">All Live</button>
+            <button class="tab-btn" data-filter="New">New 🆕</button>
+            <button class="tab-btn" data-filter="PendingPay">⏳ Pay Pending</button>
+            <button class="tab-btn" data-filter="ReceivedPay">✅ Paid</button>
+        </div>
+
+        <div id="orders-list">
+            <p style="text-align: center; color: #888; margin-top: 20px;">Loading orders...</p>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script type="module">
+        import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { db, auth } from "./firebase-config.js";
+
+        let allLiveOrders = [];
+        let currentFilter = 'All';
+
+        // 🌟 TOAST MESSAGE FUNCTION
+        let toastTimeout;
+        window.showToast = function(msg, type = "success") {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = msg;
+            toast.style.backgroundColor = type === "success" ? "#128c7e" : "#dc3545";
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.opacity = '1', 10);
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.style.display = 'none', 300);
+            }, 3000);
+        }
+
+        // 🌟 AUTHENTICATION
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard-screen').style.display = 'block';
+                document.getElementById('logout-btn').style.display = 'block';
+                listenOrders();
+            } else {
+                document.getElementById('login-screen').style.display = 'block';
+                document.getElementById('dashboard-screen').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'none';
+            }
+        });
+
+        window.loginAdmin = async function() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const btn = document.getElementById('login-btn');
+            
+            if (!email || !password) { window.showToast("Please enter email & password", "error"); return; }
+            
+            btn.innerText = "Logging in..."; btn.disabled = true;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                window.showToast("Invalid Credentials!", "error");
+            }
+            btn.innerText = "Login"; btn.disabled = false;
+        }
+
+        window.logoutAdmin = function() {
+            if(confirm("Logout from Lite App?")) signOut(auth);
+        }
+
+        // 🌟 FETCH ORDERS
+        function listenOrders() {
+            // Latest 50 orders hi mobile me dikhayenge taaki app fast chale
+            const q = query(collection(db, "orders"), orderBy("orderDate", "desc"), limit(50));
+            onSnapshot(q, (snapshot) => {
+                allLiveOrders = [];
+                snapshot.forEach(docSnap => {
+                    allLiveOrders.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                renderOrders();
+            });
+        }
+
+        // 🌟 RENDER ORDERS
+        function renderOrders() {
+            const list = document.getElementById('orders-list');
+            list.innerHTML = '';
+
+            let filteredOrders = allLiveOrders;
+            
+            // Filters Logic
+            if (currentFilter === 'New') {
+                filteredOrders = allLiveOrders.filter(o => o.status === 'New');
+            } else if (currentFilter === 'PendingPay') {
+                filteredOrders = allLiveOrders.filter(o => !o.adminPaymentStatus || o.adminPaymentStatus === 'Pending');
+            } else if (currentFilter === 'ReceivedPay') {
+                filteredOrders = allLiveOrders.filter(o => o.adminPaymentStatus === 'Cash' || o.adminPaymentStatus === 'UPI');
+            }
+
+            if(filteredOrders.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding: 40px 20px; color:#777;"><div style="font-size:40px; margin-bottom:10px;">📭</div>No orders found in this filter.</div>`;
+                return;
+            }
+
+            filteredOrders.forEach(order => {
+                let orderId = order.displayOrderId || "ORD" + order.id.substring(0, 6).toUpperCase();
+                let orderDate = new Date(order.orderDate).toLocaleString('en-GB', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+                
+                let addrObj = order.deliveryAddress;
+                let fullAddress = typeof addrObj === 'object' ? `${addrObj.building}, ${addrObj.area}, ${addrObj.city}` : addrObj;
+                let custName = typeof addrObj === 'object' ? addrObj.fullName : "Customer";
+                let mobile = typeof addrObj === 'object' && addrObj.mobile ? addrObj.mobile : order.customerMobile;
+
+                // Items HTML
+                let itemsHtml = '';
+                if(order.items) {
+                    order.items.forEach(item => {
+                        itemsHtml += `<div style="margin-bottom:4px; border-bottom:1px dashed #ddd; padding-bottom:4px;">
+                            • ${item.name} (${item.weight || 'Std'}) <strong>x${item.quantity}</strong>
+                        </div>`;
+                    });
+                }
+
+                list.innerHTML += `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <div class="order-id">${orderId}</div>
+                                <div class="order-time">${orderDate}</div>
+                            </div>
+                            <div class="order-amount">₹${order.totalAmount}</div>
+                        </div>
+                        
+                        <div class="cust-details">
+                            👤 <strong>${custName}</strong> (+91 ${mobile})<br>
+                            📍 ${fullAddress}<br>
+                            💳 User Chose: <strong>${order.paymentMethod}</strong>
+                        </div>
+
+                        <!-- Expandable Items Button -->
+                        <button class="view-items-btn" onclick="toggleItems('${order.id}')">📦 View Order Items ⬇️</button>
+                        <div class="items-box" id="items-${order.id}">
+                            ${itemsHtml}
+                        </div>
+
+                        <!-- Action Selectors -->
+                        <div class="select-group">
+                            <select class="status-select status-order" onchange="window.liteUpdateStatus('${order.id}', this.value)">
+                                <option value="New" ${order.status === 'New' ? 'selected' : ''}>Status: New</option>
+                                <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Status: Processing</option>
+                                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Status: Delivered</option>
+                                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Status: Cancelled</option>
+                            </select>
+
+                            <select class="status-select status-pay" onchange="window.liteUpdatePay('${order.id}', this.value)">
+                                <option value="Pending" ${(!order.adminPaymentStatus || order.adminPaymentStatus === 'Pending') ? 'selected' : ''}>Pay: Pending</option>
+                                <option value="Cash" ${order.adminPaymentStatus === 'Cash' ? 'selected' : ''}>Pay: Cash</option>
+                                <option value="UPI" ${order.adminPaymentStatus === 'UPI' ? 'selected' : ''}>Pay: UPI</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 🌟 TOGGLE ITEMS VIEW
+        window.toggleItems = function(id) {
+            const box = document.getElementById('items-' + id);
+            if(box.classList.contains('expanded')) {
+                box.classList.remove('expanded');
+            } else {
+                box.classList.add('expanded');
+            }
+        }
+
+        // 🌟 TABS FILTERING
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.getAttribute('data-filter');
+                renderOrders();
+            });
+        });
+
+        // 🌟 QUICK UPDATE FUNCTIONS
+        window.liteUpdateStatus = async function(orderId, newStatus) {
+            try {
+                await updateDoc(doc(db, "orders", orderId), { 
+                    status: newStatus,
+                    updatedBy: "Admin (Mobile)",
+                    statusUpdatedAt: new Date().toISOString()
+                });
+                window.showToast("Status Updated!");
+            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+        }
+
+        window.liteUpdatePay = async function(orderId, newStatus) {
+            try {
+                await updateDoc(doc(db, "orders", orderId), { adminPaymentStatus: newStatus });
+                window.showToast("Payment Updated!");
+            } catch(e) { window.showToast("Error: " + e.message, "error"); }
+        }
+
+    </script>
+</body>
+</html>
