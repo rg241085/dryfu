@@ -1049,6 +1049,7 @@
         let allProductsData = [];
         let existingMainCats = new Set();
         let categoryMap = {};
+        let editingCouponId = null; // 🌟 NAYA: Edit karne ke liye id store karega
 
         window.fetchProducts = async function () {
             const tableBody = document.getElementById('tableBody');
@@ -1481,9 +1482,12 @@
 
 
         // 2. Open / Close Modal Logic
+        // 2. Open / Close Modal Logic
         document.getElementById('openCouponModalBtn').addEventListener('click', () => {
             document.getElementById('addCouponForm').reset();
+            document.getElementById('editCouponId').value = ""; // 🌟 NAYA: Edit ID clear karna
             document.getElementById('couponModalTitle').innerText = "Create New Promo Code";
+            document.getElementById('submitCouponBtn').innerText = "Save Promo Code"; // 🌟 NAYA: Button text theek karna
             // Default show flat discount
             document.querySelectorAll('.coupon-type-section').forEach(el => el.style.display = 'none');
             document.getElementById('type-flat').style.display = 'block';
@@ -1560,7 +1564,9 @@
             }
 
             try {
-                await addDoc(collection(db, "coupons"), {
+                const editId = document.getElementById('editCouponId').value;
+
+                const couponData = {
                     code: code,
                     minOrder: Number(minOrder),
                     nudgeMsg: nudgeMsg,
@@ -1569,10 +1575,21 @@
                     type: type,
                     details: details,
                     isActive: true,
-                    createdAt: new Date().toISOString()
-                });
+                    updatedAt: new Date().toISOString()
+                };
+
+                if (editId) {
+                    // 🌟 Agar Edit ID hai, toh UPDATE karo
+                    await updateDoc(doc(db, "coupons", editId), couponData);
+                    window.showToast("Promo Code updated successfully!");
+                } else {
+                    // 🌟 Agar nahi hai, toh NAYA banao
+                    couponData.createdAt = new Date().toISOString();
+                    await addDoc(collection(db, "coupons"), couponData);
+                    window.showToast("Promo Code created successfully!");
+                }
+
                 couponModal.style.display = 'none';
-                window.showToast("Promo Code created successfully!");
             } catch (e) { window.showToast("Error: " + e.message); }
 
             btn.innerText = "Save Promo Code"; btn.disabled = false;
@@ -1618,7 +1635,9 @@
                     <td>₹${c.minOrder}</td>
                     <td>${displayExpiry}</td>
                     <td>${statusHtml}</td>
-                    <td>
+                 <td style="white-space: nowrap;">
+                        <!-- 🌟 NAYA: Edit Button Jod Diya -->
+                        <button class="action-btn edit-btn" onclick="window.editCoupon('${c.id}')" title="Edit">✏️</button>
                         <button class="action-btn delete-btn" onclick="window.deleteCoupon('${c.id}')" title="Delete">🗑️</button>
                     </td>
                 </tr>
@@ -1632,6 +1651,67 @@
                 await deleteDoc(doc(db, "coupons", id));
             }
         }
+
+
+        // 🌟 NAYA FUNCTION: Coupon ko edit mode mein kholne ke liye
+        window.editCoupon = function (id) {
+            const c = allCoupons.find(item => item.id === id);
+            if (!c) return;
+
+            // 1. Form Reset aur ID set karo
+            document.getElementById('editCouponId').value = c.id;
+            document.getElementById('couponModalTitle').innerText = "Edit Promo Code";
+            document.getElementById('submitCouponBtn').innerText = "Update Promo Code";
+
+            // 2. Basic details bahar nikalo
+            document.getElementById('couponCodeInput').value = c.code;
+            document.getElementById('couponMinOrderInput').value = c.minOrder;
+            document.getElementById('couponNudgeMsg').value = c.nudgeMsg || '';
+            document.getElementById('couponStartDate').value = c.startDate || '';
+            document.getElementById('couponExpiryDate').value = c.expiryDate || '';
+            document.getElementById('couponTypeSelect').value = c.type;
+
+            // 3. Dropdown change trigger karo taaki sahi box khule
+            document.getElementById('couponTypeSelect').dispatchEvent(new Event('change'));
+
+            // 4. Discount ki type ke hisaab se andar ka data bharo
+            if (c.type === 'FLAT') {
+                document.getElementById('flatValueInput').value = c.details ? c.details.discountValue : c.value;
+            } else if (c.type === 'PERCENT') {
+                document.getElementById('percentValueInput').value = c.details ? c.details.discountPercent : c.value;
+                document.getElementById('percentMaxLimitInput').value = c.details ? c.details.maxDiscount : '';
+            } else if (c.type === 'FREE_GIFT') {
+                document.getElementById('freeGiftSelect').value = c.details.productId;
+            } else if (c.type === 'FREE_CHOICE') {
+                document.querySelectorAll('.fc-check').forEach(chk => chk.checked = false); // Pehle sab clear karo
+                if (c.details && c.details.productIds) {
+                    c.details.productIds.forEach(pId => {
+                        let chk = document.querySelector(`.fc-check[value="${pId}"]`);
+                        if (chk) chk.checked = true;
+                    });
+                }
+            } else if (c.type === 'DISCOUNTED_CHOICE') {
+                document.querySelectorAll('.dc-check').forEach(chk => {
+                    chk.checked = false;
+                    document.getElementById('dc-price-' + chk.value).disabled = true;
+                    document.getElementById('dc-price-' + chk.value).value = '';
+                });
+                if (c.details && c.details.discountedItems) {
+                    c.details.discountedItems.forEach(item => {
+                        let chk = document.querySelector(`.dc-check[value="${item.productId}"]`);
+                        if (chk) {
+                            chk.checked = true;
+                            let priceInput = document.getElementById('dc-price-' + item.productId);
+                            priceInput.disabled = false;
+                            priceInput.value = item.offerPrice;
+                        }
+                    });
+                }
+            }
+
+            couponModal.style.display = 'flex';
+        }
+
         // ==========================================
         // 📦 LIVE ORDERS LOGIC
         // ==========================================
