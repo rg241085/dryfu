@@ -1504,41 +1504,77 @@ window.renderMyOrders = function () {
                     });
                 }
 
+                // 🌟 NAYA: Vibrant Colors with Premium Borders
+                let statusBg = '#f8fafc', statusColor = '#475569', statusBorder = '#e2e8f0', statusIcon = '📦';
+                if (order.status === 'New') {
+                    statusBg = '#fffbeb'; statusColor = '#d97706'; statusBorder = '#fde68a'; statusIcon = '⏳';
+                }
+                else if (order.status === 'Processing') {
+                    statusBg = '#eff6ff'; statusColor = '#2563eb'; statusBorder = '#bfdbfe'; statusIcon = '🔄';
+                }
+                else if (order.status === 'Delivered') {
+                    statusBg = '#f0fdf4'; statusColor = '#16a34a'; statusBorder = '#bbf7d0'; statusIcon = '✅';
+                }
+                else if (order.status === 'Cancelled') {
+                    statusBg = '#fef2f2'; statusColor = '#dc2626'; statusBorder = '#fecaca'; statusIcon = '❌';
+                }
+
+                // 🌟 Cancel Button ab ANDAR aayega
                 let cancelBtnHtml = '';
                 if (order.status === 'New' || order.status === 'Processing') {
                     cancelBtnHtml = `
-                        <div style="margin-top: 10px;">
-                            <span style="color:#dc3545; font-size:12px; font-weight:bold; cursor:pointer;" onclick="window.cancelOrder('${order.id}')">❌ Cancel Order</span>
-                        </div>
+                        <button onclick="window.cancelOrder('${order.id}')" style="width: 100%; background: #fff; border: 1px solid #fca5a5; color: #ef4444; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 12px; box-shadow: 0 2px 4px rgba(220,38,38,0.1);">
+                            ❌ Cancel Order
+                        </button>
                     `;
                 }
 
+                // 🌟 NAYA: PREMIUM FLOATING CARD WITH DYNAMIC LEFT BORDER
                 html += `
-                    <div class="order-card">
-                        <div class="order-top">
-                            <div class="order-details-left">
-                                <h4>Order Id: ${shortOrderId}</h4>
-                                <p>Total Amount: ₹${order.totalAmount}.00</p>
-                                <p>Total Items: ${totalItems}</p>
-                            </div>
-                            <div class="order-details-right">
-                                <span>Placed On</span>
-                                <div class="date">${dateStr} @<br>${timeStr}</div>
-                            </div>
-                        </div>
-                        <div class="dotted-divider"></div>
-                        <div class="order-bottom">
+                    <div style="background: #ffffff; padding: 18px 16px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(18, 140, 126, 0.08); border: 1px solid #e2e8f0; border-left: 6px solid ${statusColor}; position: relative; overflow: hidden;">
+                        
+                        <!-- Top Header: ID & Date -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                             <div>
-                                <span class="status-badge ${order.status}">${order.status}</span>
-                                ${cancelBtnHtml}
+                                <div style="font-size: 11px; color: #64748b; margin-bottom: 4px; font-weight: bold; letter-spacing: 0.5px;">ORDER ID</div>
+                                <div style="font-size: 17px; font-weight: 900; color: #0f172a;">${shortOrderId}</div>
                             </div>
-                            <span class="view-details" style="cursor:pointer;" onclick="window.toggleOrderDetails('${order.id}', this)">View Details ↓</span>
+                            <div style="text-align: right;">
+                                <div style="font-size: 11px; color: #64748b; margin-bottom: 4px; font-weight: bold; letter-spacing: 0.5px;">PLACED ON</div>
+                                <div style="font-size: 12px; color: #333; font-weight: 700;">${dateStr}<br><span style="font-size: 11px; color: #64748b; font-weight: 600;">${timeStr}</span></div>
+                            </div>
                         </div>
-                        <div id="details-${order.id}" class="order-items-details" style="display: none;">
+
+                        <!-- Main Order Info -->
+                        <div style="display: flex; gap: 15px; font-size: 14px; color: #1e293b; font-weight: 700; background: #f8fafc; padding: 12px 14px; border-radius: 8px; border: 1px solid #f1f5f9; margin-bottom: 18px;">
+                            <span style="display: flex; align-items: center; gap: 6px;"><span style="font-size:18px;">💰</span> ₹${order.totalAmount}</span>
+                            <span style="color: #cbd5e1;">|</span>
+                            <span style="display: flex; align-items: center; gap: 6px;"><span style="font-size:18px;">🛍️</span> ${totalItems} Items</span>
+                        </div>
+                        
+                        <!-- Divider -->
+                        <div style="height: 1px; background: repeating-linear-gradient(90deg, #e2e8f0, #e2e8f0 4px, transparent 4px, transparent 8px); margin: 18px 0;"></div>
+                        
+                        <!-- Bottom Actions: Status on Left, View Details on Right -->
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 11px; color: #888; margin-bottom: 5px; font-weight: 600;">Order Status</div>
+                                <div style="background: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusBorder}; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                                    ${statusIcon} ${order.status}
+                                </div>
+                            </div>
+                            <div style="color: #128c7e; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; background: #f0fdf4; padding: 8px 14px; border-radius: 8px; border: 1px solid #bbf7d0; box-shadow: 0 2px 6px rgba(18, 140, 126, 0.08);" onclick="window.toggleOrderDetails('${order.id}', this)">
+                                👁️ View Details
+                            </div>
+                        </div>
+
+                        <!-- Expandable Details Area -->
+                        <div id="details-${order.id}" class="order-items-details" style="display: none; margin-top: 18px; padding-top: 18px; border-top: 1px dashed #e2e8f0;">
                             ${itemsListHtml}
-                            <button class="btn-reorder-all" onclick="window.reorderItems('${order.id}')">
+                            <button class="btn-reorder-all" onclick="window.reorderItems('${order.id}')" style="background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: 8px; margin-top: 10px; padding: 12px; font-size: 13px;">
                                 🔁 Repeat Order / Add Items to Cart
                             </button>
+                            ${cancelBtnHtml}
                         </div>
                     </div>
                 `;
