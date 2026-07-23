@@ -213,8 +213,13 @@
                         <button class="order-tab" data-filter="Processing">In Progress</button>
                         <button class="order-tab" data-filter="Delivered">Completed</button>
                         <button class="order-tab" data-filter="Cancelled">Cancelled</button>
-                    </div>
 
+                        <!-- 🌟 NAYA: Payment Tabs -->
+                        <button class="order-tab" data-filter="PaymentPending"
+                            style="color: #d97706; font-weight: bold;">⏳ Payment Pending</button>
+                        <button class="order-tab" data-filter="PaymentReceived"
+                            style="color: #128c7e; font-weight: bold;">✅ Payment Received</button>
+                    </div>
                     <div class="table-container" id="ordersTableContainer">
                         <table>
                             <thead>
@@ -1846,9 +1851,19 @@
             const searchInput = document.getElementById('orderSearchInput');
             const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-            // 1. Pehle Status (Tab) ke hisaab se filter karein
-            let filteredOrders = currentOrderFilter === 'All' ? allLiveOrders : allLiveOrders.filter(o => o.status === currentOrderFilter);
+            // 1. Pehle Status (Tab) ya Payment Status ke hisaab se filter karein
+            let filteredOrders = allLiveOrders;
 
+            if (currentOrderFilter === 'PaymentPending') {
+                // Agar Payment Pending tab select kiya hai
+                filteredOrders = allLiveOrders.filter(o => !o.adminPaymentStatus || o.adminPaymentStatus === 'Pending');
+            } else if (currentOrderFilter === 'PaymentReceived') {
+                // Agar Payment Received tab select kiya hai
+                filteredOrders = allLiveOrders.filter(o => o.adminPaymentStatus === 'Cash' || o.adminPaymentStatus === 'UPI');
+            } else if (currentOrderFilter !== 'All') {
+                // Agar normal order status wale tab select kiye hain
+                filteredOrders = allLiveOrders.filter(o => o.status === currentOrderFilter);
+            }
             // 🌟 NAYA: Phir Search Term ke hisaab se filter (Order ID, Name ya Mobile)
             if (searchTerm !== '') {
                 filteredOrders = filteredOrders.filter(o => {
@@ -2796,6 +2811,20 @@
             } catch (e) { window.showToast("Error saving data: " + e.message); }
         }
 
+        // 📦 FIXED: Order Status Update Function (Naya Code)
+        window.updateOrderStatus = async function (orderId, newStatus) {
+            try {
+                // Firebase Database update command
+                const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+
+                // Success message
+                window.showToast("Order Status updated to " + newStatus, "success");
+            } catch (error) {
+                console.error("Error updating order status:", error);
+                window.showToast("Error updating status: " + error.message, "error");
+            }
+        };
 
 
     </script>
