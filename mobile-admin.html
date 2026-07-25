@@ -334,11 +334,15 @@
         </div>
 
         <!-- 🌟 NAYA: Sirf 2 Tabs -->
-<!-- 🌟 NAYA: 3 Tabs (New, Processing, Pay Pending) -->
+        <!-- 🌟 NAYA: 3 Tabs (New, Processing, Pay Pending) -->
+        <!-- 🌟 NAYA: Tabs with Number Badges -->
         <div class="tabs">
-            <button class="tab-btn active" data-filter="New">New 🆕</button>
-            <button class="tab-btn" data-filter="Processing">Processing 🔄</button>
-            <button class="tab-btn" data-filter="PendingPay">⏳ Pay Pending</button>
+            <button class="tab-btn active" data-filter="New">New 🆕 <strong id="count-new"
+                    style="color:#dc2626;">(0)</strong></button>
+            <button class="tab-btn" data-filter="Processing">Processing 🔄 <strong id="count-processing"
+                    style="color:#2563eb;">(0)</strong></button>
+            <button class="tab-btn" data-filter="PendingPay">⏳ Pay Pending <strong id="count-pending"
+                    style="color:#d97706;">(0)</strong></button>
         </div>
 
         <div id="orders-list">
@@ -371,7 +375,7 @@
         import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { db, auth } from "./firebase-config.js";
 
-      let allLiveOrders = [];
+        let allLiveOrders = [];
         let deliveryBoysList = [];
         let currentFilter = 'New';     // <--- Ise 'New' kar dijiye
         let isInitialLoad = true;
@@ -461,21 +465,31 @@
         }
 
         window.renderOrders = function () {
+            // 🌟 NAYA: Tabs par Live Numbers (Count) dikhane ka logic
+            let countNew = allLiveOrders.filter(o => o.status === 'New').length;
+            let countProcessing = allLiveOrders.filter(o => o.status === 'Processing').length;
+            let countPendingPay = allLiveOrders.filter(o => (!o.adminPaymentStatus || o.adminPaymentStatus === 'Pending') && o.status !== 'Cancelled').length;
+
+            document.getElementById('count-new').innerText = `(${countNew})`;
+            document.getElementById('count-processing').innerText = `(${countProcessing})`;
+            document.getElementById('count-pending').innerText = `(${countPendingPay})`;
+
+            // 👇 Niche ka aapka purana code waise ka waisa hi rahega 👇
             const list = document.getElementById('orders-list');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
             list.innerHTML = '';
-let filteredOrders = allLiveOrders;
-            
+            let filteredOrders = allLiveOrders;
+
             // 🌟 NAYA LOGIC: 3 alag-alag filters
             if (currentFilter === 'New') {
                 filteredOrders = filteredOrders.filter(o => o.status === 'New');
-            } 
+            }
             else if (currentFilter === 'Processing') {
                 filteredOrders = filteredOrders.filter(o => o.status === 'Processing');
             }
             else if (currentFilter === 'PendingPay') {
-                filteredOrders = filteredOrders.filter(o => 
-                    (!o.adminPaymentStatus || o.adminPaymentStatus === 'Pending') && 
+                filteredOrders = filteredOrders.filter(o =>
+                    (!o.adminPaymentStatus || o.adminPaymentStatus === 'Pending') &&
                     o.status !== 'Cancelled'
                 );
             }
