@@ -333,11 +333,10 @@
                 placeholder="🔍 Search by Order ID, Name or Mobile..." onkeyup="renderOrders()">
         </div>
 
+        <!-- 🌟 NAYA: Sirf 2 Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" data-filter="All">All Live</button>
-            <button class="tab-btn" data-filter="New">New 🆕</button>
+            <button class="tab-btn active" data-filter="New">New 🆕</button>
             <button class="tab-btn" data-filter="PendingPay">⏳ Pay Pending</button>
-            <button class="tab-btn" data-filter="ReceivedPay">✅ Paid</button>
         </div>
 
         <div id="orders-list">
@@ -466,10 +465,16 @@
 
             let filteredOrders = allLiveOrders;
 
-            if (currentFilter === 'New') filteredOrders = filteredOrders.filter(o => o.status === 'New');
-            else if (currentFilter === 'PendingPay') filteredOrders = filteredOrders.filter(o => !o.adminPaymentStatus || o.adminPaymentStatus === 'Pending');
-            else if (currentFilter === 'ReceivedPay') filteredOrders = filteredOrders.filter(o => o.adminPaymentStatus === 'Cash' || o.adminPaymentStatus === 'UPI');
-
+            // 🌟 NAYA: Sirf New aur PendingPay (Bina Cancelled wale)
+            if (currentFilter === 'New') {
+                filteredOrders = filteredOrders.filter(o => o.status === 'New');
+            } else if (currentFilter === 'PendingPay') {
+                // Yahan hum check kar rahe hain ki Pay Pending ho AUR Order Cancelled NA ho
+                filteredOrders = filteredOrders.filter(o =>
+                    (!o.adminPaymentStatus || o.adminPaymentStatus === 'Pending') &&
+                    o.status !== 'Cancelled'
+                );
+            }
             if (searchTerm !== '') {
                 filteredOrders = filteredOrders.filter(o => {
                     let idStr = (o.displayOrderId || ("ORD" + o.id.substring(0, 6))).toLowerCase();
