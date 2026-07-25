@@ -371,10 +371,10 @@
         import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { db, auth } from "./firebase-config.js";
 
-        let allLiveOrders = [];
+      let allLiveOrders = [];
         let deliveryBoysList = [];
-        let currentFilter = 'All';
-        let isInitialLoad = true; // 🌟 NAYA: Alarm ke liye flag
+        let currentFilter = 'New';     // <--- Ise 'New' kar dijiye
+        let isInitialLoad = true;
 
         let toastTimeout;
         window.showToast = function (msg, type = "success") {
@@ -480,7 +480,7 @@ let filteredOrders = allLiveOrders;
                 );
             }
 
-            
+
             if (searchTerm !== '') {
                 filteredOrders = filteredOrders.filter(o => {
                     let idStr = (o.displayOrderId || ("ORD" + o.id.substring(0, 6))).toLowerCase();
