@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DRYFU Admin Lite</title>
+    <!-- 🌟 NAYA: PWA Manifest link -->
+    <link rel="manifest" href="manifest-admin.json">
     <meta name="theme-color" content="#128c7e">
     <style>
         * {
@@ -84,7 +86,7 @@
             padding: 10px;
         }
 
-        /* 🌟 NAYA: MINI STATS */
+        /* MINI STATS */
         .mini-stats {
             display: flex;
             gap: 10px;
@@ -114,7 +116,7 @@
             margin: 0;
         }
 
-        /* 🌟 NAYA: SEARCH BAR */
+        /* SEARCH BAR */
         .search-box {
             margin-bottom: 15px;
         }
@@ -276,7 +278,7 @@
         #toast {
             display: none;
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             color: #fff;
@@ -295,6 +297,9 @@
 
 <body>
 
+    <!-- 🌟 NAYA: New Order Alarm Sound (Short Beep) -->
+    <audio id="new-order-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
     <div class="header">
         <span id="header-title">DRYFU Admin Lite</span>
         <button class="logout-btn" id="logout-btn" style="display:none;" onclick="logoutAdmin()">Logout</button>
@@ -312,7 +317,6 @@
     <!-- 📊 DASHBOARD SCREEN -->
     <div id="dashboard-screen">
 
-        <!-- 🌟 NAYA: MINI STATS -->
         <div class="mini-stats">
             <div class="stat-box">
                 <div>Today's Orders</div>
@@ -324,7 +328,6 @@
             </div>
         </div>
 
-        <!-- 🌟 NAYA: SEARCH BOX -->
         <div class="search-box">
             <input type="text" id="searchInput" class="search-input"
                 placeholder="🔍 Search by Order ID, Name or Mobile..." onkeyup="renderOrders()">
@@ -344,6 +347,24 @@
 
     <div id="toast"></div>
 
+    <!-- 🌟 NAYA: PWA Install Banner (Neeche se aayega) -->
+    <div id="pwa-install-banner"
+        style="position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.15); z-index: 5000; display: flex; align-items: center; justify-content: space-between; transform: translateY(100%); transition: transform 0.5s ease-out; border-radius: 20px 20px 0 0; border-top: 3px solid #128c7e;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 30px;">⚙️</div>
+            <div>
+                <h4 style="margin: 0; color: #111; font-size: 16px; font-weight: 900;">Admin Lite App</h4>
+                <p style="margin: 0; font-size: 12px; color: #666; margin-top: 3px;">Install for quick access!</p>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+            <button id="pwa-install-btn"
+                style="background: #128c7e; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Install</button>
+            <button id="pwa-close-btn"
+                style="background: transparent; border: none; color: #888; font-size: 12px; cursor: pointer; text-decoration: underline;">Later</button>
+        </div>
+    </div>
+
     <script type="module">
         import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -352,8 +373,8 @@
         let allLiveOrders = [];
         let deliveryBoysList = [];
         let currentFilter = 'All';
+        let isInitialLoad = true; // 🌟 NAYA: Alarm ke liye flag
 
-        // TOAST MESSAGE FUNCTION
         let toastTimeout;
         window.showToast = function (msg, type = "success") {
             const toast = document.getElementById('toast');
@@ -368,7 +389,6 @@
             }, 3000);
         }
 
-        // AUTHENTICATION
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('login-screen').style.display = 'none';
@@ -387,64 +407,58 @@
             const email = document.getElementById('adminEmail').value;
             const password = document.getElementById('adminPassword').value;
             const btn = document.getElementById('login-btn');
-
-            if (!email || !password) { window.showToast("Please enter email & password", "error"); return; }
-
+            if (!email || !password) { window.showToast("Enter credentials", "error"); return; }
             btn.innerText = "Logging in..."; btn.disabled = true;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                window.showToast("Invalid Credentials!", "error");
-            }
+            try { await signInWithEmailAndPassword(auth, email, password); }
+            catch (e) { window.showToast("Invalid Credentials!", "error"); }
             btn.innerText = "Login"; btn.disabled = false;
         }
 
-        window.logoutAdmin = function () {
-            if (confirm("Logout from Lite App?")) signOut(auth);
-        }
+        window.logoutAdmin = function () { if (confirm("Logout?")) signOut(auth); }
 
-        // 🌟 FETCH DELIVERY BOYS
         async function fetchDeliveryBoys() {
             try {
                 const snap = await getDocs(collection(db, "deliveryBoys"));
                 deliveryBoysList = [];
                 snap.forEach(doc => deliveryBoysList.push(doc.data().name));
-            } catch (e) { console.error("Boys load error:", e); }
+            } catch (e) { }
         }
 
-        // FETCH ORDERS
         function listenOrders() {
-            const q = query(collection(db, "orders"), orderBy("orderDate", "desc"), limit(100)); // Thoda limit badha diya mobile ke liye
+            const q = query(collection(db, "orders"), orderBy("orderDate", "desc"), limit(100));
             onSnapshot(q, (snapshot) => {
+
+                // 🌟 NAYA: Alarm Logic (Sirf naye orders aane par baje)
+                if (!isInitialLoad) {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            const audio = document.getElementById('new-order-sound');
+                            if (audio) audio.play().catch(e => console.log("Sound blocked by browser"));
+                            window.showToast("🔔 NEW ORDER RECEIVED!", "success");
+                        }
+                    });
+                }
+                isInitialLoad = false;
+
                 allLiveOrders = [];
-                let todayOrders = 0;
-                let todaySale = 0;
-                let startOfToday = new Date();
-                startOfToday.setHours(0, 0, 0, 0);
+                let todayOrders = 0; let todaySale = 0;
+                let startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
 
                 snapshot.forEach(docSnap => {
                     let order = { id: docSnap.id, ...docSnap.data() };
                     allLiveOrders.push(order);
-
-                    // 🌟 CALCULATE STATS
                     if (order.orderDate && new Date(order.orderDate) >= startOfToday) {
                         todayOrders++;
-                        if (order.status !== 'Cancelled') {
-                            todaySale += parseFloat(order.totalAmount || 0);
-                        }
+                        if (order.status !== 'Cancelled') todaySale += parseFloat(order.totalAmount || 0);
                     }
                 });
 
-                // Update Mini Dashboard
                 document.getElementById('stat-today-orders').innerText = todayOrders;
                 document.getElementById('stat-today-sale').innerText = "₹" + todaySale.toFixed(0);
-
-                // Make sure render is available globally for the input onkeyup
                 window.renderOrders();
             });
         }
 
-        // RENDER ORDERS
         window.renderOrders = function () {
             const list = document.getElementById('orders-list');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -452,22 +466,16 @@
 
             let filteredOrders = allLiveOrders;
 
-            // 1. Apply Tabs Filter
-            if (currentFilter === 'New') {
-                filteredOrders = filteredOrders.filter(o => o.status === 'New');
-            } else if (currentFilter === 'PendingPay') {
-                filteredOrders = filteredOrders.filter(o => !o.adminPaymentStatus || o.adminPaymentStatus === 'Pending');
-            } else if (currentFilter === 'ReceivedPay') {
-                filteredOrders = filteredOrders.filter(o => o.adminPaymentStatus === 'Cash' || o.adminPaymentStatus === 'UPI');
-            }
+            if (currentFilter === 'New') filteredOrders = filteredOrders.filter(o => o.status === 'New');
+            else if (currentFilter === 'PendingPay') filteredOrders = filteredOrders.filter(o => !o.adminPaymentStatus || o.adminPaymentStatus === 'Pending');
+            else if (currentFilter === 'ReceivedPay') filteredOrders = filteredOrders.filter(o => o.adminPaymentStatus === 'Cash' || o.adminPaymentStatus === 'UPI');
 
-            // 2. Apply Search Filter
             if (searchTerm !== '') {
                 filteredOrders = filteredOrders.filter(o => {
-                    let orderIdStr = (o.displayOrderId || ("ORD" + o.id.substring(0, 6).toUpperCase())).toLowerCase();
-                    let mobileStr = (o.customerMobile || "").toLowerCase();
+                    let idStr = (o.displayOrderId || ("ORD" + o.id.substring(0, 6))).toLowerCase();
+                    let mobStr = (o.customerMobile || "").toLowerCase();
                     let nameStr = (o.deliveryAddress && o.deliveryAddress.fullName) ? o.deliveryAddress.fullName.toLowerCase() : "";
-                    return orderIdStr.includes(searchTerm) || mobileStr.includes(searchTerm) || nameStr.includes(searchTerm);
+                    return idStr.includes(searchTerm) || mobStr.includes(searchTerm) || nameStr.includes(searchTerm);
                 });
             }
 
@@ -485,22 +493,27 @@
                 let custName = typeof addrObj === 'object' ? addrObj.fullName : "Customer";
                 let mobile = typeof addrObj === 'object' && addrObj.mobile ? addrObj.mobile : order.customerMobile;
 
-                // Items HTML
+                // Maps Button Logic
+                let mapLink = "";
+                if (typeof addrObj === 'object' && addrObj.lat && addrObj.lng) {
+                    mapLink = `https://www.google.com/maps?q=${addrObj.lat},${addrObj.lng}`;
+                } else {
+                    mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+                }
+
                 let itemsHtml = '';
                 if (order.items) {
                     order.items.forEach(item => {
-                        itemsHtml += `<div style="margin-bottom:4px; border-bottom:1px dashed #ddd; padding-bottom:4px;">
-                            • ${item.name} (${item.weight || 'Std'}) <strong>x${item.quantity}</strong>
-                        </div>`;
+                        itemsHtml += `<div style="margin-bottom:4px; border-bottom:1px dashed #ddd; padding-bottom:4px;">• ${item.name} <strong>x${item.quantity}</strong></div>`;
                     });
                 }
 
-                // Delivery Boy Options
                 let boyOptions = `<option value="Unassigned" ${!order.deliveryBoy || order.deliveryBoy === 'Unassigned' ? 'selected' : ''}>🛵 Assign Partner</option>`;
                 deliveryBoysList.forEach(boy => {
                     boyOptions += `<option value="${boy}" ${order.deliveryBoy === boy ? 'selected' : ''}>🛵 ${boy}</option>`;
                 });
 
+                // 🌟 NAYA: WhatsApp Buttons aur Maps button card mein jodh diye
                 list.innerHTML += `
                     <div class="order-card">
                         <div class="order-header">
@@ -512,18 +525,17 @@
                         </div>
                         
                         <div class="cust-details">
-                            👤 <strong>${custName}</strong> (+91 <a href="tel:${mobile}" style="color:#128c7e; font-weight:bold; text-decoration:none;">${mobile}</a>)<br>
-                            📍 ${fullAddress}<br>
-                            💳 User Chose: <strong>${order.paymentMethod}</strong>
+                            👤 <strong>${custName}</strong> <br>
+                            📞 <a href="tel:${mobile}" style="color:#128c7e; font-weight:bold; text-decoration:none;">${mobile}</a><br>
+                            📍 ${fullAddress} <br>
+                            💳 Pay: <strong>${order.paymentMethod}</strong>
                         </div>
+                        
+                        <a href="${mapLink}" target="_blank" style="display:block; text-align:center; background:#e8f5e9; color:#1b5e20; border:1px solid #4caf50; padding:6px; border-radius:6px; font-weight:bold; font-size:12px; text-decoration:none; margin-bottom:10px;">🗺️ Open in Maps</a>
 
-                        <!-- Expandable Items Button -->
                         <button class="view-items-btn" onclick="toggleItems('${order.id}')">📦 View Order Items ⬇️</button>
-                        <div class="items-box" id="items-${order.id}">
-                            ${itemsHtml}
-                        </div>
+                        <div class="items-box" id="items-${order.id}">${itemsHtml}</div>
 
-                        <!-- Action Selectors -->
                         <div class="select-group">
                             <select class="status-select status-order" onchange="window.liteUpdateStatus('${order.id}', this.value)">
                                 <option value="New" ${order.status === 'New' ? 'selected' : ''}>Status: New</option>
@@ -538,27 +550,28 @@
                                 <option value="UPI" ${order.adminPaymentStatus === 'UPI' ? 'selected' : ''}>Pay: UPI</option>
                             </select>
 
-                            <!-- 🌟 NAYA: Assign Delivery Boy Dropdown -->
                             <select class="status-select status-boy" onchange="window.liteAssignBoy('${order.id}', this.value)">
                                 ${boyOptions}
                             </select>
+                        </div>
+
+                        <!-- 🌟 NAYA: WhatsApp Automation Buttons -->
+                        <div style="display: flex; gap: 5px; margin-top: 12px; border-top: 1px dashed #eee; padding-top: 12px;">
+                            <button onclick="window.sendWA('new', '${mobile}', '${custName}', '${orderId}', '${order.totalAmount}')" style="flex: 1; background: #25D366; color: white; border: none; padding: 8px 4px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">💬 Thanks</button>
+                            <button onclick="window.sendWA('dispatch', '${mobile}', '${custName}', '${orderId}', '')" style="flex: 1; background: #25D366; color: white; border: none; padding: 8px 4px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">💬 Dispatch</button>
+                            <button onclick="window.sendWA('delivered', '${mobile}', '${custName}', '${orderId}', '')" style="flex: 1; background: #25D366; color: white; border: none; padding: 8px 4px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">💬 Delivered</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        // TOGGLE ITEMS VIEW
         window.toggleItems = function (id) {
             const box = document.getElementById('items-' + id);
-            if (box.classList.contains('expanded')) {
-                box.classList.remove('expanded');
-            } else {
-                box.classList.add('expanded');
-            }
+            if (box.classList.contains('expanded')) box.classList.remove('expanded');
+            else box.classList.add('expanded');
         }
 
-        // TABS FILTERING
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -568,33 +581,70 @@
             });
         });
 
-        // QUICK UPDATE FUNCTIONS
         window.liteUpdateStatus = async function (orderId, newStatus) {
-            try {
-                await updateDoc(doc(db, "orders", orderId), {
-                    status: newStatus,
-                    updatedBy: "Admin (Mobile)",
-                    statusUpdatedAt: new Date().toISOString()
-                });
-                window.showToast("Status Updated!");
-            } catch (e) { window.showToast("Error: " + e.message, "error"); }
+            try { await updateDoc(doc(db, "orders", orderId), { status: newStatus, updatedBy: "Admin (Mobile)" }); window.showToast("Status Updated!"); }
+            catch (e) { window.showToast("Error", "error"); }
         }
 
         window.liteUpdatePay = async function (orderId, newStatus) {
-            try {
-                await updateDoc(doc(db, "orders", orderId), { adminPaymentStatus: newStatus });
-                window.showToast("Payment Updated!");
-            } catch (e) { window.showToast("Error: " + e.message, "error"); }
+            try { await updateDoc(doc(db, "orders", orderId), { adminPaymentStatus: newStatus }); window.showToast("Payment Updated!"); }
+            catch (e) { window.showToast("Error", "error"); }
         }
 
-        // 🌟 NAYA: Assign Boy Function
         window.liteAssignBoy = async function (orderId, boyName) {
-            try {
-                await updateDoc(doc(db, "orders", orderId), { deliveryBoy: boyName });
-                window.showToast("Partner Assigned!");
-            } catch (e) { window.showToast("Error: " + e.message, "error"); }
+            try { await updateDoc(doc(db, "orders", orderId), { deliveryBoy: boyName }); window.showToast("Partner Assigned!"); }
+            catch (e) { window.showToast("Error", "error"); }
         }
 
+        // 🌟 NAYA: Smart WhatsApp Message Generator
+        window.sendWA = function (type, mobile, name, orderId, amount) {
+            // Agar naam "Customer" hai (kyunki profile poori nahi thi), toh usko general kar do
+            let safeName = name === "Customer" ? "Ji" : name;
+            let msg = "";
+
+            if (type === 'new') {
+                msg = `Namaste ${safeName}, 🎉\n\nThank you for choosing DRYFU! We have received your order (ID: ${orderId}) of ₹${amount}.\n\nHum ise jaldi hi pack karke dispatch karenge. 🌿`;
+            }
+            else if (type === 'dispatch') {
+                msg = `Hi ${safeName}, 🚚\n\nGood news! Your DRYFU order (${orderId}) is out for delivery. Humara delivery partner jald hi aapse contact karega.`;
+            }
+            else if (type === 'delivered') {
+                msg = `Hi ${safeName}, ✅\n\nYour order (${orderId}) has been successfully delivered! We hope you love our premium quality.\n\nAgar aapko humari service pasand aayi ho, toh please humari app apne friends & family ke sath share karein: https://dryfu.in\n\nEat Healthy, Live Better! 🌿`;
+            }
+
+            // Format number (sirf 10 digit nikalna)
+            let cleanMobile = mobile.replace(/\D/g, '');
+            if (cleanMobile.length === 10) cleanMobile = "91" + cleanMobile;
+
+            // WhatsApp link open karna
+            let waLink = `https://wa.me/${cleanMobile}?text=${encodeURIComponent(msg)}`;
+            window.open(waLink, '_blank');
+        }
+    </script>
+
+    <!-- 🌟 NAYA: PWA Install Logic -->
+    <script>
+        let deferredPrompt;
+        const installBanner = document.getElementById('pwa-install-banner');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(() => { installBanner.style.transform = 'translateY(0)'; }, 2000);
+        });
+
+        document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+            installBanner.style.transform = 'translateY(100%)';
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            }
+        });
+
+        document.getElementById('pwa-close-btn').addEventListener('click', () => {
+            installBanner.style.transform = 'translateY(100%)';
+        });
     </script>
 </body>
 
