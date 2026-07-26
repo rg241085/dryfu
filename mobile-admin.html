@@ -526,10 +526,19 @@
                     mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
                 }
 
+                // 🌟 NAYA: Item details with Weight and Quantity clearly visible
                 let itemsHtml = '';
                 if (order.items) {
                     order.items.forEach(item => {
-                        itemsHtml += `<div style="margin-bottom:4px; border-bottom:1px dashed #ddd; padding-bottom:4px;">• ${item.name} <strong>x${item.quantity}</strong></div>`;
+                        let packWeight = item.weight ? item.weight : 'Standard';
+                        itemsHtml += `
+                        <div style="margin-bottom:8px; border-bottom:1px dashed #ddd; padding-bottom:8px; line-height: 1.4;">
+                            <div style="color: #111; font-weight: 600; font-size: 13px;">• ${item.name}</div>
+                            <div style="display: flex; gap: 10px; margin-top: 4px; padding-left: 10px;">
+                                <span style="background: #e8f5e9; color: #1b5e20; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #c8e6c9;">Size: ${packWeight}</span>
+                                <span style="background: #fef3c7; color: #d97706; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #fde68a;">Qty: ${item.quantity} Pieces</span>
+                            </div>
+                        </div>`;
                     });
                 }
 
