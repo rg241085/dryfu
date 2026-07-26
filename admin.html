@@ -2278,7 +2278,7 @@
         };
 
         // ==========================================
-        // 📄 PREMIUM PDF CATALOG GENERATOR (Upgraded)
+        // 📄 PREMIUM PDF CATALOG GENERATOR (With Sub-Categories)
         // ==========================================
         window.downloadProductCatalog = function () {
             if (allProductsData.length === 0) {
@@ -2290,17 +2290,24 @@
             let wpNumber = document.getElementById('setWhatsapp') ? document.getElementById('setWhatsapp').value : '7014702933';
             let gridCols = document.getElementById('catalogGridSelect').value;
 
-            // 🌟 1. Products ko Main Category > Sub Category ke hisaab se Group aur Sort karna
+            // 🌟 1. Products ko Main Category > Sub Category ke hisaab se Group karna
             let groupedProducts = {};
 
-            // Grouping logic
             allProductsData.forEach(p => {
                 let mainCat = p.mainCategory || 'Other Items';
-                if (!groupedProducts[mainCat]) groupedProducts[mainCat] = [];
-                groupedProducts[mainCat].push(p);
+                let subCat = p.subCategory || 'Others';
+
+                // Agar Main Category pehli baar aayi hai, toh uska dabha banao
+                if (!groupedProducts[mainCat]) groupedProducts[mainCat] = {};
+
+                // Agar Sub Category pehli baar aayi hai, toh uska bhi dabha banao
+                if (!groupedProducts[mainCat][subCat]) groupedProducts[mainCat][subCat] = [];
+
+                // Product ko uske sahi dabbe mein daal do
+                groupedProducts[mainCat][subCat].push(p);
             });
 
-            // PDF (Print) ka A4 design (CSS Grid ke sath)
+            // PDF (Print) ka A4 design
             let catalogHtml = `
             <!DOCTYPE html>
             <html>
@@ -2312,18 +2319,18 @@
                     .header h1 { color: #128c7e; margin: 0; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; }
                     .header p { margin: 8px 0 0 0; color: #555; font-size: 14px; font-weight: bold; }
                     
-                    /* 🌟 NAYA: Dynamic Grid CSS */
+                    /* Grid & Cards CSS */
                     .grid { display: grid; grid-template-columns: repeat(${gridCols}, 1fr); gap: 15px; width: 100%; margin-bottom: 30px; }
                     .card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; text-align: center; box-sizing: border-box; page-break-inside: avoid; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
                     .card img { width: 100px; height: 100px; object-fit: contain; border-radius: 6px; margin-bottom: 10px; }
-                    
                     .card-title { font-size: 14px; font-weight: bold; margin: 0 0 5px 0; color: #111; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
                     .card-weight { font-size: 11px; color: #128c7e; font-weight: bold; background: #e8f5e9; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
                     .card-price { font-size: 16px; font-weight: 900; color: #111; }
                     .card-mrp { font-size: 12px; color: #999; text-decoration: line-through; margin-left: 6px; }
                     
-                    /* Category Heading Style */
-                    .category-title { font-size: 20px; font-weight: 900; color: #fff; background: #128c7e; padding: 8px 15px; border-radius: 6px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; page-break-after: avoid; }
+                    /* 🌟 NAYA: Categories Heading Styles */
+                    .category-title { font-size: 22px; font-weight: 900; color: #fff; background: #128c7e; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; page-break-after: avoid; }
+                    .sub-category-title { font-size: 17px; font-weight: 800; color: #128c7e; margin-bottom: 12px; border-bottom: 2px dashed #128c7e; padding-bottom: 4px; display: inline-block; page-break-after: avoid; }
                     
                     .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; }
                 </style>
@@ -2335,33 +2342,47 @@
                 </div>
             `;
 
-            // 🌟 2. Har Category ke products ko print karna (Sorted Order mein)
+            // 🌟 2. Har Main Category aur uski Sub-Category ko print karna
             Object.keys(groupedProducts).sort().forEach(mainCat => {
-                // Category ki heading
+
+                // Badi wali Main Category ki heading (e.g., DRY FRUITS)
                 catalogHtml += `<div class="category-title">${mainCat}</div>`;
-                catalogHtml += `<div class="grid">`;
 
-                let productsList = groupedProducts[mainCat];
+                let subCategoriesObj = groupedProducts[mainCat];
 
-                // Products ko Priority (Order) ke hisaab se sort karna (Chhota number pehle)
-                productsList.sort((a, b) => (a.priority || 99) - (b.priority || 99));
+                // Sub-Categories ke loop chalana (e.g., Almonds, Cashews)
+                Object.keys(subCategoriesObj).sort().forEach(subCat => {
 
-                // Products ke cards HTML mein add karna
-                productsList.forEach(p => {
-                    catalogHtml += `
-                        <div class="card">
-                            <img src="${p.img}" alt="${p.name}">
-                            <div class="card-title">${p.name}</div>
-                            <div class="card-weight">${p.weight || 'Standard Pack'}</div>
-                            <div>
-                                <span class="card-price">₹${p.sellingPrice}</span>
-                                ${p.mrp > p.sellingPrice ? `<span class="card-mrp">₹${p.mrp}</span>` : ''}
+                    // Agar Sub-Category ka naam hai toh uski heading lagana
+                    if (subCat !== 'Others' || Object.keys(subCategoriesObj).length > 1) {
+                        catalogHtml += `<div class="sub-category-title">👉 ${subCat}</div>`;
+                    }
+
+                    // Grid Start
+                    catalogHtml += `<div class="grid">`;
+
+                    let productsList = subCategoriesObj[subCat];
+
+                    // Products ko Priority (Order) ke hisaab se sort karna (Chhota number pehle)
+                    productsList.sort((a, b) => (a.priority || 99) - (b.priority || 99));
+
+                    // Products ke cards HTML mein add karna
+                    productsList.forEach(p => {
+                        catalogHtml += `
+                            <div class="card">
+                                <img src="${p.img}" alt="${p.name}">
+                                <div class="card-title">${p.name}</div>
+                                <div class="card-weight">${p.weight || 'Standard Pack'}</div>
+                                <div>
+                                    <span class="card-price">₹${p.sellingPrice}</span>
+                                    ${p.mrp > p.sellingPrice ? `<span class="card-mrp">₹${p.mrp}</span>` : ''}
+                                </div>
                             </div>
-                        </div>
-                    `;
-                });
+                        `;
+                    });
 
-                catalogHtml += `</div>`; // Grid close
+                    catalogHtml += `</div>`; // Grid close
+                });
             });
 
             catalogHtml += `
