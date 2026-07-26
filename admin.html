@@ -283,14 +283,21 @@
                         </table>
                     </div>
                 </div>
-
                 <div id="products-view" class="view-section">
                     <div class="page-header">
                         <h2>Products Inventory</h2>
-                        <div>
-                            <!-- 🌟 NAYA: Catalog Download Button -->
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <!-- 🌟 NAYA: Grid select karne ka option -->
+                            <select id="catalogGridSelect"
+                                style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 13px; font-weight: bold; color: #128c7e; outline: none; cursor: pointer;">
+                                <option value="2">2 Columns Grid</option>
+                                <option value="3" selected>3 Columns Grid</option>
+                                <option value="4">4 Columns Grid</option>
+                                <option value="5">5 Columns Grid</option>
+                            </select>
+
                             <button class="btn-add" onclick="window.downloadProductCatalog()"
-                                style="background: #e65100; margin-right: 10px;">📄 Download PDF Catalog</button>
+                                style="background: #e65100;">📄 Download PDF Catalog</button>
                             <button class="btn-add" id="openModalBtn">+ Add Product</button>
                         </div>
                     </div>
@@ -2271,7 +2278,7 @@
         };
 
         // ==========================================
-        // 📄 PREMIUM PDF CATALOG GENERATOR
+        // 📄 PREMIUM PDF CATALOG GENERATOR (Upgraded)
         // ==========================================
         window.downloadProductCatalog = function () {
             if (allProductsData.length === 0) {
@@ -2279,10 +2286,21 @@
                 return;
             }
 
-            // WhatsApp number settings se nikalna (Agar na mile toh default)
+            // WhatsApp number and Grid Selection
             let wpNumber = document.getElementById('setWhatsapp') ? document.getElementById('setWhatsapp').value : '7014702933';
+            let gridCols = document.getElementById('catalogGridSelect').value;
 
-            // PDF (Print) ka A4 design banayenge
+            // 🌟 1. Products ko Main Category > Sub Category ke hisaab se Group aur Sort karna
+            let groupedProducts = {};
+
+            // Grouping logic
+            allProductsData.forEach(p => {
+                let mainCat = p.mainCategory || 'Other Items';
+                if (!groupedProducts[mainCat]) groupedProducts[mainCat] = [];
+                groupedProducts[mainCat].push(p);
+            });
+
+            // PDF (Print) ka A4 design (CSS Grid ke sath)
             let catalogHtml = `
             <!DOCTYPE html>
             <html>
@@ -2290,16 +2308,23 @@
                 <title>DRYFU_Product_Catalog</title>
                 <style>
                     body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; color: #333; background: #fff; }
-                    .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #128c7e; padding-bottom: 15px; }
+                    .header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid #128c7e; padding-bottom: 15px; }
                     .header h1 { color: #128c7e; margin: 0; font-size: 32px; text-transform: uppercase; letter-spacing: 1px; }
                     .header p { margin: 8px 0 0 0; color: #555; font-size: 14px; font-weight: bold; }
-                    .grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-start; }
-                    .card { width: calc(33.33% - 12px); border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; text-align: center; box-sizing: border-box; page-break-inside: avoid; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-                    .card img { width: 120px; height: 120px; object-fit: contain; border-radius: 6px; margin-bottom: 10px; }
-                    .card-title { font-size: 15px; font-weight: bold; margin: 0 0 5px 0; color: #111; line-height: 1.3; }
-                    .card-weight { font-size: 12px; color: #128c7e; font-weight: bold; background: #e8f5e9; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
-                    .card-price { font-size: 18px; font-weight: 900; color: #111; }
-                    .card-mrp { font-size: 13px; color: #999; text-decoration: line-through; margin-left: 6px; }
+                    
+                    /* 🌟 NAYA: Dynamic Grid CSS */
+                    .grid { display: grid; grid-template-columns: repeat(${gridCols}, 1fr); gap: 15px; width: 100%; margin-bottom: 30px; }
+                    .card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; text-align: center; box-sizing: border-box; page-break-inside: avoid; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+                    .card img { width: 100px; height: 100px; object-fit: contain; border-radius: 6px; margin-bottom: 10px; }
+                    
+                    .card-title { font-size: 14px; font-weight: bold; margin: 0 0 5px 0; color: #111; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+                    .card-weight { font-size: 11px; color: #128c7e; font-weight: bold; background: #e8f5e9; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
+                    .card-price { font-size: 16px; font-weight: 900; color: #111; }
+                    .card-mrp { font-size: 12px; color: #999; text-decoration: line-through; margin-left: 6px; }
+                    
+                    /* Category Heading Style */
+                    .category-title { font-size: 20px; font-weight: 900; color: #fff; background: #128c7e; padding: 8px 15px; border-radius: 6px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; page-break-after: avoid; }
+                    
                     .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; }
                 </style>
             </head>
@@ -2308,39 +2333,49 @@
                     <h1>DRYFU</h1>
                     <p>Premium Dry Fruits & Spices | www.dryfu.in | WhatsApp Order: +91 ${wpNumber}</p>
                 </div>
-                <div class="grid">
             `;
 
-            // Saare products ko loop karke grid mein daalna
-            allProductsData.forEach(p => {
-                catalogHtml += `
-                    <div class="card">
-                        <img src="${p.img}" alt="${p.name}">
-                        <div class="card-title">${p.name}</div>
-                        <div class="card-weight">${p.weight || 'Standard Pack'}</div>
-                        <div>
-                            <span class="card-price">₹${p.sellingPrice}</span>
-                            ${p.mrp > p.sellingPrice ? `<span class="card-mrp">₹${p.mrp}</span>` : ''}
+            // 🌟 2. Har Category ke products ko print karna (Sorted Order mein)
+            Object.keys(groupedProducts).sort().forEach(mainCat => {
+                // Category ki heading
+                catalogHtml += `<div class="category-title">${mainCat}</div>`;
+                catalogHtml += `<div class="grid">`;
+
+                let productsList = groupedProducts[mainCat];
+
+                // Products ko Priority (Order) ke hisaab se sort karna (Chhota number pehle)
+                productsList.sort((a, b) => (a.priority || 99) - (b.priority || 99));
+
+                // Products ke cards HTML mein add karna
+                productsList.forEach(p => {
+                    catalogHtml += `
+                        <div class="card">
+                            <img src="${p.img}" alt="${p.name}">
+                            <div class="card-title">${p.name}</div>
+                            <div class="card-weight">${p.weight || 'Standard Pack'}</div>
+                            <div>
+                                <span class="card-price">₹${p.sellingPrice}</span>
+                                ${p.mrp > p.sellingPrice ? `<span class="card-mrp">₹${p.mrp}</span>` : ''}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                });
+
+                catalogHtml += `</div>`; // Grid close
             });
 
             catalogHtml += `
-                </div>
                 <div class="footer">
                     * Prices are subject to change without prior notice. Generated on: ${new Date().toLocaleDateString('en-GB')}
                 </div>
             </body>
             </html>`;
 
-            // Ek hidden window khol kar usme design paste karna aur Print command dena
             let win = window.open('', '_blank', 'width=1000,height=800');
             win.document.open();
             win.document.write(catalogHtml);
             win.document.close();
 
-            // Image load hone ke liye 1 second ka time de rahe hain
             setTimeout(() => {
                 win.print();
                 win.close();
