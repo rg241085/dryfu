@@ -2764,7 +2764,7 @@
             btn.disabled = false;
         }
 
-       // Load Layout Settings
+        // Load Layout Settings
         onSnapshot(doc(db, "settings", "appLayout"), (docSnap) => {
             if (docSnap.exists()) {
                 let data = docSnap.data();
@@ -2785,9 +2785,13 @@
                     tagsOrder: Number(document.getElementById('setTagsOrder').value),
                     gridCatOrder: Number(document.getElementById('setGridCatOrder').value),
                     gridCols: Number(document.getElementById('setGridCols').value)
-                });
-                window.showToast("Layout settings saved successfully!");
-            } catch (e) { window.showToast("Error: " + e.message); }
+                }, { merge: true }); // 🌟 FIX: Isse data safely overwrite hoga bina kuch break kiye
+
+                window.showToast("Layout settings saved successfully!", "success");
+            } catch (e) {
+                console.error("Save error:", e);
+                window.showToast("Error: " + e.message, "error");
+            }
         }
 
         // 🌟 TRACK TOTAL APP DOWNLOADS
