@@ -632,8 +632,8 @@
 
                         <div class="form-group" style="margin-bottom: 20px;">
                             <label>On-Click Link (Optional)</label>
-                            <input type="text" id="notifLink"
-                                placeholder="e.g., https://dryfu.in>
+                            <!-- 🌟 FIX: https://dryfu.in" me double quote (") add kiya gaya -->
+                            <input type="text" id="notifLink" placeholder="e.g., https://dryfu.in">
                             <small style="color: #888; font-size: 11px;">Khali chhodne par Home Page khulega.</small>
                         </div>
 
@@ -2764,15 +2764,16 @@
             btn.disabled = false;
         }
 
-        // Load Layout Settings
+       // Load Layout Settings
         onSnapshot(doc(db, "settings", "appLayout"), (docSnap) => {
             if (docSnap.exists()) {
                 let data = docSnap.data();
-                document.getElementById('setBannerOrder').value = data.bannerOrder || 1;
-                document.getElementById('setSlideCatOrder').value = data.slideCatOrder || 2;
-                document.getElementById('setTagsOrder').value = data.tagsOrder || 3;
-                document.getElementById('setGridCatOrder').value = data.gridCatOrder || 4;
-                document.getElementById('setGridCols').value = data.gridCols || 3;
+                // 🌟 FIX: '||' ki jagah '??' lagaya taaki 0 number bhi properly kaam kare
+                document.getElementById('setBannerOrder').value = data.bannerOrder ?? 1;
+                document.getElementById('setSlideCatOrder').value = data.slideCatOrder ?? 2;
+                document.getElementById('setTagsOrder').value = data.tagsOrder ?? 3;
+                document.getElementById('setGridCatOrder').value = data.gridCatOrder ?? 4;
+                document.getElementById('setGridCols').value = data.gridCols ?? 3;
             }
         });
 

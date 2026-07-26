@@ -2821,14 +2821,19 @@ function listenAppLayoutSettings() {
         if (docSnap.exists()) {
             let data = docSnap.data();
 
-            // Update Flex Orders
-            document.getElementById('dynamic-banner-container').style.order = data.bannerOrder || 1;
-            document.getElementById('home-category-section').style.order = data.slideCatOrder || 2;
-            document.getElementById('dynamic-tags-sections-container').style.order = data.tagsOrder || 3;
-            document.getElementById('home-grid-category-section').style.order = data.gridCatOrder || 4;
+            // 🌟 FIX: Safe checks ke sath '??' use kiya gaya
+            const banner = document.getElementById('dynamic-banner-container');
+            const slideCat = document.getElementById('home-category-section');
+            const tagsSec = document.getElementById('dynamic-tags-sections-container');
+            const gridCat = document.getElementById('home-grid-category-section');
+
+            if (banner) banner.style.order = data.bannerOrder ?? 1;
+            if (slideCat) slideCat.style.order = data.slideCatOrder ?? 2;
+            if (tagsSec) tagsSec.style.order = data.tagsOrder ?? 3;
+            if (gridCat) gridCat.style.order = data.gridCatOrder ?? 4;
 
             // Grid columns save karna
-            window.currentGridCols = data.gridCols || 3;
+            window.currentGridCols = data.gridCols ?? 3;
 
             // Agar settings change ho toh grid dubara render karo
             if (typeof window.renderGridCategories === 'function') {
