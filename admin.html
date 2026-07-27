@@ -286,8 +286,8 @@
                 <div id="products-view" class="view-section">
                     <div class="page-header">
                         <h2>Products Inventory</h2>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <!-- 🌟 NAYA: Grid select karne ka option -->
+                        <div
+                            style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                             <select id="catalogGridSelect"
                                 style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 13px; font-weight: bold; color: #128c7e; outline: none; cursor: pointer;">
                                 <option value="2">2 Columns Grid</option>
@@ -296,8 +296,11 @@
                                 <option value="5">5 Columns Grid</option>
                             </select>
 
+                            <!-- 🌟 NAYA: WhatsApp List Copy Button -->
+                            <button class="btn-add" onclick="window.copyWhatsAppCatalog()"
+                                style="background: #25D366; color: white;">💬 Copy WA List</button>
                             <button class="btn-add" onclick="window.downloadProductCatalog()"
-                                style="background: #e65100;">📄 Download PDF Catalog</button>
+                                style="background: #e65100;">📄 Download PDF</button>
                             <button class="btn-add" id="openModalBtn">+ Add Product</button>
                         </div>
                     </div>
@@ -3002,6 +3005,71 @@
                 window.showToast("Error updating status: " + error.message, "error");
             }
         };
+
+        // ==========================================
+        // 💬 WHATSAPP TEXT CATALOG GENERATOR
+        // ==========================================
+        window.copyWhatsAppCatalog = function () {
+            if (allProductsData.length === 0) {
+                window.showToast("No products found to copy!", "error");
+                return;
+            }
+
+            // 1. Group products by Main Category and Sub Category (PDF jaisa hi)
+            let groupedProducts = {};
+
+            allProductsData.forEach(p => {
+                let mainCat = p.mainCategory || 'Other Items';
+                let subCat = p.subCategory || 'Others';
+
+                if (!groupedProducts[mainCat]) groupedProducts[mainCat] = {};
+                if (!groupedProducts[mainCat][subCat]) groupedProducts[mainCat][subCat] = [];
+
+                groupedProducts[mainCat][subCat].push(p);
+            });
+
+            // 2. WhatsApp message banana (Formatting ke sath)
+            let waText = "🌿 *DRYFU - PREMIUM DRY FRUITS & SPICES* 🌿\n";
+            waText += "Best Quality. Wholesale Prices.\n\n";
+
+            Object.keys(groupedProducts).sort().forEach(mainCat => {
+                waText += `🛍️ *${mainCat.toUpperCase()}*\n`;
+                waText += `━━━━━━━━━━━━━━━━━━\n`;
+
+                let subCategoriesObj = groupedProducts[mainCat];
+
+                Object.keys(subCategoriesObj).sort().forEach(subCat => {
+                    // Agar specific sub-category hai toh uski heading lagayenge
+                    if (subCat !== 'Others' || Object.keys(subCategoriesObj).length > 1) {
+                        waText += `\n🔸 _${subCat}_\n`;
+                    }
+
+                    let productsList = subCategoriesObj[subCat];
+
+                    // Priority ke hisaab se sort karna
+                    productsList.sort((a, b) => (a.priority || 99) - (b.priority || 99));
+
+                    productsList.forEach(p => {
+                        let weight = p.weight || 'Standard Pack';
+                        // Format: ▪️ Kaju [250g] - ₹250
+                        waText += `▪️ ${p.name} [${weight}] - *₹${p.sellingPrice}*\n`;
+                    });
+                });
+                waText += `\n`;
+            });
+
+            // Footer link
+            waText += `\n🌐 *Order Online:* https://dryfu.in\n`;
+            waText += `Eat Healthy, Live Better! 🙏`;
+
+            // 3. Clipboard mein copy karna
+            navigator.clipboard.writeText(waText).then(() => {
+                window.showToast("WhatsApp Catalog copied to clipboard!", "success");
+            }).catch(err => {
+                console.error("Failed to copy: ", err);
+                window.showToast("Failed to copy. Please try again.", "error");
+            });
+        }
 
     </script>
     <div id="admin-toast"
