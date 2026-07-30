@@ -486,6 +486,10 @@ function updateCartUI(showPopup = false) {
     if (typeof window.evaluateCouponNudges === 'function') {
         window.evaluateCouponNudges();
     }
+    // 🚚 NAYA: Is function ko bhi call karein
+    if (typeof window.evaluateDeliveryNudge === 'function') {
+        window.evaluateDeliveryNudge();
+    }
 
     const cartCount = document.getElementById('cart-count');
     const cartTotal = document.getElementById('cart-total');
@@ -1076,6 +1080,45 @@ window.evaluateCouponNudges = function () {
         let msg = targetCoupon.nudgeMsg.replace('{amount}', remaining);
         banner.innerHTML = `🌟 ${msg}`;
         banner.style.display = 'block';
+    }
+}
+
+
+// 🚚 NAYA: Free Delivery Nudge Logic
+window.evaluateDeliveryNudge = function () {
+    const banner = document.getElementById('cart-delivery-banner');
+    if (!banner) return;
+
+    // Agar cart khali hai toh banner chhupa do
+    if (cart.length === 0) {
+        banner.style.display = 'none';
+        return;
+    }
+
+    let sellingTotal = 0;
+    cart.forEach(item => { if (!item.isPromoGift && !item.isFreeGift) sellingTotal += (parseFloat(item.sellingPrice) * item.quantity); });
+
+    let minOrderVal = Number(appSettings.minOrderValue) || 0;
+    let deliveryFee = Number(appSettings.deliveryCharge) || 0;
+
+    // Agar admin ne Free Delivery ki koi limit set ki hai tabhi chalega
+    if (minOrderVal > 0 && deliveryFee > 0) {
+        if (sellingTotal < minOrderVal) {
+            let remaining = minOrderVal - sellingTotal;
+            banner.innerHTML = `🚚 Add items worth ₹${remaining} more for FREE Delivery!`;
+            banner.style.background = '#fffbeb'; // Yellowish warning
+            banner.style.color = '#b45309';
+            banner.style.borderColor = '#f59e0b';
+            banner.style.display = 'block';
+        } else {
+            banner.innerHTML = `🎉 Yay! You are eligible for FREE Delivery!`;
+            banner.style.background = '#ecfdf5'; // Greenish success
+            banner.style.color = '#047857';
+            banner.style.borderColor = '#10b981';
+            banner.style.display = 'block';
+        }
+    } else {
+        banner.style.display = 'none'; // Agar limit 0 hai toh kuch nahi dikhana
     }
 }
 // Update `updateCartUI` function to use new Nudge system
