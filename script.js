@@ -1060,7 +1060,7 @@ window.evaluateCouponNudges = function () {
     cart.forEach(item => { if (!item.isPromoGift && !item.isFreeGift) eligibleTotal += (parseFloat(item.sellingPrice) * item.quantity); });
 
     // Find upcoming coupons that have a nudge message
-    let upcomingCoupons = availableCoupons.filter(c => c.minOrder > eligibleTotal && c.nudgeMsg);
+    let upcomingCoupons = availableCoupons.filter(c => !c.isSecret && c.minOrder > eligibleTotal && c.nudgeMsg);
     upcomingCoupons.sort((a, b) => a.minOrder - b.minOrder);
 
     if (upcomingCoupons.length > 0) {
