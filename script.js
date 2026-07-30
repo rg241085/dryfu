@@ -695,15 +695,33 @@ window.verifyOTP = async function () {
     try {
         const result = await window.confirmationResult.confirm(otpCode);
 
-        await setDoc(doc(db, "customers", mobile), {
-            mobileNumber: mobile,
-            lastLogin: new Date().toISOString()
-        }, { merge: true });
+        // 🚀 NAYA LOGIC: Check karo customer naya hai ya purana
+        const customerRef = doc(db, "customers", mobile);
+        const docSnap = await getDoc(customerRef);
+
+        if (docSnap.exists()) {
+            let updateData = { lastLogin: new Date().toISOString() };
+
+            // Agar purane customer me galti se createdAt miss ho gaya tha, 
+            // toh usko permanently fix kar denge taaki aage date change na ho.
+            if (!docSnap.data().createdAt) {
+                updateData.createdAt = new Date().toISOString();
+            }
+
+            // Purana customer hai, sirf update karo
+            await updateDoc(customerRef, updateData);
+        } else {
+            // Bilkul naya customer hai, dono dates (Join & Last Login) save karo
+            await setDoc(customerRef, {
+                mobileNumber: mobile,
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+            });
+        }
 
         loggedInUser = mobile;
         localStorage.setItem('customerMobile', mobile);
 
-        // 🌟 नया: लॉगिन सफल होते ही नोटिफिकेशन की परमिशन माँगना
         if (typeof window.requestNotificationPermission === 'function') {
             window.requestNotificationPermission();
         }
