@@ -890,8 +890,10 @@ window.renderCheckoutPage = async function (isSilentUpdate = false) {
         });
     }
 
-    // 🌟 नया फिक्स: एक्सपायर हो चुके कूपन को हटाकर सिर्फ वैलिड कूपन गिनें
+    // 🌟 नया फिक्स: एक्सपायर हो चुके कूपन और SECRET कूपन को हटाकर सिर्फ वैलिड कूपन गिनें
     let validCouponsForCount = availableCoupons.filter(c => {
+        if (c.isSecret) return false; // 🤫 SECRET COUPON KO COUNTING SE BHI HATA DO
+
         if (c.expiryDate) {
             // आज की तारीख (रात 12 बजे) से एक्सपायरी डेट को मैच करें
             return new Date(c.expiryDate) >= new Date(new Date().setHours(0, 0, 0, 0));
