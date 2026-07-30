@@ -1211,7 +1211,7 @@ window.removeCoupon = function (renderUI = true) {
     }
 }
 
-// 🛒 Order Finalize Function
+// 🛒 Order Finalize Function (Ultra Fast)
 window.finalizeOrder = async function () {
     if (cart.length === 0) return;
 
@@ -1234,49 +1234,45 @@ window.finalizeOrder = async function () {
         let sellingTotal = 0;
         cart.forEach(item => { sellingTotal += (parseFloat(item.sellingPrice) * item.quantity); });
 
-        // 🚀 NAYA: Delivery Charge Calculation
-        let minOrderVal = Number(appSettings.minOrderValue) || 0;
-        let deliveryFee = Number(appSettings.deliveryCharge) || 0;
-        let appliedDeliveryCharge = (sellingTotal < minOrderVal && minOrderVal > 0) ? deliveryFee : 0;
-
+        // 🚀 NAYA: Delivery Charge Calculation (Sirf ek baar)
         let minOrderVal = Number(appSettings.minOrderValue) || 0;
         let deliveryFee = Number(appSettings.deliveryCharge) || 0;
         let appliedDeliveryCharge = (sellingTotal < minOrderVal && minOrderVal > 0) ? deliveryFee : 0;
 
         let finalGrandTotal = sellingTotal - checkoutState.couponDiscount + appliedDeliveryCharge;
-        // 🌟 NAYA: Counter Logic (Total Orders count karke DF-100X banana)
-        const orderCountSnap = await getCountFromServer(collection(db, "orders"));
-        const nextOrderNum = 1000 + orderCountSnap.data().count + 1; // 1001 se start hoga
-        const generatedOrderId = "DF-" + nextOrderNum;
+
+        // 🚀 FAST ORDER ID GENERATION (Bina server ko wait karaye)
+        const randomNum = Math.floor(100 + Math.random() * 900); // 3 digit random
+        const timePart = Date.now().toString().slice(-4); // Last 4 digits of time
+        const generatedOrderId = "DF-" + timePart + randomNum;
 
         const orderData = {
-            displayOrderId: generatedOrderId, // 🌟 NAYA: Database me custom ID save kar rahe hain
+            displayOrderId: generatedOrderId,
             customerMobile: loggedInUser,
             deliveryAddress: selectedAddress,
             items: cart,
             totalAmount: finalGrandTotal,
-            deliveryCharge: appliedDeliveryCharge, // 👈 YEH NAYI LINE ADD KAREIN
+            deliveryCharge: appliedDeliveryCharge, // 👈 Bill me show karne ke liye
             couponApplied: checkoutState.couponCode || 'None',
             paymentMethod: checkoutState.paymentMethod,
             status: "New",
             orderDate: new Date().toISOString()
         };
 
-        // 1. Order database me save hua
+        // 1. Order database me save karein
         const newOrderRef = await addDoc(collection(db, "orders"), orderData);
-        const shortOrderId = generatedOrderId;
 
-        // 🌟 2. NAYA: ATOMIC STOCK DEDUCTION LOGIC
+        // 🚀 2. FAST ATOMIC STOCK DEDUCTION (Parallel Execution)
+        let stockUpdatePromises = [];
         for (let item of cart) {
-            if (item.isFreeGift) continue; // Free gift ka stock track nahi kar rahe
-            try {
-                const pRef = doc(db, "products", item.id);
-                // Server ko sidha minus karne ka command
-                await updateDoc(pRef, {
-                    stockQty: increment(-item.quantity)
-                });
-            } catch (e) { console.error("Stock update failed", e); }
+            if (item.isFreeGift) continue;
+            const pRef = doc(db, "products", item.id);
+            stockUpdatePromises.push(
+                updateDoc(pRef, { stockQty: increment(-item.quantity) })
+            );
         }
+        // Saare products ka stock ek sath update hoga
+        await Promise.all(stockUpdatePromises);
 
         // 3. Cart khali karein aur modal band karein
         cart = [];
@@ -1284,7 +1280,7 @@ window.finalizeOrder = async function () {
         closeCheckoutPage();
         checkoutState = { selectedAddressIndex: 0, paymentMethod: 'COD', couponCode: '', couponDiscount: 0 };
 
-        document.getElementById('success-order-id').innerText = shortOrderId;
+        document.getElementById('success-order-id').innerText = generatedOrderId;
         document.getElementById('order-success-modal').style.display = 'flex';
 
         btn.innerText = "Proceed to pay"; btn.disabled = false;
