@@ -504,12 +504,12 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th onclick="window.sortCustomerTable('name')"
-                                            style="cursor:pointer; color:#128c7e;">Customer Info ↕️</th>
+                                        <th>Customer Info</th>
                                         <th>Contact</th>
-                                        <th onclick="window.sortCustomerTable('date')"
+                                        <th onclick="window.sortCustomerTable('joinDate')"
                                             style="cursor:pointer; color:#128c7e;">Join Date ↕️</th>
-                                        <th>Last Active</th>
+                                        <th onclick="window.sortCustomerTable('lastActive')"
+                                            style="cursor:pointer; color:#128c7e;">Last Active ↕️</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -2103,7 +2103,6 @@
 
         window.filterCustomers = function () {
             const searchTerm = document.getElementById('searchCustomerInput').value.toLowerCase().trim();
-            const sortBy = document.getElementById('sortCustomerSelect').value;
 
             // 1. Pehle Search ke hisaab se filter karo
             let filteredData = allCustomersData.filter(c => {
@@ -2115,15 +2114,17 @@
                 return mobileMatch || nameMatch;
             });
 
-            // 2. 🌟 NAYA: Filter hone ke baad Dropdown ke hisaab se Sort karo (Join Date)
+            // 2. Filter hone ke baad current active column ke hisaab se sort karo
             filteredData.sort((a, b) => {
-                let timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.lastLogin ? new Date(a.lastLogin).getTime() : 0);
-                let timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.lastLogin ? new Date(b.lastLogin).getTime() : 0);
-
-                if (sortBy === 'NEWEST') {
-                    return timeB - timeA; // Bada time upar (Newest First)
+                if (currentSortCol === 'name') {
+                    let nameA = (a.addresses && a.addresses[0]) ? a.addresses[0].fullName.toLowerCase() : '';
+                    let nameB = (b.addresses && b.addresses[0]) ? b.addresses[0].fullName.toLowerCase() : '';
+                    return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
                 } else {
-                    return timeA - timeB; // Chhota time upar (Oldest First)
+                    // Default Date Sort
+                    let timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    let timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return sortAscending ? timeB - timeA : timeA - timeB;
                 }
             });
 
@@ -3073,30 +3074,59 @@
             });
         }
 
-        let currentSortCol = '';
-        let sortAscending = true;
+       
 
+        let currentSortCol = 'joinDate'; // Default 
+        let sortAscending = false; // Default newest first
+
+        // Table Header par click karne wala function
         window.sortCustomerTable = function (column) {
             if (currentSortCol === column) {
                 sortAscending = !sortAscending; // Click karne par ulta (reverse) sort hoga
             } else {
                 currentSortCol = column;
-                sortAscending = true;
+                sortAscending = false; // Naye column par click karne par pehle Newest aayega
             }
+            window.applyCustomerSortAndFilter();
+        }
 
-            allCustomersData.sort((a, b) => {
-                if (column === 'name') {
-                    let nameA = (a.addresses && a.addresses[0]) ? a.addresses[0].fullName.toLowerCase() : '';
-                    let nameB = (b.addresses && b.addresses[0]) ? b.addresses[0].fullName.toLowerCase() : '';
-                    return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-                } else if (column === 'date') {
-                    let timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                    let timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                    return sortAscending ? timeB - timeA : timeA - timeB; // Default Newest first
+        // Search box me type karne wala function
+        window.filterCustomers = function () {
+            window.applyCustomerSortAndFilter();
+        }
+
+        // Main logic jo Search aur Sort dono ko ek sath handle karega
+        window.applyCustomerSortAndFilter = function () {
+            const searchTerm = document.getElementById('searchCustomerInput') ? document.getElementById('searchCustomerInput').value.toLowerCase().trim() : '';
+
+            // 1. Search Filter
+            let filteredData = allCustomersData.filter(c => {
+                let mobileMatch = c.mobileNumber && c.mobileNumber.includes(searchTerm);
+                let nameMatch = false;
+                if (c.addresses && c.addresses.length > 0 && typeof c.addresses[0] === 'object' && c.addresses[0].fullName) {
+                    nameMatch = c.addresses[0].fullName.toLowerCase().includes(searchTerm);
+                }
+                return mobileMatch || nameMatch;
+            });
+
+            // 2. Date Sorting (Join Date ya Last Active)
+            filteredData.sort((a, b) => {
+                if (currentSortCol === 'lastActive') {
+                    let timeA = a.lastLogin ? new Date(a.lastLogin).getTime() : 0;
+                    let timeB = b.lastLogin ? new Date(b.lastLogin).getTime() : 0;
+                    return sortAscending ? timeA - timeB : timeB - timeA;
+                } else {
+                    // Default Join Date Sort
+                    let timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.lastLogin ? new Date(a.lastLogin).getTime() : 0);
+                    let timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.lastLogin ? new Date(b.lastLogin).getTime() : 0);
+                    return sortAscending ? timeA - timeB : timeB - timeA;
                 }
             });
 
-            window.renderCustomersTable(allCustomersData);
+            // 3. Render Table
+            if (typeof window.renderCustomersTable === 'function') {
+                window.renderCustomersTable(filteredData);
+            }
         }
 
 
