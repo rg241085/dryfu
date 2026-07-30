@@ -609,31 +609,13 @@ let recaptchaWidgetId = null;
 
 window.openLoginModal = function (intent = 'checkout') {
     currentLoginIntent = intent;
-
-    // 🚀 NAYA LOGIC: Checkout se pehle Cart ka Total Check karna
-    if (intent === 'checkout') {
-        if (cart.length === 0) {
-            window.showToast("Your cart is empty!", false);
-            return;
-        }
-
-        // Cart ka total amount calculate karna
-        let sellingTotal = 0;
-        cart.forEach(item => { sellingTotal += (parseFloat(item.sellingPrice) * item.quantity); });
-
-        let minOrderVal = Number(appSettings.minOrderValue) || 0;
-
-        // Agar cart ka total Minimum Order Value se kam hai, toh rok do!
-        if (sellingTotal < minOrderVal) {
-            let difference = minOrderVal - sellingTotal;
-            window.showToast(`Minimum order amount is ₹${minOrderVal}. Please add items worth ₹${difference} more!`, false);
-            return; // Yahan se aage nahi badhne dega
-        }
-    }
-
     if (loggedInUser) {
         if (intent === 'checkout') { openCheckoutPage(); }
         else { openProfile(); }
+        return;
+    }
+    if (intent === 'checkout' && cart.length === 0) {
+        window.showToast("Your cart is empty!", false);
         return;
     }
 
@@ -852,7 +834,12 @@ window.renderCheckoutPage = async function (isSilentUpdate = false) {
         }
     }
 
-    let finalAmount = sellingTotal - checkoutState.couponDiscount;
+    let minOrderVal = Number(appSettings.minOrderValue) || 0;
+    let deliveryFee = Number(appSettings.deliveryCharge) || 0;
+    // Agar total minOrderVal se kam hai, tabhi charge lagega
+    let appliedDeliveryCharge = (sellingTotal < minOrderVal && minOrderVal > 0) ? deliveryFee : 0;
+
+    let finalAmount = sellingTotal - checkoutState.couponDiscount + appliedDeliveryCharge;
 
     let addressHtml = ``;
     let activeAddressDisplay = ``;
@@ -981,7 +968,7 @@ window.renderCheckoutPage = async function (isSilentUpdate = false) {
                 <div class="price-row"><span>Items Total</span><span>₹${mrpTotal}</span></div>
                 <div class="price-row discount"><span>Discount</span><span>-₹${itemDiscount}</span></div>
                 <div class="price-row discount" style="display: ${checkoutState.couponDiscount > 0 ? 'flex' : 'none'};"><span>Coupon Discount</span><span>-₹${checkoutState.couponDiscount}</span></div>
-                <div class="price-row"><span>Shipping</span><span><span style="color:#1e8354">FREE</span></span></div>
+               <div class="price-row"><span>Delivery Charge</span><span>${appliedDeliveryCharge > 0 ? '+₹' + appliedDeliveryCharge : '<span style="color:#1e8354">FREE</span>'}</span></div>
                 <div class="price-row total"><span>Total Amount</span><span>₹${finalAmount}</span></div>
             </div>
         </div>
@@ -1246,8 +1233,17 @@ window.finalizeOrder = async function () {
 
         let sellingTotal = 0;
         cart.forEach(item => { sellingTotal += (parseFloat(item.sellingPrice) * item.quantity); });
-        let finalGrandTotal = sellingTotal - checkoutState.couponDiscount;
 
+        // 🚀 NAYA: Delivery Charge Calculation
+        let minOrderVal = Number(appSettings.minOrderValue) || 0;
+        let deliveryFee = Number(appSettings.deliveryCharge) || 0;
+        let appliedDeliveryCharge = (sellingTotal < minOrderVal && minOrderVal > 0) ? deliveryFee : 0;
+
+        let minOrderVal = Number(appSettings.minOrderValue) || 0;
+        let deliveryFee = Number(appSettings.deliveryCharge) || 0;
+        let appliedDeliveryCharge = (sellingTotal < minOrderVal && minOrderVal > 0) ? deliveryFee : 0;
+
+        let finalGrandTotal = sellingTotal - checkoutState.couponDiscount + appliedDeliveryCharge;
         // 🌟 NAYA: Counter Logic (Total Orders count karke DF-100X banana)
         const orderCountSnap = await getCountFromServer(collection(db, "orders"));
         const nextOrderNum = 1000 + orderCountSnap.data().count + 1; // 1001 se start hoga
@@ -1259,6 +1255,7 @@ window.finalizeOrder = async function () {
             deliveryAddress: selectedAddress,
             items: cart,
             totalAmount: finalGrandTotal,
+            deliveryCharge: appliedDeliveryCharge, // 👈 YEH NAYI LINE ADD KAREIN
             couponApplied: checkoutState.couponCode || 'None',
             paymentMethod: checkoutState.paymentMethod,
             status: "New",
@@ -2970,7 +2967,8 @@ let appSettings = {
     returnPolicy: "Customer satisfaction is our priority. If you receive a damaged or incorrect item, please contact us within 2 days of delivery. Approved refunds will be processed within 5-7 working days directly to your original payment method.",
     privacyPolicy: "Your personal data is 100% safe and encrypted. We use your mobile number and address details strictly for order processing and delivery logistics. We never sell or share your data with any third-party marketing agencies.",
     shareText: "Hey! Check out DRYFU app for the best quality dry fruits and spices at amazing prices. Download now! 🛒✨",
-minOrderValue: 0 // 👈 YEH NAYI LINE
+    minOrderValue: 0, // 👈 YEH NAYI LINE
+    deliveryCharge: 0 // 👈 NAYI LINE
 };
 
 function listenAppSettings() {
