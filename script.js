@@ -609,13 +609,31 @@ let recaptchaWidgetId = null;
 
 window.openLoginModal = function (intent = 'checkout') {
     currentLoginIntent = intent;
+
+    // 🚀 NAYA LOGIC: Checkout se pehle Cart ka Total Check karna
+    if (intent === 'checkout') {
+        if (cart.length === 0) {
+            window.showToast("Your cart is empty!", false);
+            return;
+        }
+
+        // Cart ka total amount calculate karna
+        let sellingTotal = 0;
+        cart.forEach(item => { sellingTotal += (parseFloat(item.sellingPrice) * item.quantity); });
+
+        let minOrderVal = Number(appSettings.minOrderValue) || 0;
+
+        // Agar cart ka total Minimum Order Value se kam hai, toh rok do!
+        if (sellingTotal < minOrderVal) {
+            let difference = minOrderVal - sellingTotal;
+            window.showToast(`Minimum order amount is ₹${minOrderVal}. Please add items worth ₹${difference} more!`, false);
+            return; // Yahan se aage nahi badhne dega
+        }
+    }
+
     if (loggedInUser) {
         if (intent === 'checkout') { openCheckoutPage(); }
         else { openProfile(); }
-        return;
-    }
-    if (intent === 'checkout' && cart.length === 0) {
-        window.showToast("Your cart is empty!", false);
         return;
     }
 
@@ -2951,7 +2969,8 @@ let appSettings = {
     about: "Welcome to DRYFU! We are your most trusted destination for premium quality dry fruits, nuts, seeds, and exotic spices.\n\nOur mission is to bring 100% natural, unadulterated, and hand-picked goodness directly from the best farms to your doorstep at wholesale prices.\n\nEat Healthy, Live Better. 🌿",
     returnPolicy: "Customer satisfaction is our priority. If you receive a damaged or incorrect item, please contact us within 2 days of delivery. Approved refunds will be processed within 5-7 working days directly to your original payment method.",
     privacyPolicy: "Your personal data is 100% safe and encrypted. We use your mobile number and address details strictly for order processing and delivery logistics. We never sell or share your data with any third-party marketing agencies.",
-    shareText: "Hey! Check out DRYFU app for the best quality dry fruits and spices at amazing prices. Download now! 🛒✨"
+    shareText: "Hey! Check out DRYFU app for the best quality dry fruits and spices at amazing prices. Download now! 🛒✨",
+minOrderValue: 0 // 👈 YEH NAYI LINE
 };
 
 function listenAppSettings() {

@@ -186,6 +186,15 @@
                         </div>
                         <!-- 👆 NAYA: UPI ID BOX END -->
 
+                        <!-- 🌟 NAYA: Minimum Order Value Box 👇 -->
+                        <h3 style="margin-bottom: 15px; margin-top:20px; color: #128c7e;">6. Store Checkout Settings
+                        </h3>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label>Minimum Order Value (₹) - Isse kam ka order nahi lagega</label>
+                            <input type="number" id="setMinOrderValue" placeholder="e.g. 300">
+                        </div>
+                        <!-- 👆 NAYA: Minimum Order Value Box END -->
+
 
                         <button onclick="window.saveStoreInfo()" class="btn-submit"
                             style="width: 100%; margin-top: 20px; height: 45px; font-size: 16px;">💾 Save
@@ -2978,6 +2987,7 @@
                 document.getElementById('setReturn').value = data.returnPolicy || '';
                 document.getElementById('setPrivacy').value = data.privacyPolicy || '';
                 document.getElementById('setShareText').value = data.shareText || '';
+                document.getElementById('setMinOrderValue').value = data.minOrderValue || ''; // 👈 NAYI LINE
 
                 // 🌟 NAYA: UPI ID Load karna
                 document.getElementById('setUpiId').value = data.upiId || '';
@@ -2996,7 +3006,8 @@
                     shareText: document.getElementById('setShareText').value,
 
                     // 🌟 NAYA: UPI ID Save karna
-                    upiId: document.getElementById('setUpiId').value
+                    upiId: document.getElementById('setUpiId').value,
+                    minOrderValue: Number(document.getElementById('setMinOrderValue').value) || 0 // 👈 NAYI LINE (Comma ka dhyan rakhein)
                 }, { merge: true });
                 window.showToast("Store details saved successfully!");
             } catch (e) { window.showToast("Error saving data: " + e.message); }
