@@ -716,6 +716,15 @@
                                         price)</option>
                                 </select>
                             </div>
+                            <!-- NAYA: Secret Coupon Checkbox -->
+                            <div class="form-group"
+                                style="margin-bottom: 20px; background: #fff3cd; padding: 12px; border-radius: 6px; border: 1px solid #ffeeba;">
+                                <label
+                                    style="cursor: pointer; display: flex; align-items: center; gap: 10px; color: #856404; font-weight: bold; margin-bottom: 0;">
+                                    <input type="checkbox" id="couponIsSecret" style="width: 20px; height: 20px;">
+                                    🕵️‍♂️ Secret Coupon (App me kisi ko nahi dikhega)
+                                </label>
+                            </div>
 
                             <!-- Dynamic Sections Box -->
                             <div id="dynamic-coupon-fields"
@@ -1618,6 +1627,7 @@
             const startDate = document.getElementById('couponStartDate').value;
             const expiryDate = document.getElementById('couponExpiryDate').value;
             const type = document.getElementById('couponTypeSelect').value;
+            const isSecret = document.getElementById('couponIsSecret').checked;
 
             let details = {};
 
@@ -1661,6 +1671,7 @@
                     type: type,
                     details: details,
                     isActive: true,
+                    isSecret: isSecret, // 👈 YEH NAYI LINE ADD KARNI HAI
                     updatedAt: new Date().toISOString()
                 };
 
@@ -1756,6 +1767,7 @@
             document.getElementById('couponStartDate').value = c.startDate || '';
             document.getElementById('couponExpiryDate').value = c.expiryDate || '';
             document.getElementById('couponTypeSelect').value = c.type;
+            document.getElementById('couponIsSecret').checked = c.isSecret || false; // 👈 NAYI LINE
 
             // 3. Dropdown change trigger karo taaki sahi box khule
             document.getElementById('couponTypeSelect').dispatchEvent(new Event('change'));
@@ -3074,7 +3086,7 @@
             });
         }
 
-       
+
 
         let currentSortCol = 'joinDate'; // Default 
         let sortAscending = false; // Default newest first

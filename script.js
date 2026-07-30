@@ -998,8 +998,10 @@ window.renderAvailableCoupons = function () {
     let eligibleTotal = 0;
     cart.forEach(item => { if (!item.isPromoGift && !item.isFreeGift) eligibleTotal += (parseFloat(item.sellingPrice) * item.quantity); });
 
-    // 🌟 Sirf Valid (Non-Expired) Coupons Customer ko dikhayenge
+    // 🌟 Sirf Valid (Non-Expired) aur NON-SECRET Coupons Customer ko dikhayenge
     let validCoupons = availableCoupons.filter(c => {
+        if (c.isSecret) return false; // 🤫 SECRET COUPON KO LIST SE HATA DO (Yahi main jaadu hai)
+
         if (c.expiryDate) {
             return new Date(c.expiryDate) >= new Date(new Date().setHours(0, 0, 0, 0));
         }
