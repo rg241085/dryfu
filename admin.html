@@ -491,23 +491,25 @@
                                     placeholder="🔍 Search by Name or Mobile No..." onkeyup="filterCustomers()"
                                     style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
                             </div>
-                            <div class="filter-group" style="flex: 1; min-width: 200px; margin: 0;">
+                            <!-- <div class="filter-group" style="flex: 1; min-width: 200px; margin: 0;">
                                 <select id="sortCustomerSelect" onchange="filterCustomers()"
                                     style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-weight: bold; color: #128c7e;">
                                     <option value="NEWEST">Sort: Newest Joined First</option>
                                     <option value="OLDEST">Sort: Oldest Joined First</option>
                                 </select>
-                            </div>
+                            </div> -->
                         </div>
 
                         <div class="table-container">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Customer Info</th>
+                                        <th onclick="window.sortCustomerTable('name')"
+                                            style="cursor:pointer; color:#128c7e;">Customer Info ↕️</th>
                                         <th>Contact</th>
-                                        <th>Join Date & Time</th> <!-- 🌟 NAYA ALAG KIYA -->
-                                        <th>Last Active</th> <!-- 🌟 NAYA ALAG KIYA -->
+                                        <th onclick="window.sortCustomerTable('date')"
+                                            style="cursor:pointer; color:#128c7e;">Join Date ↕️</th>
+                                        <th>Last Active</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -3070,6 +3072,33 @@
                 window.showToast("Failed to copy. Please try again.", "error");
             });
         }
+
+        let currentSortCol = '';
+        let sortAscending = true;
+
+        window.sortCustomerTable = function (column) {
+            if (currentSortCol === column) {
+                sortAscending = !sortAscending; // Click karne par ulta (reverse) sort hoga
+            } else {
+                currentSortCol = column;
+                sortAscending = true;
+            }
+
+            allCustomersData.sort((a, b) => {
+                if (column === 'name') {
+                    let nameA = (a.addresses && a.addresses[0]) ? a.addresses[0].fullName.toLowerCase() : '';
+                    let nameB = (b.addresses && b.addresses[0]) ? b.addresses[0].fullName.toLowerCase() : '';
+                    return sortAscending ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                } else if (column === 'date') {
+                    let timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    let timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    return sortAscending ? timeB - timeA : timeA - timeB; // Default Newest first
+                }
+            });
+
+            window.renderCustomersTable(allCustomersData);
+        }
+
 
     </script>
     <div id="admin-toast"
