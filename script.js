@@ -610,6 +610,7 @@ function renderCartItems() {
 // ==========================================
 
 let recaptchaWidgetId = null;
+let otpTimerInterval; // 👈 Naya variable
 
 window.openLoginModal = function (intent = 'checkout') {
     currentLoginIntent = intent;
@@ -648,8 +649,39 @@ window.resetLoginUI = function () {
     document.getElementById('loginHelpText').innerText = "Please enter your 10-digit mobile number.";
     document.getElementById('mobileNumber').value = "";
     document.getElementById('otpInput').value = "";
+    
+    // 🌟 NAYA: Purana timer clear karein
+    if (otpTimerInterval) clearInterval(otpTimerInterval);
 }
 
+// 🌟 NAYA FUNCTION: 30 Second ka Timer Chalane Ke Liye
+window.startOtpTimer = function () {
+    let timeLeft = 30; // 30 second ka timer
+    document.getElementById('otpTimerText').style.display = 'inline';
+    document.getElementById('resendOtpLink').style.display = 'none';
+    document.getElementById('otpCountdown').innerText = timeLeft;
+
+    if (otpTimerInterval) clearInterval(otpTimerInterval);
+    
+    otpTimerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('otpCountdown').innerText = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(otpTimerInterval);
+            document.getElementById('otpTimerText').style.display = 'none';
+            document.getElementById('resendOtpLink').style.display = 'inline'; // 30 sec baad button dikhega
+        }
+    }, 1000);
+}
+
+// 🌟 NAYA FUNCTION: Resend Button Click Ke Liye
+window.resendOTP = function () {
+    document.getElementById('otpInput').value = ''; // Purana type kiya hua OTP hatao
+    window.sendOTP(); // Wapas OTP request bhejo
+}
+
+// 🌟 UPDATE: Send OTP Function me Timer start karna hai
 window.sendOTP = function () {
     const mobile = document.getElementById('mobileNumber').value.trim();
     const btn = document.getElementById('sendOtpBtn');
@@ -672,6 +704,10 @@ window.sendOTP = function () {
             document.getElementById('loginHelpText').innerHTML = `OTP sent to <strong>+91 ${mobile}</strong>`;
             btn.innerText = "Send OTP";
             btn.disabled = false;
+            
+            // 🚀 NAYA: OTP jaate hi Timer shuru karo
+            window.startOtpTimer(); 
+            
         }).catch((error) => {
             console.error("SMS not sent", error);
             window.showToast("SMS not sent: " + error.message, false);

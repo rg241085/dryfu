@@ -226,6 +226,16 @@
                     <button type="button" id="verifyOtpBtn" class="btn-checkout btn-full" onclick="verifyOTP()">Verify
                         OTP & Login</button>
 
+                    <!-- 🌟 NAYA: Resend OTP Timer & Button -->
+                    <div style="text-align: center; margin-top: 15px;">
+                        <span id="otpTimerText" style="font-size: 13px; color: #666;">Resend OTP in <strong
+                                id="otpCountdown">30</strong>s</span>
+                        <a href="#" id="resendOtpLink" onclick="resendOTP()"
+                            style="display: none; color: #f59e0b; text-decoration: underline; font-size: 14px; font-weight: 800;">🔄
+                            Resend OTP</a>
+                    </div>
+                    <!-- 👆 NAYA CODE END -->
+
                     <p style="text-align: center; margin-top: 15px; font-size: 13px;">
                         <a href="#" onclick="resetLoginUI()" style="color: #128c7e; text-decoration: underline;">Change
                             Mobile Number</a>
