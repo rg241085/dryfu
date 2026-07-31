@@ -5,13 +5,14 @@ const axios = require("axios");
 admin.initializeApp();
 const db = admin.firestore();
 
-// 🛑 YAHAN APNA UOMOX API TOKEN DALEIN (Inverted commas ke andar)
+// YAHAN APNA UOMOX API TOKEN DALEIN
 const UOMOX_API_TOKEN = "266af627-77df-4966-84de-10470faa01f6";
 const UOMOX_TEMPLATE_NAME = "dryfu_authentication"; // Aapka template name
 
 // 1️⃣ OTP BHEJNE KA FUNCTION
-exports.sendOtp = functions.https.onCall(async (data, context) => {
-    const mobile = data.mobile; // e.g. "919876543210"
+exports.sendOtp = functions.https.onCall(async (reqData, context) => {
+    // 🔥 Firebase Update Fix: Data chahe kisi bhi format me aaye, yeh number nikal lega
+    const mobile = reqData.mobile || (reqData.data && reqData.data.mobile) || (reqData.body && reqData.body.mobile);
 
     if (!mobile) {
         throw new functions.https.HttpsError('invalid-argument', 'Mobile number is required');
@@ -57,9 +58,14 @@ exports.sendOtp = functions.https.onCall(async (data, context) => {
 });
 
 // 2️⃣ OTP VERIFY KARNE KA FUNCTION
-exports.verifyOtp = functions.https.onCall(async (data, context) => {
-    const mobile = data.mobile;
-    const userOtp = data.otp;
+exports.verifyOtp = functions.https.onCall(async (reqData, context) => {
+    // 🔥 Bulletproof Check for Verify
+    const mobile = reqData.mobile || (reqData.data && reqData.data.mobile) || (reqData.body && reqData.body.mobile);
+    const userOtp = reqData.otp || (reqData.data && reqData.data.otp) || (reqData.body && reqData.body.otp);
+
+    if (!mobile || !userOtp) {
+        throw new functions.https.HttpsError('invalid-argument', 'Mobile and OTP are required');
+    }
 
     const docRef = db.collection("otp_codes").doc(mobile);
     const docSnap = await docRef.get();
@@ -71,13 +77,10 @@ exports.verifyOtp = functions.https.onCall(async (data, context) => {
     const savedOtp = docSnap.data().otp;
 
     if (savedOtp === userOtp) {
-        // OTP sahi hai! Login ke liye Firebase Token banayein
         const uid = "+" + mobile;
         const customToken = await admin.auth().createCustomToken(uid);
 
-        // Use hone ke baad OTP delete kar dein (Security ke liye)
         await docRef.delete();
-
         return { success: true, token: customToken };
     } else {
         throw new functions.https.HttpsError('invalid-argument', 'Incorrect OTP');
