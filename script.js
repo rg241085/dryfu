@@ -682,10 +682,13 @@ window.resendOTP = function () {
     window.sendOTP(); // Wapas OTP request bhejo
 }
 
-// 🌟 UPDATE: Direct API Call for Send OTP (100% Reliable)
+// 🌟 FINAL UPDATE: Direct API Call for Send OTP
 window.sendOTP = async function () {
     const mobile = document.getElementById('mobileNumber').value.trim();
     const btn = document.getElementById('sendOtpBtn');
+
+    // 1. Pehle check karein number uth raha hai ya nahi
+    console.log("👉 1. User ne number daala:", mobile);
 
     if (mobile.length !== 10) {
         window.showToast("Please enter a valid 10-digit mobile number", false);
@@ -696,36 +699,45 @@ window.sendOTP = async function () {
     btn.disabled = true;
 
     const phoneNumber = "91" + mobile;
+    console.log("👉 2. Final Number jo server ko jayega:", phoneNumber);
+
     // Aapke backend ka direct link
     const functionUrl = "https://us-central1-rd-catalog.cloudfunctions.net/sendOtp";
 
     try {
-        // Direct HTTP Request (Firebase SDK ke nakhre bypass karne ke liye)
+        console.log("👉 3. Server ko request bhej rahe hain...");
+
+        // Direct request bhej rahe hain (Bina Firebase SDK ke)
         const response = await fetch(functionUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: { mobile: phoneNumber } }) // Data proper pack karke bhej rahe hain
+            headers: {
+                "Content-Type": "application/json"
+            },
+            // Backend ko exactly 'data' object ke andar number chahiye hota hai
+            body: JSON.stringify({
+                data: { mobile: phoneNumber }
+            })
         });
 
         const result = await response.json();
+        console.log("👉 4. Server ka jawab aaya:", result);
 
-        // Agar backend ne koi error diya hai
+        // Agar server ne koi error diya hai
         if (result.error) {
             throw new Error(result.error.message);
         }
 
-        // Success hone par UI update karein
+        // Success hone par OTP wali screen dikhayein
         document.getElementById('step1-phone').style.display = 'none';
         document.getElementById('step2-otp').style.display = 'block';
         document.getElementById('loginHelpText').innerHTML = `WhatsApp OTP sent to <strong>+91 ${mobile}</strong>`;
         btn.innerText = "Send OTP";
         btn.disabled = false;
 
-        // Timer shuru karo
         window.startOtpTimer();
 
     } catch (error) {
-        console.error("WhatsApp OTP error:", error);
+        console.error("❌ WhatsApp OTP error:", error);
         window.showToast("Failed to send OTP. Please try again.", false);
         btn.innerText = "Send OTP";
         btn.disabled = false;
