@@ -682,7 +682,7 @@ window.resendOTP = function () {
     window.sendOTP(); // Wapas OTP request bhejo
 }
 
-// 🌟 UPDATE: WhatsApp OTP Send Karne Ka Naya Code
+// 🌟 UPDATE: Direct API Call for Send OTP (100% Reliable)
 window.sendOTP = async function () {
     const mobile = document.getElementById('mobileNumber').value.trim();
     const btn = document.getElementById('sendOtpBtn');
@@ -695,16 +695,26 @@ window.sendOTP = async function () {
     btn.innerText = "Sending WhatsApp OTP...";
     btn.disabled = true;
 
-    // Number ke aage 91 lagana zaroori hai
     const phoneNumber = "91" + mobile;
+    // Aapke backend ka direct link
+    const functionUrl = "https://us-central1-rd-catalog.cloudfunctions.net/sendOtp";
 
     try {
-        // Backend (Cloud Functions) ko call kar rahe hain
-        const functions = getFunctions();
-        const sendOtpFn = httpsCallable(functions, 'sendOtp');
+        // Direct HTTP Request (Firebase SDK ke nakhre bypass karne ke liye)
+        const response = await fetch(functionUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: { mobile: phoneNumber } }) // Data proper pack karke bhej rahe hain
+        });
 
-        await sendOtpFn({ mobile: phoneNumber });
+        const result = await response.json();
 
+        // Agar backend ne koi error diya hai
+        if (result.error) {
+            throw new Error(result.error.message);
+        }
+
+        // Success hone par UI update karein
         document.getElementById('step1-phone').style.display = 'none';
         document.getElementById('step2-otp').style.display = 'block';
         document.getElementById('loginHelpText').innerHTML = `WhatsApp OTP sent to <strong>+91 ${mobile}</strong>`;
@@ -715,14 +725,14 @@ window.sendOTP = async function () {
         window.startOtpTimer();
 
     } catch (error) {
-        console.error("WhatsApp OTP error", error);
+        console.error("WhatsApp OTP error:", error);
         window.showToast("Failed to send OTP. Please try again.", false);
         btn.innerText = "Send OTP";
         btn.disabled = false;
     }
 }
 
-// 🌟 UPDATE: WhatsApp OTP Verify Karne Ka Naya Code
+// 🌟 UPDATE: Direct API Call for Verify OTP
 window.verifyOTP = async function () {
     const otpCode = document.getElementById('otpInput').value.trim();
     const btn = document.getElementById('verifyOtpBtn');
@@ -737,21 +747,28 @@ window.verifyOTP = async function () {
     btn.disabled = true;
 
     const phoneNumber = "91" + mobile;
+    const functionUrl = "https://us-central1-rd-catalog.cloudfunctions.net/verifyOtp";
 
     try {
-        // Backend (Cloud Functions) par OTP check karwayein
-        const functions = getFunctions();
-        const verifyOtpFn = httpsCallable(functions, 'verifyOtp');
+        const response = await fetch(functionUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: { mobile: phoneNumber, otp: otpCode } })
+        });
 
-        const result = await verifyOtpFn({ mobile: phoneNumber, otp: otpCode });
+        const responseData = await response.json();
 
-        // Agar OTP sahi hai, toh backend ek secure Custom Token dega
-        const customToken = result.data.token;
+        if (responseData.error) {
+            throw new Error(responseData.error.message);
+        }
+
+        // Backend se mila hua secure Custom Token nikalein
+        const customToken = responseData.result.token;
 
         // Us token se Firebase me bina SMS ke login karein
         await signInWithCustomToken(auth, customToken);
 
-        // 👇 YAHAN SE NICHE AAPKA PURANA CUSTOMER SAVE WALA LOGIC SAME HAI 👇
+        // 👇 YAHAN SE NICHE AAPKA PURANA CUSTOMER SAVE WALA LOGIC 👇
         const customerRef = doc(db, "customers", mobile);
         const docSnap = await getDoc(customerRef);
 
@@ -786,7 +803,7 @@ window.verifyOTP = async function () {
             openProfile();
         }
     } catch (error) {
-        console.error("OTP Verification failed", error);
+        console.error("OTP Verification failed:", error);
         window.showToast("Invalid OTP! Please check the code sent on WhatsApp.", false);
         btn.innerText = "Verify OTP & Login";
         btn.disabled = false;
