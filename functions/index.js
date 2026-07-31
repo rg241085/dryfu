@@ -1,65 +1,85 @@
-const functions = require('firebase-functions/v1');
-const admin = require('firebase-admin');
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const axios = require("axios");
+
 admin.initializeApp();
+const db = admin.firestore();
 
-exports.sendLiveNotification = functions.firestore
-    .document('notifications/{docId}')
-    .onCreate(async (snap, context) => {
-        const notifData = snap.data();
+// 🛑 YAHAN APNA UOMOX API TOKEN DALEIN (Inverted commas ke andar)
+const UOMOX_API_TOKEN = "266af627-77df-4966-84de-10470faa01f6";
+const UOMOX_TEMPLATE_NAME = "dryfu_authentication"; // Aapka template name
 
-        if (!notifData) {
-            console.log("No data found");
-            return null;
-        }
+// 1️⃣ OTP BHEJNE KA FUNCTION
+exports.sendOtp = functions.https.onCall(async (data, context) => {
+    const mobile = data.mobile; // e.g. "919876543210"
 
-        const title = notifData.title;
-        const body = notifData.body;
+    if (!mobile) {
+        throw new functions.https.HttpsError('invalid-argument', 'Mobile number is required');
+    }
 
-        // 🌟 Agar admin ne link nahi dala, toh aapka home page khulega
-        const clickLink = notifData.link || "https://rg241085.github.io/dryfu";
-        const imageUrl = notifData.image;
+    // 6-digit ka random OTP banayein
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        try {
-            const customersSnap = await admin.firestore().collection('customers').get();
-            const tokens = [];
-
-            customersSnap.forEach(doc => {
-                const data = doc.data();
-                if (data.fcmToken) {
-                    tokens.push(data.fcmToken);
-                }
-            });
-
-            if (tokens.length === 0) {
-                console.log("Koi FCM token nahi mila.");
-                return snap.ref.update({ status: 'failed', reason: 'No tokens found' });
-            }
-
-            const message = {
-                notification: {
-                    title: title,
-                    body: body,
-                    ...(imageUrl && { image: imageUrl })
-                },
-                webpush: {
-                    fcmOptions: {
-                        link: clickLink
-                    }
-                },
-                tokens: tokens
-            };
-
-            const response = await admin.messaging().sendEachForMulticast(message);
-            console.log(response.successCount + ' messages successfully send ho gaye');
-
-            return snap.ref.update({
-                status: 'sent',
-                successCount: response.successCount,
-                failureCount: response.failureCount
-            });
-
-        } catch (error) {
-            console.error('Notification error:', error);
-            return snap.ref.update({ status: 'failed', error: error.message });
-        }
+    // OTP ko Firebase me save karein
+    await db.collection("otp_codes").doc(mobile).set({
+        otp: otp,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
+
+    // UOMOX API ke through WhatsApp par OTP bhejein
+    try {
+        await axios.post('https://api.uomox.com/services/V1/whatsapp/template', {
+            "messaging_product": "whatsapp",
+            "to": mobile,
+            "type": "template",
+            "template": {
+                "name": UOMOX_TEMPLATE_NAME,
+                "language": { "code": "en_US" },
+                "components": [
+                    {
+                        "type": "body",
+                        "parameters": [{ "type": "text", "text": otp }]
+                    }
+                ]
+            }
+        }, {
+            headers: {
+                'Authorization': `Bearer ${UOMOX_API_TOKEN}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        return { success: true, message: "OTP Sent via WhatsApp" };
+    } catch (error) {
+        console.error("WhatsApp API Error:", error.response ? error.response.data : error.message);
+        throw new functions.https.HttpsError('internal', 'Failed to send WhatsApp OTP');
+    }
+});
+
+// 2️⃣ OTP VERIFY KARNE KA FUNCTION
+exports.verifyOtp = functions.https.onCall(async (data, context) => {
+    const mobile = data.mobile;
+    const userOtp = data.otp;
+
+    const docRef = db.collection("otp_codes").doc(mobile);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+        throw new functions.https.HttpsError('not-found', 'OTP expired or not requested');
+    }
+
+    const savedOtp = docSnap.data().otp;
+
+    if (savedOtp === userOtp) {
+        // OTP sahi hai! Login ke liye Firebase Token banayein
+        const uid = "+" + mobile;
+        const customToken = await admin.auth().createCustomToken(uid);
+
+        // Use hone ke baad OTP delete kar dein (Security ke liye)
+        await docRef.delete();
+
+        return { success: true, token: customToken };
+    } else {
+        throw new functions.https.HttpsError('invalid-argument', 'Incorrect OTP');
+    }
+});

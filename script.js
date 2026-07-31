@@ -2,8 +2,9 @@ import { messaging } from "./firebase-config.js";
 import { getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
 import { collection, onSnapshot, addDoc, doc, setDoc, query, where, getDocs, updateDoc, arrayUnion, getDoc, increment, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { RecaptchaVerifier, signInWithPhoneNumber, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 auth.useDeviceLanguage();
 
 const mainContainer = document.getElementById('catalog-main');
@@ -649,7 +650,7 @@ window.resetLoginUI = function () {
     document.getElementById('loginHelpText').innerText = "Please enter your 10-digit mobile number.";
     document.getElementById('mobileNumber').value = "";
     document.getElementById('otpInput').value = "";
-    
+
     // 🌟 NAYA: Purana timer clear karein
     if (otpTimerInterval) clearInterval(otpTimerInterval);
 }
@@ -662,11 +663,11 @@ window.startOtpTimer = function () {
     document.getElementById('otpCountdown').innerText = timeLeft;
 
     if (otpTimerInterval) clearInterval(otpTimerInterval);
-    
+
     otpTimerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById('otpCountdown').innerText = timeLeft;
-        
+
         if (timeLeft <= 0) {
             clearInterval(otpTimerInterval);
             document.getElementById('otpTimerText').style.display = 'none';
@@ -681,8 +682,8 @@ window.resendOTP = function () {
     window.sendOTP(); // Wapas OTP request bhejo
 }
 
-// 🌟 UPDATE: Send OTP Function me Timer start karna hai
-window.sendOTP = function () {
+// 🌟 UPDATE: WhatsApp OTP Send Karne Ka Naya Code
+window.sendOTP = async function () {
     const mobile = document.getElementById('mobileNumber').value.trim();
     const btn = document.getElementById('sendOtpBtn');
 
@@ -691,34 +692,37 @@ window.sendOTP = function () {
         return;
     }
 
-    btn.innerText = "Sending OTP...";
+    btn.innerText = "Sending WhatsApp OTP...";
     btn.disabled = true;
 
-    const phoneNumber = "+91" + mobile;
+    // Number ke aage 91 lagana zaroori hai
+    const phoneNumber = "91" + mobile;
 
-    signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
-        .then((confirmationResult) => {
-            window.confirmationResult = confirmationResult;
-            document.getElementById('step1-phone').style.display = 'none';
-            document.getElementById('step2-otp').style.display = 'block';
-            document.getElementById('loginHelpText').innerHTML = `OTP sent to <strong>+91 ${mobile}</strong>`;
-            btn.innerText = "Send OTP";
-            btn.disabled = false;
-            
-            // 🚀 NAYA: OTP jaate hi Timer shuru karo
-            window.startOtpTimer(); 
-            
-        }).catch((error) => {
-            console.error("SMS not sent", error);
-            window.showToast("SMS not sent: " + error.message, false);
-            btn.innerText = "Send OTP";
-            btn.disabled = false;
-            if (recaptchaWidgetId !== null) {
-                try { grecaptcha.reset(recaptchaWidgetId); } catch (e) { }
-            }
-        });
+    try {
+        // Backend (Cloud Functions) ko call kar rahe hain
+        const functions = getFunctions();
+        const sendOtpFn = httpsCallable(functions, 'sendOtp');
+
+        await sendOtpFn({ mobile: phoneNumber });
+
+        document.getElementById('step1-phone').style.display = 'none';
+        document.getElementById('step2-otp').style.display = 'block';
+        document.getElementById('loginHelpText').innerHTML = `WhatsApp OTP sent to <strong>+91 ${mobile}</strong>`;
+        btn.innerText = "Send OTP";
+        btn.disabled = false;
+
+        // Timer shuru karo
+        window.startOtpTimer();
+
+    } catch (error) {
+        console.error("WhatsApp OTP error", error);
+        window.showToast("Failed to send OTP. Please try again.", false);
+        btn.innerText = "Send OTP";
+        btn.disabled = false;
+    }
 }
 
+// 🌟 UPDATE: WhatsApp OTP Verify Karne Ka Naya Code
 window.verifyOTP = async function () {
     const otpCode = document.getElementById('otpInput').value.trim();
     const btn = document.getElementById('verifyOtpBtn');
@@ -732,26 +736,32 @@ window.verifyOTP = async function () {
     btn.innerText = "Verifying...";
     btn.disabled = true;
 
-    try {
-        const result = await window.confirmationResult.confirm(otpCode);
+    const phoneNumber = "91" + mobile;
 
-        // 🚀 NAYA LOGIC: Check karo customer naya hai ya purana
+    try {
+        // Backend (Cloud Functions) par OTP check karwayein
+        const functions = getFunctions();
+        const verifyOtpFn = httpsCallable(functions, 'verifyOtp');
+
+        const result = await verifyOtpFn({ mobile: phoneNumber, otp: otpCode });
+
+        // Agar OTP sahi hai, toh backend ek secure Custom Token dega
+        const customToken = result.data.token;
+
+        // Us token se Firebase me bina SMS ke login karein
+        await signInWithCustomToken(auth, customToken);
+
+        // 👇 YAHAN SE NICHE AAPKA PURANA CUSTOMER SAVE WALA LOGIC SAME HAI 👇
         const customerRef = doc(db, "customers", mobile);
         const docSnap = await getDoc(customerRef);
 
         if (docSnap.exists()) {
             let updateData = { lastLogin: new Date().toISOString() };
-
-            // Agar purane customer me galti se createdAt miss ho gaya tha, 
-            // toh usko permanently fix kar denge taaki aage date change na ho.
             if (!docSnap.data().createdAt) {
                 updateData.createdAt = new Date().toISOString();
             }
-
-            // Purana customer hai, sirf update karo
             await updateDoc(customerRef, updateData);
         } else {
-            // Bilkul naya customer hai, dono dates (Join & Last Login) save karo
             await setDoc(customerRef, {
                 mobileNumber: mobile,
                 createdAt: new Date().toISOString(),
@@ -777,7 +787,7 @@ window.verifyOTP = async function () {
         }
     } catch (error) {
         console.error("OTP Verification failed", error);
-        window.showToast("Invalid OTP! Please enter the correct code.", false);
+        window.showToast("Invalid OTP! Please check the code sent on WhatsApp.", false);
         btn.innerText = "Verify OTP & Login";
         btn.disabled = false;
     }
