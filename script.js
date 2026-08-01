@@ -774,6 +774,7 @@ window.verifyOTP = async function () {
             // PIN nahi hai, Create PIN wala form dikhao
             document.getElementById('step2-otp').style.display = 'none';
             document.getElementById('step4-create-pin').style.display = 'block';
+            document.getElementById('step3-enter-pin').style.display = 'none'; // Safety ke liye ise band kiya
             document.getElementById('loginHelpText').innerText = "Almost done!";
         }
     } catch (error) {
@@ -3321,6 +3322,7 @@ window.checkMobileAndProceed = async function () {
             // 🎉 Purana customer hai aur PIN set hai! PIN wali screen dikhao.
             document.getElementById('step1-phone').style.display = 'none';
             document.getElementById('step3-enter-pin').style.display = 'block';
+            document.getElementById('step4-create-pin').style.display = 'none'; // Safety ke liye ise band kiya
             document.getElementById('welcomeBackText').innerHTML = `Welcome back, <strong>+91 ${mobile}</strong>!`;
 
             // Button wapas theek kar do next time ke liye
