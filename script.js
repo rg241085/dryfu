@@ -2,7 +2,7 @@ import { messaging } from "./firebase-config.js";
 import { getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
 import { collection, onSnapshot, addDoc, doc, setDoc, query, where, getDocs, updateDoc, arrayUnion, getDoc, increment, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { RecaptchaVerifier, signInWithPhoneNumber, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { db, auth } from "./firebase-config.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 auth.useDeviceLanguage();
@@ -682,66 +682,41 @@ window.resendOTP = function () {
     window.sendOTP(); // Wapas OTP request bhejo
 }
 
-// 🌟 FINAL UPDATE: Direct API Call for Send OTP
-window.sendOTP = async function () {
+window.sendOTP = function () {
     const mobile = document.getElementById('mobileNumber').value.trim();
     const btn = document.getElementById('sendOtpBtn');
-
-    // 1. Pehle check karein number uth raha hai ya nahi
-    console.log("👉 1. User ne number daala:", mobile);
 
     if (mobile.length !== 10) {
         window.showToast("Please enter a valid 10-digit mobile number", false);
         return;
     }
 
-    btn.innerText = "Sending WhatsApp OTP...";
+    btn.innerText = "Sending OTP...";
     btn.disabled = true;
 
-    const phoneNumber = "91" + mobile;
-    console.log("👉 2. Final Number jo server ko jayega:", phoneNumber);
+    const phoneNumber = "+91" + mobile;
 
-    // Aapke backend ka direct link
-    const functionUrl = "https://us-central1-rd-catalog.cloudfunctions.net/sendOtp";
+    signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
+        .then((confirmationResult) => {
+            window.confirmationResult = confirmationResult;
+            document.getElementById('step1-phone').style.display = 'none';
+            document.getElementById('step2-otp').style.display = 'block';
+            document.getElementById('loginHelpText').innerHTML = `OTP sent to <strong>+91 ${mobile}</strong>`;
+            btn.innerText = "Send OTP";
+            btn.disabled = false;
 
-    try {
-        console.log("👉 3. Server ko request bhej rahe hain...");
+            // 🚀 NAYA: OTP jaate hi Timer shuru karo
+            window.startOtpTimer();
 
-        // Direct request bhej rahe hain (Bina Firebase SDK ke)
-        const response = await fetch(functionUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            // Backend ko exactly 'data' object ke andar number chahiye hota hai
-            body: JSON.stringify({
-                data: { mobile: phoneNumber }
-            })
+        }).catch((error) => {
+            console.error("SMS not sent", error);
+            window.showToast("SMS not sent: " + error.message, false);
+            btn.innerText = "Send OTP";
+            btn.disabled = false;
+            if (recaptchaWidgetId !== null) {
+                try { grecaptcha.reset(recaptchaWidgetId); } catch (e) { }
+            }
         });
-
-        const result = await response.json();
-        console.log("👉 4. Server ka jawab aaya:", result);
-
-        // Agar server ne koi error diya hai
-        if (result.error) {
-            throw new Error(result.error.message);
-        }
-
-        // Success hone par OTP wali screen dikhayein
-        document.getElementById('step1-phone').style.display = 'none';
-        document.getElementById('step2-otp').style.display = 'block';
-        document.getElementById('loginHelpText').innerHTML = `WhatsApp OTP sent to <strong>+91 ${mobile}</strong>`;
-        btn.innerText = "Send OTP";
-        btn.disabled = false;
-
-        window.startOtpTimer();
-
-    } catch (error) {
-        console.error("❌ WhatsApp OTP error:", error);
-        window.showToast("Failed to send OTP. Please try again.", false);
-        btn.innerText = "Send OTP";
-        btn.disabled = false;
-    }
 }
 
 // 🌟 UPDATE: Direct API Call for Verify OTP
@@ -758,37 +733,20 @@ window.verifyOTP = async function () {
     btn.innerText = "Verifying...";
     btn.disabled = true;
 
-    const phoneNumber = "91" + mobile;
-    const functionUrl = "https://us-central1-rd-catalog.cloudfunctions.net/verifyOtp";
-
     try {
-        const response = await fetch(functionUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: { mobile: phoneNumber, otp: otpCode } })
-        });
+        const result = await window.confirmationResult.confirm(otpCode);
 
-        const responseData = await response.json();
-
-        if (responseData.error) {
-            throw new Error(responseData.error.message);
-        }
-
-        // Backend se mila hua secure Custom Token nikalein
-        const customToken = responseData.result.token;
-
-        // Us token se Firebase me bina SMS ke login karein
-        await signInWithCustomToken(auth, customToken);
-
-        // 👇 YAHAN SE NICHE AAPKA PURANA CUSTOMER SAVE WALA LOGIC 👇
+        // 🚀 NAYA LOGIC: Check karo customer naya hai ya purana
         const customerRef = doc(db, "customers", mobile);
         const docSnap = await getDoc(customerRef);
 
         if (docSnap.exists()) {
             let updateData = { lastLogin: new Date().toISOString() };
+
             if (!docSnap.data().createdAt) {
                 updateData.createdAt = new Date().toISOString();
             }
+
             await updateDoc(customerRef, updateData);
         } else {
             await setDoc(customerRef, {
@@ -805,18 +763,22 @@ window.verifyOTP = async function () {
             window.requestNotificationPermission();
         }
 
-        closeLoginModal();
         btn.innerText = "Verify OTP & Login";
         btn.disabled = false;
 
-        if (currentLoginIntent === 'checkout') {
-            openCheckoutPage();
-        } else if (currentLoginIntent === 'profile') {
-            openProfile();
+        // 🚀 NAYA LOGIC: Agar user ke paas pehle se PIN nahi hai, toh PIN Create screen dikhao
+        if (docSnap.exists() && docSnap.data().loginPin) {
+            // PIN hai, seedha andar bhejo
+            window.skipPINAndLogin();
+        } else {
+            // PIN nahi hai, Create PIN wala form dikhao
+            document.getElementById('step2-otp').style.display = 'none';
+            document.getElementById('step4-create-pin').style.display = 'block';
+            document.getElementById('loginHelpText').innerText = "Almost done!";
         }
     } catch (error) {
-        console.error("OTP Verification failed:", error);
-        window.showToast("Invalid OTP! Please check the code sent on WhatsApp.", false);
+        console.error("OTP Verification failed", error);
+        window.showToast("Invalid OTP! Please enter the correct code.", false);
         btn.innerText = "Verify OTP & Login";
         btn.disabled = false;
     }
@@ -3238,6 +3200,144 @@ window.requestNotificationPermission = async function () {
         console.error("Notification permission error", error);
     }
 }
+
+// ==========================================
+// 🌟 4-DIGIT PIN SYSTEM LOGIC
+// ==========================================
+
+// 1. PIN ke sath Login karna (Purane users ke liye)
+window.loginWithPIN = async function () {
+    const mobile = document.getElementById('mobileNumber').value.trim();
+    const enteredPin = document.getElementById('loginPinInput').value.trim();
+    const btn = document.getElementById('loginWithPinBtn');
+
+    if (enteredPin.length !== 4) {
+        window.showToast("Please enter a 4-digit PIN", false);
+        return;
+    }
+
+    btn.innerText = "Verifying...";
+    btn.disabled = true;
+
+    try {
+        const customerRef = doc(db, "customers", mobile);
+        const docSnap = await getDoc(customerRef);
+
+        if (docSnap.exists() && docSnap.data().loginPin === enteredPin) {
+            // PIN Match ho gaya! 🎉
+            await updateDoc(customerRef, { lastLogin: new Date().toISOString() });
+
+            loggedInUser = mobile;
+            localStorage.setItem('customerMobile', mobile);
+
+            closeLoginModal();
+            window.showToast("Logged in successfully! 🚀", true);
+
+            if (currentLoginIntent === 'checkout') openCheckoutPage();
+            else if (currentLoginIntent === 'profile') openProfile();
+
+        } else {
+            window.showToast("Incorrect PIN! Try again or use OTP.", false);
+        }
+    } catch (error) {
+        console.error("PIN Login Error:", error);
+        window.showToast("Something went wrong. Please try again.", false);
+    }
+
+    btn.innerText = "Login";
+    btn.disabled = false;
+}
+
+// 2. Forgot PIN (Wapas OTP wali screen par bhejna)
+window.forgotPIN = function () {
+    document.getElementById('step3-enter-pin').style.display = 'none';
+    // OTP bhej do kyunki wo PIN bhool gaya hai
+    window.sendOTP();
+}
+
+// 3. Naya PIN Save karna (Naye users ke liye OTP ke baad)
+window.saveNewPIN = async function () {
+    const mobile = document.getElementById('mobileNumber').value.trim();
+    const pin1 = document.getElementById('newPinInput').value.trim();
+    const pin2 = document.getElementById('confirmPinInput').value.trim();
+    const btn = document.getElementById('savePinBtn');
+
+    if (pin1.length !== 4 || pin2.length !== 4) {
+        window.showToast("PIN must be exactly 4 digits.", false);
+        return;
+    }
+    if (pin1 !== pin2) {
+        window.showToast("PINs do not match!", false);
+        return;
+    }
+
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+
+    try {
+        const customerRef = doc(db, "customers", mobile);
+        await updateDoc(customerRef, { loginPin: pin1 });
+
+        window.showToast("PIN saved successfully! 🎉", true);
+        window.skipPINAndLogin(); // Save hone ke baad app me entry de do
+    } catch (error) {
+        console.error("Error saving PIN:", error);
+        window.showToast("Failed to save PIN. Please try again.", false);
+        btn.innerText = "Save PIN & Login";
+        btn.disabled = false;
+    }
+}
+
+// 4. PIN Skip karke direct Login karna
+window.skipPINAndLogin = function () {
+    closeLoginModal();
+    if (currentLoginIntent === 'checkout') {
+        openCheckoutPage();
+    } else if (currentLoginIntent === 'profile') {
+        openProfile();
+    }
+}
+
+
+// 🌟 FINAL CHECK: Check if user has PIN before sending OTP
+window.checkMobileAndProceed = async function () {
+    const mobile = document.getElementById('mobileNumber').value.trim();
+    const btn = document.getElementById('sendOtpBtn');
+
+    if (mobile.length !== 10) {
+        window.showToast("Please enter a valid 10-digit mobile number", false);
+        return;
+    }
+
+    btn.innerText = "Checking...";
+    btn.disabled = true;
+
+    try {
+        // Database me check karo ki is number ka koi customer hai aur uska PIN set hai ya nahi
+        const customerRef = doc(db, "customers", mobile);
+        const docSnap = await getDoc(customerRef);
+
+        if (docSnap.exists() && docSnap.data().loginPin) {
+            // 🎉 Purana customer hai aur PIN set hai! PIN wali screen dikhao.
+            document.getElementById('step1-phone').style.display = 'none';
+            document.getElementById('step3-enter-pin').style.display = 'block';
+            document.getElementById('welcomeBackText').innerHTML = `Welcome back, <strong>+91 ${mobile}</strong>!`;
+
+            // Button wapas theek kar do next time ke liye
+            btn.innerText = "Continue";
+            btn.disabled = false;
+        } else {
+            // Naya customer hai ya isne PIN nahi banaya hai. Seedha purana Send OTP chala do.
+            btn.innerText = "Sending OTP..."; // Text change kiya taaki lagge process aage badh raha hai
+            window.sendOTP(); // Yeh aapka original SMS bhejne wala function call kar dega
+        }
+    } catch (error) {
+        console.error("Error checking customer:", error);
+        // Agar net ki dikkat se error aaye, toh saftey ke liye OTP bhej do
+        window.sendOTP();
+    }
+}
+
 
 // 🌟 नया: जब ऐप खुला हो (Foreground), तब नोटिफिकेशन आने पर Toast दिखाना
 onMessage(messaging, (payload) => {
