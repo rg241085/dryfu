@@ -3256,7 +3256,7 @@ window.forgotPIN = function () {
     window.sendOTP();
 }
 
-// 3. Naya PIN Save karna (Naye users ke liye OTP ke baad)
+// 🌟 Naya PIN Save karna (Naye users ke liye)
 window.saveNewPIN = async function () {
     const mobile = document.getElementById('mobileNumber').value.trim();
     const pin1 = document.getElementById('newPinInput').value.trim();
@@ -3279,8 +3279,11 @@ window.saveNewPIN = async function () {
         const customerRef = doc(db, "customers", mobile);
         await updateDoc(customerRef, { loginPin: pin1 });
 
+        // 🚀 SMART SAVE: Naya PIN bante hi flag ko device me save kar do
+        localStorage.setItem('hasPin_' + mobile, 'true');
+
         window.showToast("PIN saved successfully! 🎉", true);
-        window.skipPINAndLogin(); // Save hone ke baad app me entry de do
+        window.skipPINAndLogin();
     } catch (error) {
         console.error("Error saving PIN:", error);
         window.showToast("Failed to save PIN. Please try again.", false);
@@ -3299,7 +3302,6 @@ window.skipPINAndLogin = function () {
     }
 }
 
-
 // 🌟 FINAL CHECK: Check if user has PIN before sending OTP
 window.checkMobileAndProceed = async function () {
     const mobile = document.getElementById('mobileNumber').value.trim();
@@ -3314,28 +3316,45 @@ window.checkMobileAndProceed = async function () {
     btn.disabled = true;
 
     try {
-        // Database me check karo ki is number ka koi customer hai aur uska PIN set hai ya nahi
+        // 🚀 SMART CHECK: Pehle device ki memory (Local Storage) me check karo
+        const hasLocalPin = localStorage.getItem('hasPin_' + mobile);
+
+        if (hasLocalPin === 'true') {
+            // Device ko pata hai ki PIN ban chuka hai, direct PIN screen dikhao
+            document.getElementById('step1-phone').style.display = 'none';
+            document.getElementById('step3-enter-pin').style.display = 'block';
+            document.getElementById('step4-create-pin').style.display = 'none';
+            document.getElementById('welcomeBackText').innerHTML = `Welcome back, <strong>+91 ${mobile}</strong>!`;
+
+            btn.innerText = "Continue";
+            btn.disabled = false;
+            return; // Yahin se wapas mud jao, OTP mat bhejo
+        }
+
+        // Agar local memory me nahi mila, toh database me check karo
         const customerRef = doc(db, "customers", mobile);
         const docSnap = await getDoc(customerRef);
 
         if (docSnap.exists() && docSnap.data().loginPin) {
-            // 🎉 Purana customer hai aur PIN set hai! PIN wali screen dikhao.
+            // Database me mil gaya! Ise local memory me save kar lo future ke liye
+            localStorage.setItem('hasPin_' + mobile, 'true');
+
             document.getElementById('step1-phone').style.display = 'none';
             document.getElementById('step3-enter-pin').style.display = 'block';
-            document.getElementById('step4-create-pin').style.display = 'none'; // Safety ke liye ise band kiya
+            document.getElementById('step4-create-pin').style.display = 'none';
             document.getElementById('welcomeBackText').innerHTML = `Welcome back, <strong>+91 ${mobile}</strong>!`;
 
-            // Button wapas theek kar do next time ke liye
             btn.innerText = "Continue";
             btn.disabled = false;
         } else {
-            // Naya customer hai ya isne PIN nahi banaya hai. Seedha purana Send OTP chala do.
-            btn.innerText = "Sending OTP..."; // Text change kiya taaki lagge process aage badh raha hai
-            window.sendOTP(); // Yeh aapka original SMS bhejne wala function call kar dega
+            // PIN sach me nahi hai, ab normal OTP bhejo
+            btn.innerText = "Sending OTP...";
+            window.sendOTP();
         }
     } catch (error) {
         console.error("Error checking customer:", error);
-        // Agar net ki dikkat se error aaye, toh saftey ke liye OTP bhej do
+        // Agar internet issue ki wajah se check fail ho jaye, toh safety ke liye OTP bhejo
+        btn.innerText = "Sending OTP...";
         window.sendOTP();
     }
 }
