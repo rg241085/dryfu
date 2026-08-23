@@ -123,12 +123,16 @@ function listenProducts() {
             renderCategoryNav();
             window.safeRenderCatalog();
 
-            // 🌟 Yahan par Dynamic Sections aur Categories dono call ho rahi hain
             if (typeof window.renderDynamicHomeSections === 'function') {
                 window.renderDynamicHomeSections();
             }
             if (typeof window.renderHomeCategories === 'function') {
                 window.renderHomeCategories();
+            }
+
+            // 🚨 NAYA FIX: JAISE HI INTERNET SE NAYE PRODUCTS AAYEIN, TURANT CART KO SYNC KAR DO!
+            if (typeof updateCartUI === 'function') {
+                updateCartUI(false); 
             }
         }
     });
