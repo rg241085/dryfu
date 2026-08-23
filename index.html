@@ -215,8 +215,8 @@
                     </div>
                     <div id="recaptcha-container"></div>
 
-                    <button type="button" id="sendOtpBtn" class="btn-checkout btn-full"
-                        onclick="window.checkMobileAndProceed()">Continue</button>
+                    <button type="button" id="sendOtpBtn" class="btn-checkout btn-full" onclick="sendOTP()">Send
+                        OTP</button>
                 </div>
 
                 <div id="step2-otp" style="display: none;">
@@ -242,50 +242,7 @@
                     </p>
                 </div>
 
-                <!-- 🌟 STEP 3: Enter PIN (Purane customer ke liye) -->
-                <div id="step3-enter-pin" style="display: none;">
-                    <p style="color: #666; font-size: 14px; margin-bottom: 20px; text-align: center;"
-                        id="welcomeBackText">Welcome back! Please enter your 4-digit PIN.</p>
-
-                    <input type="password" id="loginPinInput" class="login-input" maxlength="4" placeholder="••••"
-                        style="letter-spacing: 15px; text-align: center; font-size: 24px; margin-bottom: 20px;"
-                        pattern="\d*">
-
-                    <button type="button" id="loginWithPinBtn" class="btn-checkout btn-full"
-                        onclick="window.loginWithPIN()">Login</button>
-
-                    <div style="text-align: center; margin-top: 15px;">
-                        <a href="#" onclick="window.forgotPIN()"
-                            style="font-size: 14px; color: #d9534f; text-decoration: underline; font-weight: bold;">Forgot
-                            PIN? Login with OTP</a>
-                    </div>
-                </div>
-
-                <!-- 🌟 STEP 4: Create PIN (Naye customer ke liye, OTP verify hone ke baad) -->
-                <div id="step4-create-pin" style="display: none;">
-                    <h4 style="text-align: center; color: #111; margin-bottom: 5px; font-weight: 800;">Secure Your
-                        Account 🔒</h4>
-                    <p style="color: #666; font-size: 13px; text-align: center; margin-bottom: 20px;">Create a 4-digit
-                        PIN for superfast login next time.</p>
-
-                    <input type="password" id="newPinInput" class="login-input" maxlength="4"
-                        placeholder="New 4-digit PIN"
-                        style="letter-spacing: 10px; text-align: center; font-size: 18px; margin-bottom: 10px;"
-                        pattern="\d*">
-
-                    <input type="password" id="confirmPinInput" class="login-input" maxlength="4"
-                        placeholder="Confirm PIN"
-                        style="letter-spacing: 10px; text-align: center; font-size: 18px; margin-bottom: 20px;"
-                        pattern="\d*">
-
-                    <button type="button" id="savePinBtn" class="btn-checkout btn-full"
-                        onclick="window.saveNewPIN()">Save PIN & Login</button>
-
-                    <div style="text-align: center; margin-top: 15px;">
-                        <a href="#" onclick="window.skipPINAndLogin()"
-                            style="font-size: 14px; color: #6c757d; text-decoration: underline;">Skip for now</a>
-                    </div>
-                </div>
+                
 
                 <!-- Agar user abhi PIN nahi banana chahta -->
                 <div class="text-center mt-3">

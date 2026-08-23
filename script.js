@@ -405,7 +405,6 @@ window.addToCart = function (productId) {
         const existingItem = cart.find(item => item.id === productId);
         let currentQty = existingItem ? existingItem.quantity : 0;
 
-        // 🌟 Limit and Stock Validation
         if (product.stockQty !== undefined && currentQty >= product.stockQty) {
             window.showToast(`Sorry, only ${product.stockQty} items left in stock!`, false);
             return;
@@ -433,17 +432,13 @@ window.decreaseQuantity = function (productId) {
 }
 
 window.updateProductActionUI = function (productId) {
-    // Ye function ab screen par maujud us product ke sabhi buttons ko dhundh kar update karega
     const actionDivs = document.querySelectorAll(`#action-${productId}, .product-action-ui-${productId}`);
     if (actionDivs.length === 0) return;
 
     const cartItem = cart.find(item => item.id === productId);
 
     actionDivs.forEach(div => {
-        // Check karte hain ki button Catalog page par hai ya Home page slider mein
         let isCatalog = div.id.startsWith('action-');
-
-        // Catalog aur Home page dono ke alag styles
         let btnStyle = isCatalog ?
             "border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 8px; padding: 8px 24px; font-size: 13px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(18,140,126,0.25); transition: 0.2s;" :
             "width: 100%; border: none; color: #fff; background: linear-gradient(135deg, #128c7e, #0f766a); font-weight: 800; border-radius: 6px; padding: 8px; font-size: 12px; cursor: pointer; text-transform: uppercase;";
@@ -455,14 +450,12 @@ window.updateProductActionUI = function (productId) {
         let html = '';
         if (cartItem) {
             if (isCatalog) {
-                // Fixed Pixels for Catalog Page (Taaki chipke nahi)
                 html = `<div style="${qtyStyle}">
                     <button onclick="window.decreaseQuantity('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:18px; font-weight:bold; width:30px; height:100%; cursor:pointer;">-</button>
                     <span style="font-size:14px; font-weight:800; color:#111; width:26px; text-align:center; background:#fff; line-height:34px; border-left:1px solid #128c7e; border-right:1px solid #128c7e;">${cartItem.quantity}</span>
                     <button onclick="window.addToCart('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:18px; font-weight:bold; width:30px; height:100%; cursor:pointer;">+</button>
                 </div>`;
             } else {
-                // Percentages for Home Page Tags
                 html = `<div style="${qtyStyle}">
                     <button onclick="window.decreaseQuantity('${productId}')" style="background:transparent; border:none; color:#128c7e; font-size:16px; font-weight:bold; width:30%; cursor:pointer;">-</button>
                     <span style="font-size:13px; font-weight:800; color:#111; width:40%; text-align:center; background:#fff; line-height:30px; border-left:1px solid #128c7e; border-right:1px solid #128c7e;">${cartItem.quantity}</span>
@@ -472,31 +465,41 @@ window.updateProductActionUI = function (productId) {
         } else {
             html = `<button style="${btnStyle}" onclick="window.addToCart('${productId}')">ADD</button>`;
         }
-
         div.innerHTML = html;
     });
 }
-let lastGiftEligibility = false;
-
-
 
 function updateCartUI(showPopup = false) {
-    // 🌟 NAYA: Har baar update hone par cart ko phone ki memory me save kar do
+    if (typeof allProducts !== 'undefined' && allProducts.length > 0) {
+        let priceChanged = false;
+        cart = cart.filter(cartItem => {
+            if (cartItem.isPromoGift || cartItem.isFreeGift) return true;
+
+            let liveProduct = allProducts.find(p => p.id === cartItem.id);
+            if (!liveProduct) return false;
+
+            if (Number(cartItem.sellingPrice) !== Number(liveProduct.sellingPrice) || Number(cartItem.mrp) !== Number(liveProduct.mrp)) {
+                cartItem.sellingPrice = liveProduct.sellingPrice;
+                cartItem.mrp = liveProduct.mrp;
+                cartItem.name = liveProduct.name;
+                priceChanged = true;
+            }
+            return true;
+        });
+
+        if (priceChanged && showPopup) {
+            window.showToast("Cart prices updated to latest offers! 🔄", true);
+        }
+    }
+
     localStorage.setItem('dryfu_cart', JSON.stringify(cart));
 
-    if (typeof window.evaluateCouponNudges === 'function') {
-        window.evaluateCouponNudges();
-    }
-    // 🚚 NAYA: Is function ko bhi call karein
-    if (typeof window.evaluateDeliveryNudge === 'function') {
-        window.evaluateDeliveryNudge();
-    }
+    if (typeof window.evaluateCouponNudges === 'function') window.evaluateCouponNudges();
+    if (typeof window.evaluateDeliveryNudge === 'function') window.evaluateDeliveryNudge();
 
     const cartCount = document.getElementById('cart-count');
     const cartTotal = document.getElementById('cart-total');
     const modalCartTotal = document.getElementById('modal-cart-total');
-
-    // 🌟 NAYA: Bottom Nav Badge Logic
     const navCartBadge = document.getElementById('nav-cart-badge');
 
     if (cart.length > 0) {
@@ -510,46 +513,36 @@ function updateCartUI(showPopup = false) {
         if (cartTotal) cartTotal.innerText = `₹${totalPrice}`;
         if (modalCartTotal) modalCartTotal.innerText = `₹${totalPrice}`;
 
-        // Naye Red Badge ka number update karna
         if (navCartBadge) {
             navCartBadge.innerText = totalItems;
             navCartBadge.classList.remove('hidden');
-            // Item add hone par chhota sa bounce effect
             navCartBadge.classList.add('pop');
             setTimeout(() => navCartBadge.classList.remove('pop'), 300);
         }
     } else {
-        // Agar cart khali hai toh badge hata do
-        if (navCartBadge) {
-            navCartBadge.classList.add('hidden');
-        }
-
-        // 👇 NAYA FIX: Puraani "window.closeCart()" wali line ko hatakar ye naya code daalein
+        if (navCartBadge) navCartBadge.classList.add('hidden');
         const cartModal = document.getElementById('cart-modal');
         if (cartModal && !cartModal.classList.contains('hidden')) {
-            renderCartItems(); // Empty design screen par dikhane ke liye render call karein
+            if (typeof renderCartItems === 'function') renderCartItems();
         }
     }
 
-    // Puraani niche wali render line aisi hi rahegi:
     const cartModal = document.getElementById('cart-modal');
-    if (cartModal && !cartModal.classList.contains('hidden')) { renderCartItems(); }
+    if (cartModal && !cartModal.classList.contains('hidden')) {
+        if (typeof renderCartItems === 'function') renderCartItems();
+    }
 }
 
 window.openCart = function () {
     document.getElementById('cart-modal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-
-    // Basket open hone par 'cart' icon ko green karo
     window.updateNavHighlight('cart');
-    renderCartItems();
+    if (typeof renderCartItems === 'function') renderCartItems();
 }
 
 window.closeCart = function () {
     document.getElementById('cart-modal').classList.add('hidden');
     document.body.style.overflow = '';
-
-    // Basket band hone par wapas purane tab ko green karo
     window.updateNavHighlight(localStorage.getItem('dryfu_active_tab') || 'home');
 }
 
@@ -593,7 +586,6 @@ function renderCartItems() {
                 <div class="cart-item-title" style="${isGiftOrPromo ? 'color:#065f46; font-weight:bold;' : ''}">
                     ${item.name}
                 </div>
-                <!-- 🌟 NAYA: Weight ko alag div mein properly style kiya hai -->
                 <div class="cart-item-weight" style="font-size: 11px; color: #777; font-weight: 600; margin-top: 3px;">
                     Pack Size: ${item.weight || 'Standard Pack'}
                 </div>
@@ -719,7 +711,6 @@ window.sendOTP = function () {
         });
 }
 
-// 🌟 UPDATE: Direct API Call for Verify OTP
 window.verifyOTP = async function () {
     const otpCode = document.getElementById('otpInput').value.trim();
     const btn = document.getElementById('verifyOtpBtn');
@@ -736,17 +727,15 @@ window.verifyOTP = async function () {
     try {
         const result = await window.confirmationResult.confirm(otpCode);
 
-        // 🚀 NAYA LOGIC: Check karo customer naya hai ya purana
+        // Check karo customer naya hai ya purana
         const customerRef = doc(db, "customers", mobile);
         const docSnap = await getDoc(customerRef);
 
         if (docSnap.exists()) {
             let updateData = { lastLogin: new Date().toISOString() };
-
             if (!docSnap.data().createdAt) {
                 updateData.createdAt = new Date().toISOString();
             }
-
             await updateDoc(customerRef, updateData);
         } else {
             await setDoc(customerRef, {
@@ -763,19 +752,14 @@ window.verifyOTP = async function () {
             window.requestNotificationPermission();
         }
 
+        closeLoginModal();
         btn.innerText = "Verify OTP & Login";
         btn.disabled = false;
 
-        // 🚀 NAYA LOGIC: Agar user ke paas pehle se PIN nahi hai, toh PIN Create screen dikhao
-        if (docSnap.exists() && docSnap.data().loginPin) {
-            // PIN hai, seedha andar bhejo
-            window.skipPINAndLogin();
-        } else {
-            // PIN nahi hai, Create PIN wala form dikhao
-            document.getElementById('step2-otp').style.display = 'none';
-            document.getElementById('step4-create-pin').style.display = 'block';
-            document.getElementById('step3-enter-pin').style.display = 'none'; // Safety ke liye ise band kiya
-            document.getElementById('loginHelpText').innerText = "Almost done!";
+        if (currentLoginIntent === 'checkout') {
+            openCheckoutPage();
+        } else if (currentLoginIntent === 'profile') {
+            openProfile();
         }
     } catch (error) {
         console.error("OTP Verification failed", error);
@@ -1347,10 +1331,16 @@ window.finalizeOrder = async function () {
         let stockUpdatePromises = [];
         for (let item of cart) {
             if (item.isFreeGift) continue;
-            const pRef = doc(db, "products", item.id);
-            stockUpdatePromises.push(
-                updateDoc(pRef, { stockQty: increment(-item.quantity) })
-            );
+
+            // 🚨 NAYA FIX: Promo items ke liye unki asli ID (originalId) use karein
+            let actualProductId = item.isPromoGift ? item.originalId : item.id;
+
+            if (actualProductId && actualProductId.trim() !== "") {
+                const pRef = doc(db, "products", actualProductId);
+                // .catch() lagaya hai taaki agar koi ek item me error aaye, toh poora order fail na ho
+                let updateTask = updateDoc(pRef, { stockQty: increment(-item.quantity) }).catch(err => console.log("Stock update error: ", err));
+                stockUpdatePromises.push(updateTask);
+            }
         }
         // Saare products ka stock ek sath update hoga
         await Promise.all(stockUpdatePromises);
@@ -1727,18 +1717,37 @@ window.toggleOrderDetails = function (orderId, element) {
     }
 }
 
+// 2. REORDER ITEMS (HTML se call hota hai, isliye isme window. lagna zaroori hai)
 window.reorderItems = function (orderId) {
     const order = currentCustomerOrders.find(o => o.id === orderId);
     if (order && order.items) {
+        let itemsAdded = 0;
+
         order.items.forEach(histItem => {
-            const existingItem = cart.find(item => item.id === histItem.id);
-            if (existingItem) { existingItem.quantity += histItem.quantity; }
-            else { cart.push({ ...histItem }); }
-            updateProductActionUI(histItem.id);
+            if (histItem.isPromoGift || histItem.isFreeGift) return;
+
+            const liveProduct = allProducts.find(p => p.id === histItem.id);
+            if (liveProduct) {
+                const existingItem = cart.find(item => item.id === liveProduct.id);
+                if (existingItem) {
+                    existingItem.quantity += histItem.quantity;
+                } else {
+                    cart.push({ ...liveProduct, quantity: histItem.quantity });
+                }
+                if (typeof window.updateProductActionUI === 'function') window.updateProductActionUI(liveProduct.id);
+                itemsAdded++;
+            }
         });
+
         updateCartUI();
-        closeProfile();
-        openCart();
+        if (typeof closeProfile === 'function') closeProfile();
+        if (typeof window.openCart === 'function') window.openCart();
+
+        if (itemsAdded > 0) {
+            window.showToast("Items added to cart with Latest Prices! 🛒", true);
+        } else {
+            window.showToast("Sorry, these items are currently unavailable.", false);
+        }
     }
 }
 
@@ -3202,162 +3211,8 @@ window.requestNotificationPermission = async function () {
     }
 }
 
-// ==========================================
-// 🌟 4-DIGIT PIN SYSTEM LOGIC
-// ==========================================
 
-// 1. PIN ke sath Login karna (Purane users ke liye)
-window.loginWithPIN = async function () {
-    const mobile = document.getElementById('mobileNumber').value.trim();
-    const enteredPin = document.getElementById('loginPinInput').value.trim();
-    const btn = document.getElementById('loginWithPinBtn');
 
-    if (enteredPin.length !== 4) {
-        window.showToast("Please enter a 4-digit PIN", false);
-        return;
-    }
-
-    btn.innerText = "Verifying...";
-    btn.disabled = true;
-
-    try {
-        const customerRef = doc(db, "customers", mobile);
-        const docSnap = await getDoc(customerRef);
-
-        if (docSnap.exists() && docSnap.data().loginPin === enteredPin) {
-            // PIN Match ho gaya! 🎉
-            await updateDoc(customerRef, { lastLogin: new Date().toISOString() });
-
-            loggedInUser = mobile;
-            localStorage.setItem('customerMobile', mobile);
-
-            closeLoginModal();
-            window.showToast("Logged in successfully! 🚀", true);
-
-            if (currentLoginIntent === 'checkout') openCheckoutPage();
-            else if (currentLoginIntent === 'profile') openProfile();
-
-        } else {
-            window.showToast("Incorrect PIN! Try again or use OTP.", false);
-        }
-    } catch (error) {
-        console.error("PIN Login Error:", error);
-        window.showToast("Something went wrong. Please try again.", false);
-    }
-
-    btn.innerText = "Login";
-    btn.disabled = false;
-}
-
-// 2. Forgot PIN (Wapas OTP wali screen par bhejna)
-window.forgotPIN = function () {
-    document.getElementById('step3-enter-pin').style.display = 'none';
-    // OTP bhej do kyunki wo PIN bhool gaya hai
-    window.sendOTP();
-}
-
-// 🌟 Naya PIN Save karna (Naye users ke liye)
-window.saveNewPIN = async function () {
-    const mobile = document.getElementById('mobileNumber').value.trim();
-    const pin1 = document.getElementById('newPinInput').value.trim();
-    const pin2 = document.getElementById('confirmPinInput').value.trim();
-    const btn = document.getElementById('savePinBtn');
-
-    if (pin1.length !== 4 || pin2.length !== 4) {
-        window.showToast("PIN must be exactly 4 digits.", false);
-        return;
-    }
-    if (pin1 !== pin2) {
-        window.showToast("PINs do not match!", false);
-        return;
-    }
-
-    btn.innerText = "Saving...";
-    btn.disabled = true;
-
-    try {
-        const customerRef = doc(db, "customers", mobile);
-        await updateDoc(customerRef, { loginPin: pin1 });
-
-        // 🚀 SMART SAVE: Naya PIN bante hi flag ko device me save kar do
-        localStorage.setItem('hasPin_' + mobile, 'true');
-
-        window.showToast("PIN saved successfully! 🎉", true);
-        window.skipPINAndLogin();
-    } catch (error) {
-        console.error("Error saving PIN:", error);
-        window.showToast("Failed to save PIN. Please try again.", false);
-        btn.innerText = "Save PIN & Login";
-        btn.disabled = false;
-    }
-}
-
-// 4. PIN Skip karke direct Login karna
-window.skipPINAndLogin = function () {
-    closeLoginModal();
-    if (currentLoginIntent === 'checkout') {
-        openCheckoutPage();
-    } else if (currentLoginIntent === 'profile') {
-        openProfile();
-    }
-}
-
-// 🌟 FINAL CHECK: Check if user has PIN before sending OTP
-window.checkMobileAndProceed = async function () {
-    const mobile = document.getElementById('mobileNumber').value.trim();
-    const btn = document.getElementById('sendOtpBtn');
-
-    if (mobile.length !== 10) {
-        window.showToast("Please enter a valid 10-digit mobile number", false);
-        return;
-    }
-
-    btn.innerText = "Checking...";
-    btn.disabled = true;
-
-    try {
-        // 🚀 SMART CHECK: Pehle device ki memory (Local Storage) me check karo
-        const hasLocalPin = localStorage.getItem('hasPin_' + mobile);
-
-        if (hasLocalPin === 'true') {
-            // Device ko pata hai ki PIN ban chuka hai, direct PIN screen dikhao
-            document.getElementById('step1-phone').style.display = 'none';
-            document.getElementById('step3-enter-pin').style.display = 'block';
-            document.getElementById('step4-create-pin').style.display = 'none';
-            document.getElementById('welcomeBackText').innerHTML = `Welcome back, <strong>+91 ${mobile}</strong>!`;
-
-            btn.innerText = "Continue";
-            btn.disabled = false;
-            return; // Yahin se wapas mud jao, OTP mat bhejo
-        }
-
-        // Agar local memory me nahi mila, toh database me check karo
-        const customerRef = doc(db, "customers", mobile);
-        const docSnap = await getDoc(customerRef);
-
-        if (docSnap.exists() && docSnap.data().loginPin) {
-            // Database me mil gaya! Ise local memory me save kar lo future ke liye
-            localStorage.setItem('hasPin_' + mobile, 'true');
-
-            document.getElementById('step1-phone').style.display = 'none';
-            document.getElementById('step3-enter-pin').style.display = 'block';
-            document.getElementById('step4-create-pin').style.display = 'none';
-            document.getElementById('welcomeBackText').innerHTML = `Welcome back, <strong>+91 ${mobile}</strong>!`;
-
-            btn.innerText = "Continue";
-            btn.disabled = false;
-        } else {
-            // PIN sach me nahi hai, ab normal OTP bhejo
-            btn.innerText = "Sending OTP...";
-            window.sendOTP();
-        }
-    } catch (error) {
-        console.error("Error checking customer:", error);
-        // Agar internet issue ki wajah se check fail ho jaye, toh safety ke liye OTP bhejo
-        btn.innerText = "Sending OTP...";
-        window.sendOTP();
-    }
-}
 
 
 // 🌟 नया: जब ऐप खुला हो (Foreground), तब नोटिफिकेशन आने पर Toast दिखाना
